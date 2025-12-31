@@ -1,11 +1,7 @@
 # 👋 Hi there, we are Allumnova!
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/allumnova/allumnova/main/header_branded.png" alt="Allumnova Banner" width="100%">
-</p>
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/allumnova/allumnova/main/logo.jpg" alt="Allumnova Logo" width="200px">
+  <img src="https://raw.githubusercontent.com/allumnova/allumnova/main/logo.jpg" alt="Allumnova Logo" width="600px">
 </p>
 
 ### 🚀 Engineering the Future of AI & Software
