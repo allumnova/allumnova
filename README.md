@@ -1,33 +1,38 @@
 # 👋 Hi there, we are Allumnova!
+
 <p align="center">
-  <img src="https://raw.githubusercontent.com/allumnova/allumnova/main/header.png" alt="Allumnova Banner" width="100%">
+  <img src="https://raw.githubusercontent.com/allumnova/allumnova/main/header_branded.png" alt="Allumnova Banner" width="100%">
 </p>
 
-### 🚀 Innovating the Future of Agentic Workflows
-Allumnova is a tech collective focused on building premium, high-quality digital solutions and agentic AI integrations. We push a new, polished project every single day to explore the boundaries of what's possible.
+<p align="center">
+  <img src="https://raw.githubusercontent.com/allumnova/allumnova/main/logo.jpg" alt="Allumnova Logo" width="200px">
+</p>
+
+### 🚀 Engineering the Future of AI & Software
+Allumnova is a premium software solutions collective. We specialize in building agentic workflows, high-end digital experiences, and scalable software architectures. We contribute and push a high-quality project every single day to showcase our commitment to innovation and craftsmanship.
 
 ---
 
-### 🛠️ What we do
-- **🌐 Web Development**: Crafting premium, high-end web experiences.
-- **🤖 AI & Agents**: Integrating advanced LLMs into daily workflows.
-- **🛠️ Utility Tools**: Building CLI and automation tools for developers.
-- **✨ Daily Experiments**: One high-quality project every day.
+### 🛠️ Our Expertise
+- **🤖 Agentic Workflows**: Bridging the gap between LLMs and real-world utility.
+- **🌐 Software Solutions**: End-to-end development of premium digital products.
+- **🛠️ Developer Utilities**: Polished tools for the modern developer.
+- **✨ Daily High-Quality Projects**: Continuous innovation, daily.
 
 ---
 
 ### 📊 Allumnova Stats
 <p align="left">
-  <img src="https://github-readme-stats.vercel.app/api?username=allumnova&show_icons=true&theme=tokyonight&hide_border=true" alt="GitHub Stats" height="180px">
-  <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=allumnova&layout=compact&theme=tokyonight&hide_border=true" alt="Top Languages" height="180px">
+  <img src="https://github-readme-stats.vercel.app/api?username=allumnova&show_icons=true&theme=blood&hide_border=true&title_color=ff8c00&icon_color=ff8c00&text_color=ffffff&bg_color=0d1117" alt="GitHub Stats" height="180px">
+  <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=allumnova&layout=compact&theme=blood&hide_border=true&title_color=ff8c00&text_color=ffffff&bg_color=0d1117" alt="Top Languages" height="180px">
 </p>
 
 ---
 
-### 📬 Connect with us
+### 📬 Connect with our team
 - **Website**: [allumnova.in](https://allumnova.in)
 - **Email**: [allumnova@gmail.com](mailto:allumnova@gmail.com)
-- **Twitter**: [@allumnova](https://twitter.com/allumnova)
+- **X (Twitter)**: [@allumnova](https://twitter.com/allumnova)
 
 ---
 
