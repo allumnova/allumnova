@@ -34,5 +34,6 @@ jobs:
             echo "SMTP_FROM=${{ secrets.SMTP_FROM }}" >> .env
             echo "FRONTEND_URL=${{ secrets.FRONTEND_URL }}" >> .env
 
-            docker compose down
+            docker compose down --remove-orphans || true
+            docker rm -f allumnova_nginx allumnova_frontend allumnova_backend allumnova_worker allumnova_db allumnova_redis || true
             docker compose up -d --build

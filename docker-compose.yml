@@ -29,6 +29,7 @@ services:
     build: 
       context: ./backend
       dockerfile: Dockerfile
+    container_name: allumnova_backend
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - JWT_SECRET=${JWT_SECRET}
@@ -62,6 +63,7 @@ services:
     build: 
       context: ./backend
       dockerfile: Dockerfile
+    container_name: allumnova_worker
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=redis://redis:6379
