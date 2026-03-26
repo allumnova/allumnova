@@ -1,36 +1,29 @@
-# Stage 1: Dependencies
-FROM node:18-alpine AS deps
-RUN apk add --no-cache libc6-compat
+# Stage 1: Build
+FROM node:20-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
-
-# Stage 2: Builder
-FROM node:18-alpine AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-ENV NEXT_TELEMETRY_DISABLED 1
 RUN npm run build
 
-# Stage 3: Runner
-FROM node:18-alpine AS runner
-WORKDIR /app
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
+# Stage 2: Serve
+FROM nginx:stable-alpine
+WORKDIR /usr/share/nginx/html
+# Remove default nginx static assets
+RUN rm -rf ./*
+# Copy from builder
+COPY --from=builder /app/dist .
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
-COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
-
-USER nextjs
+# Custom Nginx config to listen on 3000 and handle SPA routing
+RUN printf "server { \n\
+    listen 3000; \n\
+    server_name localhost; \n\
+    location / { \n\
+        root /usr/share/nginx/html; \n\
+        index index.html index.htm; \n\
+        try_files \$uri \$uri/ /index.html; \n\
+    } \n\
+}" > /etc/nginx/conf.d/default.conf
 
 EXPOSE 3000
-
-ENV PORT 3000
-
-CMD ["npm", "start"]
+CMD ["nginx", "-g", "daemon off;"]

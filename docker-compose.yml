@@ -3,7 +3,7 @@ services:
     image: nginx:alpine
     container_name: allumnova_nginx
     ports:
-      - "8080:80"
+      - "80:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
@@ -20,8 +20,7 @@ services:
     container_name: allumnova_frontend
     environment:
       - NODE_ENV=production
-    ports:
-      - "3000:3000"
+      - VITE_API_URL=http://72.61.250.54/api
     networks:
       - allumnova-network
     restart: always
@@ -44,7 +43,6 @@ services:
       - FRONTEND_URL=${FRONTEND_URL}
     ports:
       - "5000:5000"
-    # duplicate env_file and ports removed
     depends_on:
       db:
         condition: service_healthy
