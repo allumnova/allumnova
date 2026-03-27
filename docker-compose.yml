@@ -91,7 +91,7 @@ services:
     container_name: allumnova_db
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
       POSTGRES_DB: allumnova
     volumes:
       - allumnova_db_data:/var/lib/postgresql/data
