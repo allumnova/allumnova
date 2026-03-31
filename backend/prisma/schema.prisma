@@ -67,7 +67,7 @@ model User {
   mentorshipReceived MentorshipRequest[]  @relation("AlumniMentorship")
   mentorshipSent     MentorshipRequest[]  @relation("StudentMentorship")
   messages           Message[]
-  notifications      Notification[]
+  notifications      Notification[]       @relation("NotificationRecipient")
   posts              Post[]
   postLikes          PostLike[]
   reportsSent        Report[]
@@ -207,7 +207,7 @@ model Notification {
   message      String
   is_read      Boolean  @default(false)
   createdAt    DateTime @default(now())
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User     @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
   actor        User?    @relation("NotificationActor", fields: [actorId], references: [id])
 }
 
