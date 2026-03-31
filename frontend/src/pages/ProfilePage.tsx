@@ -433,7 +433,7 @@ const ProfilePage = () => {
                                         </div>
                                     </div>
 
-                                    <div className="pt-6 pb-8 flex flex-col sm:flex-row gap-3">
+                                    <div className="pt-6 pb-12 sm:pb-8 flex flex-col sm:flex-row gap-3 mt-auto">
                                         <button 
                                             type="submit"
                                             className="w-full bg-blue-600 text-white font-extrabold py-4 rounded-2xl shadow-xl shadow-blue-500/20 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all order-1 sm:order-2"
@@ -449,6 +449,8 @@ const ProfilePage = () => {
                                             Cancel
                                         </button>
                                     </div>
+                                    {/* Mobile safe area spacer */}
+                                    <div className="h-8 sm:hidden" />
                                 </form>
                             </div>
                         </motion.div>

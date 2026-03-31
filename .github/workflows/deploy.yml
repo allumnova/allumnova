@@ -24,8 +24,9 @@ jobs:
             cd ~/allumnova
             git pull origin main
             
-            # Create directories for SSL
-            mkdir -p certbot/conf certbot/www
+            # Create directories for SSL and Uploads
+            mkdir -p certbot/conf certbot/www backend/uploads/avatars backend/uploads/documents backend/uploads/chat
+            chmod -R 777 backend/uploads
             
             # Create .env file from secrets (Sanitized)
             echo "DATABASE_URL=\"$(echo "${{ secrets.DATABASE_URL }}" | xargs)\"" > .env
