@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'; // Chat Media Support & Emoji Implementation
 import { useAuth } from '../contexts/AuthContext';
 import { useCollege } from '../contexts/CollegeContext';
+import { useSearchParams } from 'react-router-dom';
 import api from '../api/axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Search, MoreVertical, MessageCircle, Users, Sparkles, Phone, Video, Info, Paperclip, Smile, Image as ImageIcon, Check, FileIcon, Download, X, Loader2 } from 'lucide-react';
@@ -51,6 +52,38 @@ const ChatPage = () => {
         fetchConversations();
         fetchConnections();
     }, [user, activeCollege]);
+
+    const startNewChat = React.useCallback((targetUser: any) => {
+        const existing = conversations.find(c => c.users?.some((u: any) => u.id === targetUser.id));
+        if (existing) {
+            setActiveConversation(existing);
+            return;
+        }
+
+        const tempConv = {
+            id: null,
+            users: [targetUser],
+            messages: []
+        };
+        setActiveConversation(tempConv);
+    }, [conversations]);
+
+    // Handle auto-starting chat from URL query
+    const [searchParams] = useSearchParams();
+    useEffect(() => {
+        const targetUserId = searchParams.get('userId');
+        if (targetUserId && connections.length > 0) {
+            const target = connections.find(c => c.userId === targetUserId || c.id === targetUserId);
+            if (target) {
+                // Adapt target object to what startNewChat expects
+                startNewChat({
+                    id: target.userId || target.id,
+                    name: target.name,
+                    avatar: target.avatar
+                });
+            }
+        }
+    }, [searchParams, connections, startNewChat]);
 
     // Socket connection management
     useEffect(() => {
@@ -133,21 +166,14 @@ const ChatPage = () => {
         }
     }, [newMessage]);
 
-    const startNewChat = async (targetUser: any) => {
-        const existing = conversations.find(c => c.users?.[0]?.id === targetUser.id);
-        if (existing) {
-            setActiveConversation(existing);
-            setShowNewChatModal(false);
-            return;
+    const handleDeleteMessage = async (msgId: string) => {
+        if (!window.confirm('Delete this message?')) return;
+        try {
+            await api.delete(`/chat/messages/${msgId}`);
+            setMessages(prev => prev.filter(m => m.id !== msgId));
+        } catch (err) {
+            console.error('Delete failed:', err);
         }
-
-        const tempConv = {
-            id: null,
-            users: [targetUser],
-            messages: []
-        };
-        setActiveConversation(tempConv);
-        setShowNewChatModal(false);
     };
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {

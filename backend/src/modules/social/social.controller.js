@@ -112,3 +112,14 @@ exports.getPendingRequests = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+exports.removeConnection = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const result = await socialService.removeConnection(req.user.userId, userId);
+        res.json({ success: true, count: result.count });
+    } catch (error) {
+        console.error('removeConnection error:', error);
+        res.status(500).json({ message: error.message });
+    }
+};

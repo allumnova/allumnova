@@ -2,13 +2,14 @@ const feedService = require('./feed.service');
 
 const getFeed = async (req, res) => {
     try {
-        const { limit, cursor, type } = req.query;
+        const { limit, cursor, type, hubId } = req.query;
         const posts = await feedService.getPersonalizedFeed(
             req.user.collegeId,
             req.user.userId,
             limit ? parseInt(limit) : 20,
             cursor,
-            type
+            type,
+            hubId
         );
         res.json(posts);
     } catch (error) {

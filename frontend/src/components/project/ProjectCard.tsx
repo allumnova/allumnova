@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Github, ExternalLink, Zap, Users, CheckCircle2, ChevronRight } from 'lucide-react';
+import { Github, ExternalLink, Zap, Users, CheckCircle2, ChevronRight, Edit3, Trash2 } from 'lucide-react';
 import { Project } from '../../types';
+import { useAuth } from '../../contexts/AuthContext';
 import api from '../../api/axios';
 import { clsx } from 'clsx';
 
@@ -9,10 +10,13 @@ interface ProjectCardProps {
     project: Project;
     index: number;
     onUpdate: () => void;
+    onEdit: (project: Project) => void;
 }
 
-const ProjectCard: React.FC<ProjectCardProps> = ({ project, index, onUpdate }) => {
+const ProjectCard: React.FC<ProjectCardProps> = ({ project, index, onUpdate, onEdit }) => {
+    const { user } = useAuth();
     const [hyping, setHyping] = useState(false);
+    const isOwner = user?.id === project.ownerId;
 
     const handleHype = async () => {
         setHyping(true);
@@ -23,6 +27,25 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, index, onUpdate }) =
             console.error('Hype error:', error);
         } finally {
             setHyping(false);
+        }
+    };
+
+    const handleToggleMilestone = async (milestoneId: string, isCompleted: boolean) => {
+        try {
+            await api.patch(`/projects/milestones/${milestoneId}`, { isCompleted });
+            onUpdate();
+        } catch (error) {
+            console.error('Milestone toggle error:', error);
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!window.confirm('Are you sure you want to delete this project?')) return;
+        try {
+            await api.delete(`/projects/${project.id}`);
+            onUpdate();
+        } catch (error) {
+            console.error('Delete project error:', error);
         }
     };
 
@@ -38,10 +61,26 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, index, onUpdate }) =
             transition={{ delay: index * 0.1 }}
             className="group relative bg-white dark:bg-white/5 rounded-[2.5rem] border border-slate-200 dark:border-white/10 overflow-hidden hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500"
         >
-            {/* Status Badge */}
-            <div className="absolute top-6 right-6 z-10">
+            {/* Status Badge & Actions */}
+            <div className="absolute top-6 right-6 z-10 flex items-center gap-2">
+                {isOwner && (
+                    <div className="flex bg-white/10 dark:bg-black/20 backdrop-blur-md rounded-full border border-white/10 p-1 opacity-0 group-hover:opacity-100 transition-all">
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); onEdit(project); }}
+                            className="p-1.5 text-slate-400 hover:text-blue-500 transition-colors"
+                        >
+                            <Edit3 size={14} />
+                        </button>
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); handleDelete(); }}
+                            className="p-1.5 text-slate-400 hover:text-rose-500 transition-colors"
+                        >
+                            <Trash2 size={14} />
+                        </button>
+                    </div>
+                )}
                 <div className={clsx(
-                    "px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border",
+                    "px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm backdrop-blur-sm",
                     project.status === 'IDEA' ? "bg-amber-500/10 text-amber-500 border-amber-500/20" :
                     project.status === 'BUILDING' ? "bg-blue-500/10 text-blue-500 border-blue-500/20" :
                     "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
@@ -53,7 +92,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, index, onUpdate }) =
             <div className="p-8">
                 {/* Author Info */}
                 <div className="flex items-center gap-3 mb-6">
-                    <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-white/10 overflow-hidden">
+                    <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-white/10 overflow-hidden ring-2 ring-slate-100 dark:ring-white/5">
                         {project.owner.avatar && <img src={project.owner.avatar} alt={project.owner.name} className="w-full h-full object-cover" />}
                     </div>
                     <div>
@@ -66,6 +105,31 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, index, onUpdate }) =
                 <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 line-clamp-2 leading-relaxed font-medium">
                     {project.description}
                 </p>
+
+                {/* Milestones List (Toggleable for Owner) */}
+                <div className="space-y-2 mb-6">
+                    {project.milestones.map((m) => (
+                        <div 
+                            key={m.id}
+                            onClick={(e) => {
+                                if (isOwner) {
+                                    e.stopPropagation();
+                                    handleToggleMilestone(m.id, !m.isCompleted);
+                                }
+                            }}
+                            className={clsx(
+                                "flex items-center gap-2 text-[10px] font-bold py-1.5 px-3 rounded-xl border transition-all",
+                                m.isCompleted 
+                                    ? "bg-emerald-500/5 text-emerald-600 border-emerald-500/10" 
+                                    : "bg-slate-50 dark:bg-white/5 text-slate-400 dark:text-slate-500 border-transparent",
+                                isOwner && "hover:border-blue-500/30 cursor-pointer"
+                            )}
+                        >
+                            <CheckCircle2 size={12} className={m.isCompleted ? "text-emerald-500" : "text-slate-300 dark:text-slate-600"} strokeWidth={3} />
+                            <span className="truncate">{m.title}</span>
+                        </div>
+                    ))}
+                </div>
 
                 {/* Looking For */}
                 {project.lookingFor && (

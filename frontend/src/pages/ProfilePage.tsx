@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useCollege } from '../contexts/CollegeContext';
 import api from '../api/axios';
@@ -28,6 +28,7 @@ const ProfilePage = () => {
     });
     const [avatarFile, setAvatarFile] = useState<File | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const navigate = useNavigate();
 
     const isOwnProfile = !userId || userId === 'me' || userId === currentUser?.id;
     const targetId = isOwnProfile ? 'me' : userId;
@@ -248,7 +249,10 @@ const ProfilePage = () => {
                                     Request Mentoring
                                 </button>
                             )}
-                            <button className="w-14 h-14 bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/5 rounded-2xl flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/20 transition-all shadow-sm">
+                            <button 
+                                onClick={() => navigate(`/chat?userId=${profile.id}`)}
+                                className="w-14 h-14 bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/5 rounded-2xl flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/20 transition-all shadow-sm"
+                            >
                                 <MessageCircle size={22} />
                             </button>
                         </>
@@ -272,6 +276,21 @@ const ProfilePage = () => {
                     </div>
                 ))}
             </div>
+            
+            {!isOwnProfile && profile.mutualCount > 0 && (
+                <div className="flex items-center gap-3 px-6 py-4 bg-blue-500/5 border border-blue-500/10 rounded-3xl">
+                    <div className="flex -space-x-2.5">
+                        {profile.mutualConnections?.map((m: any, i: number) => (
+                            <div key={m.id} className="w-8 h-8 rounded-full border-2 border-white dark:border-slate-900 overflow-hidden bg-slate-100 shrink-0 shadow-sm" style={{ zIndex: 3 - i }}>
+                                <img src={m.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${m.name}`} className="w-full h-full object-cover" alt="" />
+                            </div>
+                        ))}
+                    </div>
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                        <span className="text-blue-500">{profile.mutualCount}</span> Mutual connection{profile.mutualCount > 1 ? 's' : ''} including <span className="text-slate-900 dark:text-white">{profile.mutualConnections?.[0]?.name}</span>
+                    </p>
+                </div>
+            )}
 
             {profile.bio && (
                 <div className="bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-white/5 rounded-[2.5rem] p-8">

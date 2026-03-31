@@ -59,9 +59,13 @@ const getUserProfile = async (targetUserId, currentUserId) => {
 
     if (!user) throw new Error('User not found');
 
-    // Fetch connection status
+    // Fetch mutual connections & connection status
     let connectionStatus = null;
+    let mutualConnections = [];
+    let mutualCount = 0;
+
     if (currentUserId && currentUserId !== targetUserId) {
+        // 1. Connection Status
         const connection = await prisma.connection.findFirst({
             where: {
                 OR: [
@@ -77,9 +81,37 @@ const getUserProfile = async (targetUserId, currentUserId) => {
                 id: connection.id
             };
         }
+
+        // 2. Mutual Connections
+        const currentConnections = await prisma.connection.findMany({
+            where: {
+                OR: [
+                    { senderId: currentUserId, status: 'accepted' },
+                    { receiverId: currentUserId, status: 'accepted' }
+                ]
+            },
+            select: { senderId: true, receiverId: true }
+        });
+        const currentUserIds = new Set(currentConnections.flatMap(c => [c.senderId, c.receiverId]).filter(id => id !== currentUserId));
+
+        const mutuals = await prisma.connection.findMany({
+            where: {
+                OR: [
+                    { senderId: targetUserId, status: 'accepted', receiverId: { in: Array.from(currentUserIds) } },
+                    { receiverId: targetUserId, status: 'accepted', senderId: { in: Array.from(currentUserIds) } }
+                ]
+            },
+            include: {
+                sender: { select: { id: true, name: true, avatar: true } },
+                receiver: { select: { id: true, name: true, avatar: true } }
+            }
+        });
+
+        mutualCount = mutuals.length;
+        mutualConnections = mutuals.slice(0, 3).map(m => m.senderId === targetUserId ? m.receiver : m.sender);
     }
 
-    return { ...user, connectionStatus };
+    return { ...user, connectionStatus, mutualConnections, mutualCount };
 };
 
 const updateProfile = async (userId, data) => {

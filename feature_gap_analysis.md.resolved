@@ -1,0 +1,180 @@
+# Allumnova — Feature Gap Analysis
+_Every feature analyzed for complete user loop. Severity: 🔴 Critical / 🟡 Partial / 🟢 Complete_
+
+---
+
+## 1. 🔴 Notifications — Broken Loop
+
+| Step | Status |
+|---|---|
+| See notification in list | ✅ Works |
+| Connect request shows Accept/Decline buttons | ✅ Shows |
+| Clicking Accept/Decline actually does anything | ❌ **Buttons are not wired to any API call** |
+| Likes/comments generate notifications in the list | ❌ **Only connection requests appear; likes and comments missing** |
+| "Mark all as read" button | ❌ **Decorative — no API call behind it** |
+| Clicking a notification navigates to the related post/profile | ❌ **No navigation on click** |
+
+**Loop Break**: User gets notified but can't act on it from the notification panel.
+
+---
+
+## 2. 🔴 Launchpad — Multiple Broken Loops
+
+| Step | Status |
+|---|---|
+| Browse project cards | ✅ Works |
+| Filter by "Seeking Collaborators" | ✅ Works |
+| Search projects by name/tech | ❌ **Search bar is missing entirely** |
+| Hype a project | ✅ Works |
+| Project owner can edit their project | ❌ **No Edit button on cards you own** |
+| Project owner can delete their project | ❌ **No Delete option** |
+| Project owner can update milestone progress | ❌ **No UI for milestone toggling** |
+| Someone interested can contact the creator | ❌ **"Looking for" shows info but clicking it does nothing** |
+| Click project to see full detail page | ❌ **No project detail/single-project page exists** |
+
+**Loop Break**: You can post a project but you can never update it, manage it, or interact with it beyond a hype tap.
+
+---
+
+## 3. 🔴 Mentorship — Exists in Backend, Not in Frontend
+
+| Step | Status |
+|---|---|
+| Backend routes exist (`POST /request`, `GET /requests`, `PATCH /status`) | ✅ Backend ready |
+| Frontend page or UI to request mentorship | ❌ **No page exists** |
+| Request button triggers from Profile page | ❌ **Mentorship modal exists but receives no data on submit** |
+| Alumni can accept/reject mentorship requests | ❌ **No panel exists** |
+| Mentorship chat or session scheduling | ❌ **Completely missing** |
+
+**Loop Break**: This feature is phantom — backend exists, UI starts with a modal, but goes nowhere.
+
+---
+
+## 4. 🟡 Feed — Partial Loop
+
+| Step | Status |
+|---|---|
+| View, create, edit, delete posts | ✅ Complete |
+| Like (Appreciate) a post | ✅ Complete |
+| Comment on a post | ✅ Complete |
+| "Boost" a post | ❌ **Boost button calls the API but the score doesn't actually re-rank the post for others in real-time** |
+| "Share" a post | ❌ **Share icon is entirely decorative — no clipboard copy, no link share** |
+| "Connect" button on PostCard | ❌ **Visible but does nothing (no API call)** |
+| Post type filtering (General/Opportunity/Event/Achievement) | ✅ Works |
+
+**Loop Break**: Social engagement actions (Share, Boost, Connect-from-post) are cosmetic only.
+
+---
+
+## 5. 🟡 Connections — Partial Loop
+
+| Step | Status |
+|---|---|
+| Send connection request from Discover | ✅ Works |
+| Receive and accept/decline from Connections page | ✅ Works |
+| View your accepted connections list | ✅ Works |
+| Click "Message" on a connection | ❌ **Button exists but doesn't open Chat or navigate to Chat with that user pre-selected** |
+| "Remove" a connection | ❌ **Button exists, no API call behind it** |
+| Discover search filters by name/role/batch | ✅ Added recently |
+
+**Loop Break**: You build a network but can't message them from the network screen.
+
+---
+
+## 6. 🟡 Chat — Partial Loop
+
+| Step | Status |
+|---|---|
+| Start a new chat from connections | ✅ Works |
+| Send text messages | ✅ Works |
+| Send image/file in chat | ✅ Works |
+| Real-time message delivery via WebSocket | ✅ Works |
+| Unread message badge | ✅ Works |
+| Search existing conversations | ❌ **Conversation list has no search bar** |
+| Message reactions / reply-to-message / forward | ❌ **Not implemented** |
+| Delete a sent message | ❌ **Not implemented** |
+
+**Loop Break**: Chat is functional but feels bare; one-on-one only, no message management.
+
+---
+
+## 7. 🟡 Profile — Partial Loop
+
+| Step | Status |
+|---|---|
+| View own + public profiles | ✅ Works |
+| Edit bio, name, department | ✅ Works |
+| Upload profile photo | ✅ Works (fixed in latest deploy) |
+| Pulse / status update | ✅ Works |
+| See reputation tier badge | ✅ Works |
+| View own posts tab | ✅ Works |
+| View connections count | ✅ Shows |
+| See what connections a user has (mutual connections) | ❌ **Not implemented** |
+| LinkedIn / portfolio links are saved | ✅ Works |
+| LinkedIn links are clickable on profile view | ✅ Works |
+
+**Loop Break**: Profile is mostly solid. The only major gap is no "mutual connections" display.
+
+---
+
+## 8. 🟡 Discover — Good but Incomplete Loop
+
+| Step | Status |
+|---|---|
+| Browse people in your college | ✅ Works |
+| Filter by Alumni / Student role | ✅ Added recently |
+| Filter by batch year | ✅ Added recently |
+| Search by name | ✅ Added recently |
+| Connect from discover card | ✅ Works |
+| View that person's full profile | ✅ Works (links to profile) |
+| Browse Hubs tab | ✅ Works |
+| Join a Hub | ✅ Works |
+| View members or content inside a Hub after joining | ❌ **No Hub detail/feed page** |
+| Browse Colleges tab | ✅ Works |
+| Join a college | ✅ Works |
+
+**Loop Break**: You can join a Hub but then nothing happens — no Hub feed, members list, or content.
+
+---
+
+## 9. 🟡 Onboarding — Partial Loop
+
+| Step | Status |
+|---|---|
+| Sign up with email & password | ✅ Works |
+| Add department, batch year, role | ✅ Works |
+| Upload document for verification | ✅ Works |
+| Redirect to pending approval page | ✅ Works |
+| Admin receives and approves application | ✅ Works |
+| User **automatically notified** when approved | ❌ **No email/notification sent to user on approval** |
+| User must manually log in again to see they're verified | ❌ **No real-time approval push** |
+
+**Loop Break**: User submits docs, then waits in the dark. No "you've been approved!" notification.
+
+---
+
+## 10. 🟢 Admin Dashboard — Mostly Complete
+
+| Step | Status |
+|---|---|
+| View pending verification requests | ✅ Works |
+| Approve / Reject users | ✅ Works |
+| Manage colleges and requests | ✅ Works |
+| View all users and their roles | ✅ Works |
+| Force-verify or remove a user | ✅ Works |
+
+---
+
+## Priority Summary
+
+| Priority | Feature | Gap |
+|---|---|---|
+| 🔴 Fix Now | Notifications | Wire Accept/Decline buttons to the API |
+| 🔴 Fix Now | Launchpad | Add search, Edit/Delete for owner, Milestones update UI |
+| 🔴 Fix Now | Mentorship | Build frontend UI or remove dead modal |
+| 🟡 Soon | Feed | Wire Share (clipboard link), wire Connect button |
+| 🟡 Soon | Connections | Wire Message → navigate to Chat, wire Remove |
+| 🟡 Soon | Onboarding | Send email/notification when user is approved |
+| 🟡 Soon | Hubs | Build Hub detail/feed page after joining |
+| 🟢 Later | Chat | Add search, message reactions, delete |
+| 🟢 Later | Profile | Add mutual connections |

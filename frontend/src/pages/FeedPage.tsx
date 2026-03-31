@@ -75,16 +75,21 @@ const FeedPage = () => {
                 pages: oldData.pages.map((page: any) =>
                     page.map((post: any) => {
                         if (post.id === postId) {
-                            const field = type === 'appreciate' ? 'appreciationsCount' : 'boostsCount';
-                            const hasField = type === 'appreciate' ? 'hasAppreciated' : 'hasBoosted';
-                            
-                            // Simple toggle logic for demo
-                            const isActive = !post[hasField];
-                            return {
-                                ...post,
-                                [field]: Math.max(0, post[field] + (isActive ? 1 : -1)),
-                                [hasField]: isActive
-                            };
+                            if (type === 'appreciate') {
+                                const hasAppreciated = !post.hasAppreciated;
+                                return {
+                                    ...post,
+                                    _count: { ...post._count, likes: Math.max(0, post._count.likes + (hasAppreciated ? 1 : -1)) },
+                                    hasAppreciated
+                                };
+                            } else if (type === 'boost') {
+                                const metadata = post.metadata || {};
+                                return {
+                                    ...post,
+                                    metadata: { ...metadata, boostCount: (metadata.boostCount || 0) + 1 },
+                                    hasBoosted: true
+                                };
+                            }
                         }
                         return post;
                     })

@@ -1,7 +1,6 @@
-import { Home, Rocket, PlusSquare, MessageCircle, User as UserIcon, Users } from 'lucide-react';
+import { Home, Search, PlusSquare, MessageSquare, User as UserIcon } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { clsx } from 'clsx';
-import React from 'react';
 
 interface BottomNavProps {
     onPostClick?: () => void;
@@ -10,10 +9,10 @@ interface BottomNavProps {
 const BottomNav: React.FC<BottomNavProps> = ({ onPostClick }) => {
     const tabs = [
         { icon: Home, label: 'Feed', path: '/' },
-        { icon: Rocket, label: 'Launchpad', path: '/launchpad' },
+        { icon: Search, label: 'Discover', path: '/discover' },
         { icon: PlusSquare, label: 'Post', path: '/post', isCenter: true },
-        { icon: MessageCircle, label: 'Chat', path: '/chat' },
-        { icon: UserIcon, label: 'Profile', path: '/profile/me' },
+        { icon: MessageSquare, label: 'Chat', path: '/chat' },
+        { icon: UserIcon, label: 'Profile', path: '/profile' },
     ];
 
     return (

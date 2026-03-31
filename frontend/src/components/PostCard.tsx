@@ -49,12 +49,40 @@ const PostCard: React.FC<PostCardProps> = ({ post: initialPost, onAppreciate, on
     }, [post.comments, showComments]);
 
     const handleAppreciate = () => {
-        if (!isLiked) {
-            setIsLiked(true);
+        const newState = !isLiked;
+        setIsLiked(newState);
+        if (newState) {
             setShowFire(true);
             setTimeout(() => setShowFire(false), 1000);
-            onAppreciate(post.id);
         }
+        onAppreciate(post.id);
+    };
+
+    const handleConnect = async () => {
+        if (post.author.connectionStatus || connectionLoading) return;
+        setConnectionLoading(true);
+        try {
+            await api.post('/social/connect', { receiverId: post.author.id });
+            const updated: Post = {
+                ...post,
+                author: {
+                    ...post.author,
+                    connectionStatus: { status: 'pending', isSender: true }
+                }
+            };
+            setPost(updated);
+            if (onUpdate) onUpdate(updated);
+        } catch (err) {
+            console.error('Connect failed:', err);
+        } finally {
+            setConnectionLoading(false);
+        }
+    };
+
+    const handleShare = () => {
+        const url = `${window.location.origin}/feed?post=${post.id}`;
+        navigator.clipboard.writeText(url);
+        alert('Link copied to clipboard!');
     };
 
     const handleComment = async (e: React.FormEvent) => {
@@ -64,9 +92,16 @@ const PostCard: React.FC<PostCardProps> = ({ post: initialPost, onAppreciate, on
             const res = await api.post('/feed/interact', { postId: post.id, type: 'discuss', content: commentText });
             setCommentText('');
             
-            // Optimistic update: Add the new comment to local state immediately
             if (res.data.success && res.data.data) {
-                setLocalComments(prev => [res.data.data, ...prev]);
+                const newComments = [res.data.data, ...localComments];
+                setLocalComments(newComments);
+                const updated = {
+                    ...post,
+                    comments: newComments,
+                    _count: { ...post._count, comments: (post._count?.comments || 0) + 1 }
+                };
+                setPost(updated);
+                if (onUpdate) onUpdate(updated);
             }
             
             if (onDiscuss) onDiscuss(post.id);
@@ -97,7 +132,17 @@ const PostCard: React.FC<PostCardProps> = ({ post: initialPost, onAppreciate, on
         }
     };
 
+    const [connectionLoading, setConnectionLoading] = useState(false);
     const isAuthor = currentUser?.id === post.author.id;
+    const connectionStatus = post.author.connectionStatus;
+
+    const getConnectLabel = () => {
+        if (!connectionStatus) return 'Connect';
+        if (connectionStatus.status === 'self') return 'You';
+        if (connectionStatus.status === 'accepted') return 'Connected';
+        if (connectionStatus.status === 'pending') return connectionStatus.isSender ? 'Pending' : 'Accept';
+        return 'Connect';
+    };
 
     const images = post.media?.filter(m => m.type === 'image') || [];
     const videos = post.media?.filter(m => m.type === 'video') || [];
@@ -164,7 +209,10 @@ const PostCard: React.FC<PostCardProps> = ({ post: initialPost, onAppreciate, on
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    <button className="text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors">
+                    <button 
+                        onClick={handleShare}
+                        className="text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
+                    >
                         <Share2 size={16} />
                     </button>
                     
@@ -330,9 +378,18 @@ const PostCard: React.FC<PostCardProps> = ({ post: initialPost, onAppreciate, on
                         <span className="text-[11px] font-medium">{post._count?.comments || 0}</span>
                     </button>
 
-                    <button className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors">
-                        <UserPlus size={18} />
-                        <span className="text-[11px] font-medium">Connect</span>
+                    <button 
+                        onClick={handleConnect}
+                        disabled={!!connectionStatus || connectionLoading}
+                        className={clsx(
+                            "flex items-center gap-1.5 transition-colors",
+                            connectionStatus?.status === 'accepted' ? "text-emerald-500" : 
+                            connectionStatus?.status === 'pending' ? "text-blue-400 opacity-70" :
+                            "text-slate-500 dark:text-slate-400 hover:text-blue-500"
+                        )}
+                    >
+                        {connectionStatus?.status === 'accepted' ? <CheckCircle2 size={18} /> : <UserPlus size={18} />}
+                        <span className="text-[11px] font-medium">{getConnectLabel()}</span>
                     </button>
                 </div>
 
@@ -340,8 +397,10 @@ const PostCard: React.FC<PostCardProps> = ({ post: initialPost, onAppreciate, on
                     onClick={() => onBoost(post.id)}
                     className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-amber-500 dark:hover:text-amber-400 transition-colors"
                 >
-                    <Zap size={18} />
-                    <span className="text-[11px] font-medium uppercase tracking-wider">Boost</span>
+                    <Zap size={18} className={post.metadata?.boostCount > 0 ? "fill-amber-500 text-amber-500" : ""} />
+                    <span className="text-[11px] font-medium uppercase tracking-wider">
+                        Boost {post.metadata?.boostCount > 0 && `(${post.metadata.boostCount})`}
+                    </span>
                 </button>
             </div>
 

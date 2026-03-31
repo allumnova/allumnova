@@ -81,6 +81,10 @@ export interface Post {
         reputationScore: number;
         tierLevel: string;
         is_verified?: boolean;
+        connectionStatus?: {
+            status: 'pending' | 'accepted' | 'declined' | 'self';
+            isSender?: boolean;
+        } | null;
     };
     collegeId: string;
     metadata?: any;

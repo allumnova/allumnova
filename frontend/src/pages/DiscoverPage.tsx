@@ -4,11 +4,12 @@ import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Building2, Plus, Users } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const DiscoverPage = () => {
     const { activeCollege, refreshColleges } = useCollege();
     const location = useLocation();
+    const navigate = useNavigate();
     const searchParams = new URLSearchParams(location.search);
 
     const [tab, setTab] = useState<'people' | 'colleges' | 'hubs'>(
@@ -243,7 +244,12 @@ const DiscoverPage = () => {
                                                 <span className="px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-bold uppercase tracking-wider">{hub.type}</span>
                                                 <span className="flex items-center gap-1 text-[10px] text-slate-400"><Users size={12} /> {hub._count?.members || 0} members</span>
                                             </div>
-                                            <h3 className="text-[15px] font-bold text-slate-900 dark:text-white mb-2 leading-tight">{hub.name}</h3>
+                                            <h3 
+                                                className="text-[15px] font-bold text-slate-900 dark:text-white mb-2 leading-tight hover:text-blue-500 cursor-pointer transition-colors"
+                                                onClick={() => navigate(`/hubs/${hub.id}`)}
+                                            >
+                                                {hub.name}
+                                            </h3>
                                             <p className="text-[11px] text-slate-500 line-clamp-2 mb-6 h-8">{hub.description || 'No description provided.'}</p>
                                             
                                             <div className="flex -space-x-2 mb-6">

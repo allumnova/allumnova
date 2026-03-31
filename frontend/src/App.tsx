@@ -12,6 +12,8 @@ import OnboardingPage from './pages/OnboardingPage';
 import PendingApprovalPage from './pages/PendingApprovalPage';
 import MainLayout from './components/MainLayout';
 import LaunchpadPage from './pages/LaunchpadPage';
+import MentorshipPage from './pages/MentorshipPage';
+import HubFeedPage from './pages/HubFeedPage';
 import AdminLayout from './components/AdminLayout';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import AdminUsersPage from './pages/AdminUsersPage';
@@ -103,6 +105,8 @@ function App() {
                         <Route path="/profile/:userId" element={<ProfilePage />} />
                         <Route path="/chat" element={<ChatPage />} />
                         <Route path="/launchpad" element={<LaunchpadPage />} />
+                        <Route path="/mentorship" element={<MentorshipPage />} />
+                        <Route path="/hubs/:hubId" element={<HubFeedPage />} />
                     </Route>
 
                     <Route path="/admin" element={

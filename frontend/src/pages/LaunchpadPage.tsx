@@ -14,13 +14,17 @@ const LaunchpadPage = () => {
     const [projects, setProjects] = useState<Project[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingProject, setEditingProject] = useState<Project | undefined>(undefined);
+    const [searchTerm, setSearchTerm] = useState('');
     const [filter, setFilter] = useState<'ALL' | 'COLLABORATORS'>('ALL');
 
-    const fetchProjects = async () => {
+    const fetchProjects = async (search?: string) => {
         if (!activeCollege) return;
         setLoading(true);
         try {
-            const res = await api.get(`/projects/college/${activeCollege.id}`);
+            const res = await api.get(`/projects/college/${activeCollege.id}`, {
+                params: { search: search || undefined }
+            });
             if (res.data.success) {
                 setProjects(res.data.projects);
             }
@@ -32,8 +36,8 @@ const LaunchpadPage = () => {
     };
 
     useEffect(() => {
-        fetchProjects();
-    }, [activeCollege]);
+        fetchProjects(searchTerm);
+    }, [activeCollege, searchTerm]);
 
     const filteredProjects = filter === 'ALL' 
         ? projects 
@@ -72,7 +76,7 @@ const LaunchpadPage = () => {
             </div>
 
             {/* Filters & Search */}
-            <div className="flex flex-wrap items-center gap-4 mb-8">
+            <div className="flex flex-wrap items-center justify-between gap-6 mb-8">
                 <div className="flex bg-white dark:bg-white/5 p-1 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm">
                     <button 
                         onClick={() => setFilter('ALL')}
@@ -87,6 +91,17 @@ const LaunchpadPage = () => {
                         Seeking Collaborators
                     </button>
                 </div>
+
+                <div className="relative group flex-1 max-w-md">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={18} />
+                    <input 
+                        type="text"
+                        placeholder="Search projects or technologies..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl py-3 pl-12 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all dark:text-white"
+                    />
+                </div>
             </div>
 
             {/* Projects Grid */}
@@ -99,7 +114,16 @@ const LaunchpadPage = () => {
             ) : filteredProjects.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {filteredProjects.map((project, idx) => (
-                        <ProjectCard key={project.id} project={project} index={idx} onUpdate={fetchProjects} />
+                        <ProjectCard 
+                            key={project.id} 
+                            project={project} 
+                            index={idx} 
+                            onUpdate={fetchProjects} 
+                            onEdit={(p) => {
+                                setEditingProject(p);
+                                setIsModalOpen(true);
+                            }}
+                        />
                     ))}
                 </div>
             ) : (
@@ -109,16 +133,21 @@ const LaunchpadPage = () => {
                     </div>
                     <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">No projects launched yet</h3>
                     <p className="text-slate-500 dark:text-slate-400 max-w-sm mb-8">Be the first to showcase your innovation and get the community talking.</p>
-                    <button onClick={() => setIsModalOpen(true)} className="text-blue-600 font-bold border-b-2 border-blue-600 pb-1 hover:text-blue-500 transition-all">Start your journey</button>
+                    <button onClick={() => { setEditingProject(undefined); setIsModalOpen(true); }} className="text-blue-600 font-bold border-b-2 border-blue-600 pb-1 hover:text-blue-500 transition-all">Start your journey</button>
                 </div>
             )}
 
             <CreateProjectModal 
                 isOpen={isModalOpen} 
-                onClose={() => setIsModalOpen(false)} 
+                project={editingProject}
+                onClose={() => {
+                    setIsModalOpen(false);
+                    setEditingProject(undefined);
+                }} 
                 onSuccess={() => {
                     setIsModalOpen(false);
-                    fetchProjects();
+                    setEditingProject(undefined);
+                    fetchProjects(searchTerm);
                 }}
             />
         </div>

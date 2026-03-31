@@ -76,6 +76,7 @@ model User {
   projectHypes       ProjectHype[]
   environments       EnvironmentMembership[]
   collegeRequests    CollegeRequest[]
+  actorNotifications Notification[]       @relation("NotificationActor")
 }
 
 model CollegeMembership {
@@ -102,14 +103,16 @@ model Post {
   post_type  String      @default("general")
   visibility String      @default("college")
   authorId   String
-  collegeId  String
-  metadata   Json?
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  comments   Comment[]
-  author     User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  college    College     @relation(fields: [collegeId], references: [id])
-  likes      PostLike[]
+  collegeId     String
+  environmentId String?
+  metadata      Json?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  comments      Comment[]
+  author        User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  college       College     @relation(fields: [collegeId], references: [id])
+  environment   Environment? @relation(fields: [environmentId], references: [id])
+  likes         PostLike[]
   media      PostMedia[]
   savedBy    SavedPost[]
 
@@ -354,6 +357,7 @@ model Environment {
   createdAt    DateTime                @default(now())
   college      College                 @relation(fields: [collegeId], references: [id])
   members      EnvironmentMembership[]
+  posts        Post[]
 }
 
 model EnvironmentMembership {

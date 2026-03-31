@@ -1,25 +1,47 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Rocket, Plus, Trash2, Github, Globe, Search } from 'lucide-react';
+import { X, Rocket, Plus, Trash2, Github, Search } from 'lucide-react';
 import { clsx } from 'clsx';
 import api from '../../api/axios';
 import { useCollege } from '../../contexts/CollegeContext';
+import { Project } from '../../types';
 
 interface CreateProjectModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSuccess: () => void;
+    project?: Project;
 }
 
-const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose, onSuccess }) => {
+const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose, onSuccess, project }) => {
     const { activeCollege } = useCollege();
     const [loading, setLoading] = useState(false);
-    const [title, setTitle] = useState('');
-    const [description, setDescription] = useState('');
-    const [repoUrl, setRepoUrl] = useState('');
-    const [demoUrl, setDemoUrl] = useState('');
-    const [lookingFor, setLookingFor] = useState('');
-    const [milestones, setMilestones] = useState<string[]>(['Initial concept', 'MVP Development']);
+    const [title, setTitle] = useState(project?.title || '');
+    const [description, setDescription] = useState(project?.description || '');
+    const [repoUrl, setRepoUrl] = useState(project?.repoUrl || '');
+    const [demoUrl, setDemoUrl] = useState(project?.demoUrl || '');
+    const [lookingFor, setLookingFor] = useState(project?.lookingFor || '');
+    const [milestones, setMilestones] = useState<string[]>(
+        project?.milestones.map(m => m.title) || ['Initial concept', 'MVP Development']
+    );
+
+    useEffect(() => {
+        if (project) {
+            setTitle(project.title);
+            setDescription(project.description || '');
+            setRepoUrl(project.repoUrl || '');
+            setDemoUrl(project.demoUrl || '');
+            setLookingFor(project.lookingFor || '');
+            setMilestones(project.milestones.map(m => m.title));
+        } else {
+            setTitle('');
+            setDescription('');
+            setRepoUrl('');
+            setDemoUrl('');
+            setLookingFor('');
+            setMilestones(['Initial concept', 'MVP Development']);
+        }
+    }, [project, isOpen]);
 
     const addMilestone = () => setMilestones([...milestones, '']);
     const updateMilestone = (index: number, val: string) => {
@@ -27,7 +49,7 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose
         newMilestones[index] = val;
         setMilestones(newMilestones);
     };
-    const removeMilestone = (index: number) => setMilestones(milestones.filter((_, i) => i !== index));
+    const removeMilestone = (index: number) => setMilestones(milestones.filter((_, i: number) => i !== index));
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -35,15 +57,21 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose
 
         setLoading(true);
         try {
-            await api.post('/projects', {
+            const data = {
                 title,
                 description,
                 repoUrl,
                 demoUrl,
                 lookingFor,
-                milestones: milestones.filter(m => m.trim()),
+                milestones: milestones.filter(m => m.trim()).map(m => ({ title: m, isCompleted: false })),
                 collegeId: activeCollege.id
-            });
+            };
+
+            if (project) {
+                await api.patch(`/projects/${project.id}`, data);
+            } else {
+                await api.post('/projects', data);
+            }
             onSuccess();
             onClose();
         } catch (error) {

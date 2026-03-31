@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Heart, MessageSquare, UserPlus, Zap, Rocket, Bell } from 'lucide-react';
 import { clsx } from 'clsx';
+import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 
 interface Notification {
     id: string;
-    type: 'appreciate' | 'discuss' | 'connect' | 'opportunity';
+    type: 'appreciate' | 'discuss' | 'connect' | 'opportunity' | 'boost';
     user: {
         name: string;
         avatar?: string;
@@ -17,21 +18,63 @@ interface Notification {
 }
 
 const NotificationPage = () => {
+    const navigate = useNavigate();
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [loading, setLoading] = useState(true);
 
+    const handleNotificationClick = (notif: Notification) => {
+        if (notif.type === 'connect') {
+            // For now, if we don't have senderId in the object, 
+            // we can't navigate to the profile.
+        } else if (['appreciate', 'discuss', 'boost'].includes(notif.type)) {
+            // The id here is the reference_id (postId)
+            navigate(`/feed?post=${notif.id}`);
+        }
+    };
+
+    const handleAccept = async (requestId: string) => {
+        try {
+            await api.post('/social/connect/accept', { requestId });
+            setNotifications(prev => prev.filter((n: Notification) => n.id !== requestId));
+        } catch (err) {
+            console.error('Failed to accept request:', err);
+        }
+    };
+
+    const handleDecline = async (requestId: string) => {
+        try {
+            await api.post('/social/connect/decline', { requestId });
+            setNotifications(prev => prev.filter((n: Notification) => n.id !== requestId));
+        } catch (err) {
+            console.error('Failed to decline request:', err);
+        }
+    };
+
+    const handleMarkAllRead = async () => {
+        try {
+            await api.put('/notifications/read-all');
+            // For now, since most are connect requests, we might not want to clear them 
+            // but the UX says "Mark all as read". 
+            // In a unified system, this would change their is_read status.
+            fetchNotifications();
+        } catch (err) {
+            console.error('Failed to mark all as read:', err);
+        }
+    };
+
+    const fetchNotifications = async () => {
+        setLoading(true);
+        try {
+            const res = await api.get('/social/notifications');
+            setNotifications(res.data);
+        } catch (err) {
+            console.error('Failed to fetch notifications:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchNotifications = async () => {
-            setLoading(true);
-            try {
-                const res = await api.get('/social/notifications');
-                setNotifications(res.data);
-            } catch (err) {
-                console.error('Failed to fetch notifications:', err);
-            } finally {
-                setLoading(false);
-            }
-        };
         fetchNotifications();
     }, []);
 
@@ -40,7 +83,10 @@ const NotificationPage = () => {
             <div className="flex items-center justify-between mb-8 px-2">
                 <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight transition-colors">Notifications</h1>
                 {notifications.length > 0 && (
-                    <button className="text-[10px] text-blue-500 dark:text-blue-400 font-bold uppercase tracking-widest bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20">
+                    <button 
+                        onClick={handleMarkAllRead}
+                        className="text-[10px] text-blue-500 dark:text-blue-400 font-bold uppercase tracking-widest bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20 hover:bg-blue-500/20 transition-all"
+                    >
                         Mark all as read
                     </button>
                 )}
@@ -68,8 +114,9 @@ const NotificationPage = () => {
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: idx * 0.1 }}
                             key={notif.id}
+                            onClick={() => handleNotificationClick(notif)}
                             className={clsx(
-                                "group relative overflow-hidden rounded-[2rem] p-5 transition-all",
+                                "group relative overflow-hidden rounded-[2rem] p-5 transition-all cursor-pointer",
                                 notif.isImportant
                                     ? "bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-blue-500/20"
                                     : "bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-white/5 hover:bg-slate-50 dark:hover:bg-slate-900/80 shadow-sm dark:shadow-none"
@@ -104,10 +151,16 @@ const NotificationPage = () => {
 
                                     {notif.type === 'connect' && (
                                         <div className="flex gap-2 mt-3">
-                                            <button className="flex-1 bg-blue-500 text-white text-[10px] font-bold py-2 rounded-xl hover:scale-[1.02] active:scale-95 transition-all">
+                                            <button 
+                                                onClick={() => handleAccept(notif.id)}
+                                                className="flex-1 bg-blue-500 text-white text-[10px] font-bold py-2 rounded-xl hover:scale-[1.02] active:scale-95 transition-all"
+                                            >
                                                 Accept
                                             </button>
-                                            <button className="flex-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-bold py-2 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
+                                            <button 
+                                                onClick={() => handleDecline(notif.id)}
+                                                className="flex-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-bold py-2 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
+                                            >
                                                 Decline
                                             </button>
                                         </div>

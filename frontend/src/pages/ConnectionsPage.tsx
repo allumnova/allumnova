@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useCollege } from '../contexts/CollegeContext';
 import api from '../api/axios';
@@ -71,6 +71,18 @@ const ConnectionsPage = () => {
             await api.post('/social/connect', { receiverId: userId });
             setDiscoverUsers(prev => prev.filter(u => u.id !== userId));
             // Trigger refresh of pending outgoing
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const navigate = useNavigate();
+
+    const handleRemoveConnection = async (targetId: string) => {
+        if (!window.confirm('Are you sure you want to remove this connection?')) return;
+        try {
+            await api.delete(`/social/connections/${targetId}`);
+            setConnections(prev => prev.filter(c => c.userId !== targetId));
         } catch (err) {
             console.error(err);
         }
@@ -182,8 +194,18 @@ const ConnectionsPage = () => {
                                         <Link to={`/profile/${conn.userId}`} className="text-base font-bold text-slate-900 dark:text-white mb-1 hover:text-blue-500 transition-colors block">{conn.name}</Link>
                                         <p className="text-xs text-slate-500 mb-6">{conn.role || 'Student'}</p>
                                         <div className="flex gap-2">
-                                            <button className="flex-1 bg-blue-600 text-white text-xs font-bold py-2.5 rounded-2xl shadow-lg shadow-blue-500/20 hover:scale-[1.02] active:scale-95 transition-all">Message</button>
-                                            <button className="px-4 bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 rounded-2xl hover:bg-rose-500/10 hover:text-rose-500 transition-all">Remove</button>
+                                            <button 
+                                                onClick={() => navigate(`/chat?userId=${conn.userId}`)}
+                                                className="flex-1 bg-blue-600 text-white text-xs font-bold py-2.5 rounded-2xl shadow-lg shadow-blue-500/20 hover:scale-[1.02] active:scale-95 transition-all"
+                                            >
+                                                Message
+                                            </button>
+                                            <button 
+                                                onClick={() => handleRemoveConnection(conn.userId)}
+                                                className="px-4 bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 rounded-2xl hover:bg-rose-500/10 hover:text-rose-500 transition-all"
+                                            >
+                                                Remove
+                                            </button>
                                         </div>
                                     </div>
                                 ))}

@@ -15,10 +15,33 @@ const projectController = {
     getCollegeProjects: async (req, res) => {
         try {
             const { collegeId } = req.params;
-            const projects = await projectService.getCollegeProjects(collegeId, req.user?.id);
+            const { search } = req.query;
+            const projects = await projectService.getCollegeProjects(collegeId, req.user?.userId, search);
             res.json({ success: true, projects });
         } catch (error) {
             console.error('Get projects error:', error);
+            res.status(500).json({ success: false, message: error.message });
+        }
+    },
+
+    updateProject: async (req, res) => {
+        try {
+            const { projectId } = req.params;
+            const project = await projectService.updateProject(projectId, req.user.userId, req.body);
+            res.json({ success: true, project });
+        } catch (error) {
+            console.error('Update project error:', error);
+            res.status(500).json({ success: false, message: error.message });
+        }
+    },
+
+    deleteProject: async (req, res) => {
+        try {
+            const { projectId } = req.params;
+            const result = await projectService.deleteProject(projectId, req.user.userId);
+            res.json(result);
+        } catch (error) {
+            console.error('Delete project error:', error);
             res.status(500).json({ success: false, message: error.message });
         }
     },

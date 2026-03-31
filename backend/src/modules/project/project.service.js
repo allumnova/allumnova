@@ -32,9 +32,19 @@ const projectService = {
         });
     },
 
-    getCollegeProjects: async (collegeId, userId = null) => {
+    getCollegeProjects: async (collegeId, userId = null, searchTerm = null) => {
+        const where = { collegeId };
+        
+        if (searchTerm) {
+            where.OR = [
+                { title: { contains: searchTerm, mode: 'insensitive' } },
+                { description: { contains: searchTerm, mode: 'insensitive' } },
+                { lookingFor: { contains: searchTerm, mode: 'insensitive' } }
+            ];
+        }
+
         const projects = await prisma.project.findMany({
-            where: { collegeId },
+            where,
             include: {
                 owner: {
                     select: {
@@ -66,6 +76,41 @@ const projectService = {
                 hasHyped
             };
         });
+    },
+
+    updateProject: async (projectId, userId, updates) => {
+        const project = await prisma.project.findUnique({ where: { id: projectId } });
+        if (!project) throw new Error('Project not found');
+        if (project.ownerId !== userId) throw new Error('Unauthorized to edit this project');
+
+        const { milestones, ...projectData } = updates;
+
+        // Handle milestones update if provided
+        if (milestones) {
+            await prisma.projectMilestone.deleteMany({ where: { projectId } });
+            await prisma.projectMilestone.createMany({
+                data: milestones.map(m => ({ 
+                    projectId, 
+                    title: m.title, 
+                    isCompleted: m.isCompleted || false 
+                }))
+            });
+        }
+
+        return await prisma.project.update({
+            where: { id: projectId },
+            data: projectData,
+            include: { milestones: true }
+        });
+    },
+
+    deleteProject: async (projectId, userId) => {
+        const project = await prisma.project.findUnique({ where: { id: projectId } });
+        if (!project) throw new Error('Project not found');
+        if (project.ownerId !== userId) throw new Error('Unauthorized to delete this project');
+
+        await prisma.project.delete({ where: { id: projectId } });
+        return { success: true };
     },
 
     addHype: async (projectId, userId) => {

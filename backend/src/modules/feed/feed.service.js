@@ -26,10 +26,11 @@ const calculatePostScore = async (post, currentUserId = null) => {
     const { likes, comments, author, createdAt, post_type: type } = post;
     const likesCount = likes?.length || 0;
     const commentsCount = comments?.length || 0;
+    const boostCount = (post.metadata || {}).boostCount || 0;
 
     // 1. Engagement (40%)
-    // Weights: Like=1, Comment=2 (PRD implied)
-    const rawEngagementScore = (likesCount * 1) + (commentsCount * 2);
+    // Weights: Like=1, Comment=2, Boost=10
+    const rawEngagementScore = (likesCount * 1) + (commentsCount * 2) + (boostCount * 10);
     const engagementScore = Math.min(rawEngagementScore * 10, 100) * 0.4;
 
     // 2. Relevance (30%)
@@ -94,21 +95,33 @@ const updatePostInFeedCache = async (collegeId, postId) => {
             await redisClient.zAdd(`feed:college:${collegeId}:type:${post.post_type}`, [{ score, value: postId }]);
         }
 
+        // Update hub-specific feed
+        if (post.environmentId) {
+            await redisClient.zAdd(`feed:hub:${post.environmentId}`, [{ score, value: postId }]);
+            // Broadcast to hub specific room if needed
+            socketUtil.sendToRoom(`hub:${post.environmentId}`, 'ranking_update', { postId, score });
+        }
+
         // Broadcast ranking update to the college room
         socketUtil.sendToCollege(collegeId, 'ranking_update', { postId, score });
     }
 };
 
-const getPersonalizedFeed = async (collegeId, userId, limit = 20, cursor, type = null) => {
-    // We use a separate cache key if a type filter is applied to keep performance high
-    const cacheKey = type && type !== 'null' ? `feed:college:${collegeId}:type:${type}` : `feed:college:${collegeId}`;
-    console.log(`[DEBUG] Feed Request - College: ${collegeId}, User: ${userId}, Type: ${type}, CacheKey: ${cacheKey}`);
+const getPersonalizedFeed = async (collegeId, userId, limit = 20, cursor, type = null, hubId = null) => {
+    // Cache Key priority: Hub > Type > Main
+    let cacheKey = `feed:college:${collegeId}`;
+    if (hubId && hubId !== 'null') {
+        cacheKey = `feed:hub:${hubId}`;
+    } else if (type && type !== 'null') {
+        cacheKey = `feed:college:${collegeId}:type:${type}`;
+    }
+    
+    console.log(`[DEBUG] Feed Request - College: ${collegeId}, User: ${userId}, Hub: ${hubId}, Type: ${type}, CacheKey: ${cacheKey}`);
 
     let postIds;
+    // ... (logic to get postIds from Redis remains same as it uses dynamic cacheKey)
     if (cursor) {
-        // Find the rank of the cursor post to know where to start
         const rank = await redisClient.zRevRank(cacheKey, cursor);
-        console.log(`[DEBUG] Cursor ${cursor} Rank: ${rank}`);
         if (rank !== null) {
             postIds = await redisClient.zRange(cacheKey, rank + 1, rank + limit, { REV: true });
         } else {
@@ -117,11 +130,11 @@ const getPersonalizedFeed = async (collegeId, userId, limit = 20, cursor, type =
     } else {
         postIds = await redisClient.zRange(cacheKey, 0, limit - 1, { REV: true });
     }
-    console.log(`[DEBUG] Post IDs from Cache: ${postIds.length}`);
 
     if (postIds.length === 0 && !cursor) {
         const whereClause = { collegeId };
-        if (type && type !== 'null') whereClause.post_type = type;
+        if (hubId && hubId !== 'null') whereClause.environmentId = hubId;
+        else if (type && type !== 'null') whereClause.post_type = type;
 
         const posts = await prisma.post.findMany({
             where: whereClause,
@@ -192,7 +205,38 @@ const getPersonalizedFeed = async (collegeId, userId, limit = 20, cursor, type =
 
     // Sort according to Redis order
     const idMap = postIds.reduce((acc, id, idx) => ({ ...acc, [id]: idx }), {});
-    return posts.sort((a, b) => idMap[a.id] - idMap[b.id]);
+    const sortedPosts = posts.sort((a, b) => idMap[a.id] - idMap[b.id]);
+
+    // Enrich with connection status if userId is provided
+    if (userId) {
+        return await Promise.all(sortedPosts.map(async (post) => {
+            if (post.author.id === userId) {
+                return { ...post, author: { ...post.author, connectionStatus: { status: 'self' } } };
+            }
+
+            const connection = await prisma.connection.findFirst({
+                where: {
+                    OR: [
+                        { senderId: userId, receiverId: post.author.id },
+                        { senderId: post.author.id, receiverId: userId }
+                    ]
+                }
+            });
+
+            return {
+                ...post,
+                author: {
+                    ...post.author,
+                    connectionStatus: connection ? {
+                        status: connection.status,
+                        isSender: connection.senderId === userId
+                    } : null
+                }
+            };
+        }));
+    }
+
+    return sortedPosts;
 };
 
 const createPost = async (userId, collegeId, postData) => {
@@ -252,8 +296,18 @@ const interact = async (userId, postId, type, content = null) => {
             }
         });
     } else if (type === 'boost') {
-        interaction = await prisma.post.findUnique({
+        const post = await prisma.post.findUnique({ where: { id: postId } });
+        if (!post) throw new Error('Post not found');
+        
+        const metadata = typeof post.metadata === 'object' ? post.metadata : {};
+        interaction = await prisma.post.update({
             where: { id: postId },
+            data: {
+                metadata: {
+                    ...metadata,
+                    boostCount: ((metadata || {}).boostCount || 0) + 1
+                }
+            },
             include: { author: true }
         });
         interaction = { ...interaction, post: interaction };
@@ -281,7 +335,7 @@ const interact = async (userId, postId, type, content = null) => {
         };
 
         await notificationService.createNotification(interaction.post.authorId, type, {
-            targetId: postId,
+            reference_id: postId,
             triggerUser: user.name,
             message: `${user.name} ${descriptions[type] || 'interacted with your post'}`
         });

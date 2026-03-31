@@ -178,33 +178,73 @@ exports.listConnections = async (userId) => {
         }
     });
 
-    return accepted.map(conn => conn.senderId === userId ? conn.receiver : conn.sender);
+    return accepted.map(conn => {
+        const user = conn.senderId === userId ? conn.receiver : conn.sender;
+        return {
+            id: conn.id, // connection id
+            userId: user.id, // target user id
+            name: user.name,
+            avatar: user.avatar
+        };
+    });
+};
+
+exports.removeConnection = async (userId, targetId) => {
+    return await prisma.connection.deleteMany({
+        where: {
+            OR: [
+                { senderId: userId, receiverId: targetId, status: 'accepted' },
+                { senderId: targetId, receiverId: userId, status: 'accepted' }
+            ]
+        }
+    });
 };
 
 exports.getNotifications = async (userId) => {
-    const pendingRequests = await prisma.connection.findMany({
-        where: {
-            receiverId: userId,
-            status: 'pending'
-        },
-        include: {
-            sender: { select: { id: true, name: true, avatar: true } }
-        },
+    const notifications = await prisma.notification.findMany({
+        where: { userId },
         orderBy: { createdAt: 'desc' },
         take: 20
     });
 
-    return pendingRequests.map(req => ({
-        id: req.id,
-        type: 'connect',
-        user: {
-            name: req.sender?.name || 'Unknown User',
-            avatar: req.sender?.avatar || null
-        },
-        content: `${req.sender?.name || 'Someone'} wants to connect with you`,
-        time: new Date(req.createdAt).toLocaleDateString(),
-        isImportant: true
+    const enriched = await Promise.all(notifications.map(async (notif) => {
+        let actorInfo = { name: 'System', avatar: null };
+        let type = notif.type;
+
+        // Map backend types to frontend types if they differ
+        if (type === 'connect_request') type = 'connect';
+        if (type === 'appreciate') type = 'appreciate';
+        if (type === 'discuss') type = 'discuss';
+
+        // Extract actor info from message or reference_id
+        if (notif.type === 'connect_request' && notif.reference_id) {
+            const conn = await prisma.connection.findUnique({
+                where: { id: notif.reference_id },
+                include: { sender: { select: { name: true, avatar: true } } }
+            });
+            if (conn?.sender) {
+                actorInfo = conn.sender;
+            }
+        } else if (notif.message.includes(' appreciated ') || notif.message.includes(' commented ') || notif.message.includes(' boosted ')) {
+            // Very basic extraction of actor name from message for now since schema change failed
+            const name = notif.message.split(' ')[0];
+            actorInfo = { name, avatar: null };
+        }
+
+        return {
+            id: notif.reference_id || notif.id, // Use reference_id for actions (requestId)
+            type: type,
+            user: {
+                name: actorInfo.name,
+                avatar: actorInfo.avatar
+            },
+            content: notif.message,
+            time: new Date(notif.createdAt).toLocaleDateString(),
+            isImportant: !notif.is_read
+        };
     }));
+
+    return enriched;
 };
 
 exports.listPendingRequests = async (userId) => {
