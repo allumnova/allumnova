@@ -16,6 +16,7 @@ const DiscoverPage = () => {
         searchParams.get('tab') === 'hubs' ? 'hubs' : 'people'
     );
     const [isSuggesting, setIsSuggesting] = useState(searchParams.get('suggest') === 'true');
+    const [colleges, setColleges] = useState<any[]>([]);
     const [hubs, setHubs] = useState<any[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
