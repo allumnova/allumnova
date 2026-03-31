@@ -8,6 +8,7 @@ router.get('/', authenticate, profileController.getMyProfile);
 router.get('/me', authenticate, profileController.getMyProfile);
 router.patch('/me', authenticate, upload.single('avatar'), profileController.updateMyProfile);
 router.patch('/', authenticate, upload.single('avatar'), profileController.updateMyProfile);
+router.patch('', authenticate, upload.single('avatar'), profileController.updateMyProfile);
 router.post('/onboarding', authenticate, upload.single('document'), profileController.completeOnboarding);
 router.get('/admin/pending-verifications', authenticate, profileController.getPendingVerifications);
 router.post('/admin/verify-user', authenticate, profileController.verifyUser);
