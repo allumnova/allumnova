@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useCollege } from '../contexts/CollegeContext';
 import api from '../api/axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Settings, Shield, Award, Grid, Clock, UserPlus, User as UserIcon, MessageCircle, Check, X, Calendar, MapPin, Mail, Linkedin, Camera, Save, Sparkles, GraduationCap } from 'lucide-react';
+import { Settings, Shield, Award, Grid, Clock, UserPlus, User as UserIcon, MessageCircle, Check, X, Calendar, MapPin, Mail, Linkedin, Camera, Save, Sparkles, GraduationCap, CheckCircle2 } from 'lucide-react';
 import PostCard from '../components/PostCard';
 import MentorshipRequestModal from '../components/profile/MentorshipRequestModal';
 import { Post } from '../types';
@@ -173,6 +173,9 @@ const ProfilePage = () => {
                 <div className="space-y-1">
                     <div className="flex items-center justify-center gap-2">
                         <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{profile.name}</h1>
+                        {profile.is_verified && (
+                            <CheckCircle2 size={24} className="text-blue-500 fill-blue-500/10" />
+                        )}
                         <div className={clsx(
                             "p-1 px-2.5 text-[10px] font-black uppercase tracking-widest rounded-full border flex items-center gap-1.5 shadow-sm",
                             getTierStyle(profile.tierLevel || 'Echo')

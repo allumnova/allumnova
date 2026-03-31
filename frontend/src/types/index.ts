@@ -80,6 +80,7 @@ export interface Post {
         avatar?: string;
         reputationScore: number;
         tierLevel: string;
+        is_verified?: boolean;
     };
     collegeId: string;
     metadata?: any;

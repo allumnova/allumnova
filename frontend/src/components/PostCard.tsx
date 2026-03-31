@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Post } from '../types';
-import { Heart, MessageSquare, Share2, Rocket, Zap, UserPlus, FileText, Play, ChevronLeft, ChevronRight, Send, Calendar, Trophy, Briefcase, MoreHorizontal, Edit2, Trash2, AlertTriangle } from 'lucide-react';
+import { Heart, MessageSquare, Share2, Rocket, Zap, UserPlus, FileText, Play, ChevronLeft, ChevronRight, Send, Calendar, Trophy, Briefcase, MoreHorizontal, Edit2, Trash2, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { clsx } from 'clsx';
 import api from '../api/axios';
@@ -13,6 +13,7 @@ interface PostCardProps {
     onAppreciate: (id: string) => void;
     onBoost: (id: string) => void;
     onDiscuss?: (id: string) => void;
+    onUpdate?: (updatedPost: any) => void;
 }
 
 const typeConfigs = {
@@ -22,7 +23,8 @@ const typeConfigs = {
     general: { label: 'Thought', color: 'text-slate-500', icon: 'FileText', bgColor: 'bg-slate-500/10' }
 };
 
-const PostCard: React.FC<PostCardProps> = ({ post, onAppreciate, onBoost, onDiscuss }) => {
+const PostCard: React.FC<PostCardProps> = ({ post: initialPost, onAppreciate, onBoost, onDiscuss, onUpdate }) => {
+    const [post, setPost] = useState(initialPost);
     const [isLiked, setIsLiked] = useState(false);
     const [showFire, setShowFire] = useState(false);
     const [activeImageIndex, setActiveImageIndex] = useState(0);
@@ -33,6 +35,11 @@ const PostCard: React.FC<PostCardProps> = ({ post, onAppreciate, onBoost, onDisc
     const [showComments, setShowComments] = useState(false);
     const [commentText, setCommentText] = useState('');
     const [localComments, setLocalComments] = useState<any[]>([]);
+
+    // Sync local post state when prop changes
+    useEffect(() => {
+        setPost(initialPost);
+    }, [initialPost]);
 
     // Sync local comments when post changes or comments are opened
     useEffect(() => {
@@ -143,6 +150,9 @@ const PostCard: React.FC<PostCardProps> = ({ post, onAppreciate, onBoost, onDisc
                     <div>
                         <div className="flex items-center gap-2">
                             <Link to={`/profile/${post.author.id}`} className="font-semibold text-slate-900 dark:text-white text-sm transition-colors hover:text-blue-500">{post.author.name}</Link>
+                            {post.author.is_verified && (
+                                <CheckCircle2 size={14} className="text-blue-500 fill-blue-500/10" />
+                            )}
                             <div className={clsx(
                                 "flex items-center gap-1 px-2 py-0.5 rounded-full border text-[9px] font-bold uppercase tracking-wider",
                                 getTierStyle(post.author.tierLevel || 'Echo')
@@ -383,8 +393,8 @@ const PostCard: React.FC<PostCardProps> = ({ post, onAppreciate, onBoost, onDisc
                 isOpen={showEditModal}
                 onClose={() => setShowEditModal(false)}
                 onSuccess={(updated) => {
-                    // Update current post data locally
-                    Object.assign(post, updated);
+                    setPost(updated);
+                    if (onUpdate) onUpdate(updated);
                     setShowEditModal(false);
                 }}
                 post={post}

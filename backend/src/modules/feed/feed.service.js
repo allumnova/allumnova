@@ -171,7 +171,9 @@ const getPersonalizedFeed = async (collegeId, userId, limit = 20, cursor, type =
                     id: true,
                     name: true,
                     avatar: true,
-                    reputationScore: true
+                    reputationScore: true,
+                    tierLevel: true,
+                    is_verified: true
                 }
             },
             media: true,
@@ -299,7 +301,18 @@ const updatePost = async (userId, postId, updates) => {
             content: updates.content || post.content,
             metadata: updates.metadata ? { ...(post.metadata || {}), ...updates.metadata } : post.metadata
         },
-        include: { author: true }
+        include: { 
+            author: {
+                select: {
+                    id: true,
+                    name: true,
+                    avatar: true,
+                    reputationScore: true,
+                    tierLevel: true,
+                    is_verified: true
+                }
+            }
+        }
     });
 
     await updatePostInFeedCache(post.collegeId, postId);

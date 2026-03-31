@@ -26,6 +26,8 @@ const getUserProfile = async (targetUserId, currentUserId) => {
             department: true,
             reputationScore: true,
             role: true,
+            tierLevel: true,
+            is_verified: true,
             createdAt: true,
             colleges: {
                 include: {
@@ -39,7 +41,16 @@ const getUserProfile = async (targetUserId, currentUserId) => {
                 orderBy: { createdAt: 'desc' },
                 take: 10,
                 include: {
-                    author: { select: { name: true, avatar: true } },
+                    author: { 
+                        select: { 
+                            id: true,
+                            name: true, 
+                            avatar: true,
+                            reputationScore: true,
+                            tierLevel: true,
+                            is_verified: true
+                        } 
+                    },
                     _count: { select: { likes: true, comments: true } }
                 }
             }
