@@ -37,13 +37,14 @@ app.use(morgan('dev'));
 app.use('/uploads', express.static('uploads'));
 
 // Routes
+// High Priority API Routes
+app.patch('/api/profile', authenticate, upload.single('avatar'), profileController.updateMyProfile);
+app.patch('/api/profile/me', authenticate, upload.single('avatar'), profileController.updateMyProfile);
+
 app.use('/api/auth', authRoutes);
 app.use('/api/colleges', collegeRoutes);
 app.use('/api/feed', feedRoutes);
 app.use('/api/profile', profileRoutes);
-// Direct aliases for profile updates to bypass router mounting ambiguities on some environments
-app.patch('/api/profile', authenticate, upload.single('avatar'), profileController.updateMyProfile);
-app.patch('/api/profile/me', authenticate, upload.single('avatar'), profileController.updateMyProfile);
 
 app.use('/api/social', socialRoutes);
 app.use('/api/chat', chatRoutes);
