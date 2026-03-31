@@ -24,6 +24,9 @@ const notificationRoutes = require('./modules/notification/notification.routes')
 const adminRoutes = require('./modules/admin/admin.routes');
 const environmentRoutes = require('./modules/environment/environment.routes');
 const projectRoutes = require('./modules/project/project.routes');
+const profileController = require('./modules/profile/profile.controller');
+const { authenticate } = require('./middlewares/auth.middleware');
+const upload = require('./utils/upload');
 
 // Middlewares
 app.use(helmet());
@@ -38,6 +41,10 @@ app.use('/api/auth', authRoutes);
 app.use('/api/colleges', collegeRoutes);
 app.use('/api/feed', feedRoutes);
 app.use('/api/profile', profileRoutes);
+// Direct aliases for profile updates to bypass router mounting ambiguities on some environments
+app.patch('/api/profile', authenticate, upload.single('avatar'), profileController.updateMyProfile);
+app.patch('/api/profile/me', authenticate, upload.single('avatar'), profileController.updateMyProfile);
+
 app.use('/api/social', socialRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/notifications', notificationRoutes);
