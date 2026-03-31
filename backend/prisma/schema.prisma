@@ -193,7 +193,7 @@ model Message {
   media_url      String?
   senderId       String
   conversationId String
-  createdAt      DateTime     @default(now())
+  createdAt      DateTime     @now()
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   sender         User         @relation(fields: [senderId], references: [id])
 }
