@@ -354,7 +354,7 @@ const ProfilePage = () => {
             {/* Edit Profile Modal */}
             <AnimatePresence>
                 {isEditing && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center sm:p-4">
                         <motion.div 
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
@@ -366,7 +366,7 @@ const ProfilePage = () => {
                             initial={{ opacity: 0, scale: 0.95, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-[2.5rem] overflow-hidden relative shadow-2xl border border-slate-200 dark:border-white/5 max-h-[90vh] flex flex-col"
+                            className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-t-[2.5rem] sm:rounded-[2.5rem] overflow-hidden relative shadow-2xl border border-slate-200 dark:border-white/5 max-h-[95vh] flex flex-col"
                         >
                             <div className="p-8 overflow-y-auto flex-1">
                                 <div className="flex items-center justify-between mb-8">
@@ -379,30 +379,23 @@ const ProfilePage = () => {
                                 <form onSubmit={handleUpdateProfile} className="space-y-6">
                                     <div className="flex flex-col items-center mb-4">
                                         <div className="relative group">
-                                            <input 
-                                                type="file" 
-                                                ref={fileInputRef}
-                                                onChange={handleAvatarChange}
-                                                className="hidden" 
-                                                accept="image/*"
-                                            />
-                                            <div className="w-24 h-24 rounded-[2.5rem] bg-slate-100 dark:bg-slate-800 overflow-hidden border-2 border-slate-200 dark:border-white/10 p-0.5">
-                                                <img 
-                                                    src={editForm.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${editForm.name}`} 
-                                                    className="w-full h-full object-cover rounded-[2.3rem]"
+                                            <label className="cursor-pointer group block">
+                                                <input 
+                                                    type="file" 
+                                                    onChange={handleAvatarChange}
+                                                    className="hidden" 
+                                                    accept="image/*"
                                                 />
-                                            </div>
-                                            <button 
-                                                type="button" 
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    e.stopPropagation();
-                                                    fileInputRef.current?.click();
-                                                }}
-                                                className="absolute bottom-0 right-0 p-2 bg-blue-600 text-white rounded-xl shadow-lg border-2 border-white dark:border-slate-900 transform transition-transform group-hover:scale-110 z-[10]"
-                                            >
-                                                <Camera size={14} />
-                                            </button>
+                                                <div className="w-24 h-24 rounded-[2.5rem] bg-slate-100 dark:bg-slate-800 overflow-hidden border-2 border-slate-200 dark:border-white/10 p-0.5 transition-transform group-hover:scale-[1.02]">
+                                                    <img 
+                                                        src={editForm.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${editForm.name}`} 
+                                                        className="w-full h-full object-cover rounded-[2.3rem]"
+                                                    />
+                                                </div>
+                                                <div className="absolute bottom-0 right-0 p-2 bg-blue-600 text-white rounded-xl shadow-lg border-2 border-white dark:border-slate-900 transform transition-transform group-hover:scale-110">
+                                                    <Camera size={14} />
+                                                </div>
+                                            </label>
                                         </div>
                                     </div>
 
@@ -440,20 +433,20 @@ const ProfilePage = () => {
                                         </div>
                                     </div>
 
-                                    <div className="pt-4 flex gap-3">
-                                        <button 
-                                            type="button"
-                                            onClick={() => setIsEditing(false)}
-                                            className="flex-1 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 font-bold py-4 rounded-2xl hover:bg-slate-200 dark:hover:bg-white/10 transition-all"
-                                        >
-                                            Cancel
-                                        </button>
+                                    <div className="pt-6 pb-8 flex flex-col sm:flex-row gap-3">
                                         <button 
                                             type="submit"
-                                            className="flex-1 bg-blue-600 text-white font-extrabold py-4 rounded-2xl shadow-xl shadow-blue-500/20 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                                            className="w-full bg-blue-600 text-white font-extrabold py-4 rounded-2xl shadow-xl shadow-blue-500/20 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all order-1 sm:order-2"
                                         >
                                             <Save size={18} />
                                             Save Changes
+                                        </button>
+                                        <button 
+                                            type="button"
+                                            onClick={() => setIsEditing(false)}
+                                            className="w-full bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 font-bold py-4 rounded-2xl hover:bg-slate-200 dark:hover:bg-white/10 transition-all order-2 sm:order-1"
+                                        >
+                                            Cancel
                                         </button>
                                     </div>
                                 </form>
