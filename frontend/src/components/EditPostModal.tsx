@@ -5,6 +5,7 @@ import { clsx } from 'clsx';
 import api from '../api/axios';
 import { Post } from '../types';
 import PostTypeFields from './PostTypeFields';
+import { createPortal } from 'react-dom';
 
 interface EditPostModalProps {
     isOpen: boolean;
@@ -53,7 +54,7 @@ const EditPostModal: React.FC<EditPostModalProps> = ({ isOpen, onClose, onSucces
     };
     const Icon = typeIcons[post.post_type || 'general'] || MessageSquare;
 
-    return (
+    const modalContent = (
         <AnimatePresence>
             {isOpen && (
                 <>
@@ -114,6 +115,8 @@ const EditPostModal: React.FC<EditPostModalProps> = ({ isOpen, onClose, onSucces
             )}
         </AnimatePresence>
     );
+
+    return createPortal(modalContent, document.body);
 };
 
 export default EditPostModal;

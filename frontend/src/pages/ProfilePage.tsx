@@ -8,6 +8,7 @@ import { Settings, Shield, Award, Grid, Clock, UserPlus, User as UserIcon, Messa
 import PostCard from '../components/PostCard';
 import MentorshipRequestModal from '../components/profile/MentorshipRequestModal';
 import { Post } from '../types';
+import { createPortal } from 'react-dom';
 
 const ProfilePage = () => {
     const { userId } = useParams<{ userId: string }>();
@@ -351,112 +352,115 @@ const ProfilePage = () => {
                 )}
             </AnimatePresence>
 
-            {/* Edit Profile Modal */}
-            <AnimatePresence>
-                {isEditing && (
-                    <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center sm:p-4">
-                        <motion.div 
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            onClick={() => setIsEditing(false)}
-                            className="absolute inset-0 bg-slate-950/60 backdrop-blur-md"
-                        />
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-t-[2.5rem] sm:rounded-[2.5rem] overflow-hidden relative shadow-2xl border border-slate-200 dark:border-white/5 max-h-[95vh] flex flex-col"
-                        >
-                            <div className="p-8 overflow-y-auto flex-1">
-                                <div className="flex items-center justify-between mb-8">
-                                    <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Edit Profile</h2>
-                                    <button onClick={() => setIsEditing(false)} className="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors">
-                                        <X size={20} />
-                                    </button>
-                                </div>
-
-                                <form onSubmit={handleUpdateProfile} className="space-y-6">
-                                    <div className="flex flex-col items-center mb-4">
-                                        <div className="relative group">
-                                            <label className="cursor-pointer group block">
-                                                <input 
-                                                    type="file" 
-                                                    onChange={handleAvatarChange}
-                                                    className="hidden" 
-                                                    accept="image/*"
-                                                />
-                                                <div className="w-24 h-24 rounded-[2.5rem] bg-slate-100 dark:bg-slate-800 overflow-hidden border-2 border-slate-200 dark:border-white/10 p-0.5 transition-transform group-hover:scale-[1.02]">
-                                                    <img 
-                                                        src={editForm.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${editForm.name}`} 
-                                                        className="w-full h-full object-cover rounded-[2.3rem]"
-                                                    />
-                                                </div>
-                                                <div className="absolute bottom-0 right-0 p-2 bg-blue-600 text-white rounded-xl shadow-lg border-2 border-white dark:border-slate-900 transform transition-transform group-hover:scale-110">
-                                                    <Camera size={14} />
-                                                </div>
-                                            </label>
-                                        </div>
+            {/* Edit Profile Modal via Portal */}
+            {createPortal(
+                <AnimatePresence>
+                    {isEditing && (
+                        <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center sm:p-4">
+                            <motion.div 
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => setIsEditing(false)}
+                                className="absolute inset-0 bg-slate-950/60 backdrop-blur-md"
+                            />
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                                className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-t-[2.5rem] sm:rounded-[2.5rem] overflow-hidden relative shadow-2xl border border-slate-200 dark:border-white/5 max-h-[95vh] flex flex-col"
+                            >
+                                <div className="p-8 overflow-y-auto flex-1">
+                                    <div className="flex items-center justify-between mb-8">
+                                        <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Edit Profile</h2>
+                                        <button onClick={() => setIsEditing(false)} className="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors">
+                                            <X size={20} />
+                                        </button>
                                     </div>
 
-                                    <div className="space-y-4">
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 ml-1">Display Name</label>
-                                            <input 
-                                                type="text" 
-                                                value={editForm.name}
-                                                onChange={e => setEditForm({...editForm, name: e.target.value})}
-                                                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-2xl py-3 px-4 text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/20 transition-all text-slate-900 dark:text-white"
-                                            />
-                                        </div>
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 ml-1">Professional Bio</label>
-                                            <textarea 
-                                                rows={4}
-                                                value={editForm.bio}
-                                                onChange={e => setEditForm({...editForm, bio: e.target.value})}
-                                                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-2xl py-3 px-4 text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/20 transition-all text-slate-900 dark:text-white resize-none"
-                                            />
-                                        </div>
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 ml-1">LinkedIn URL</label>
-                                            <div className="relative">
-                                                <Linkedin size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                                                <input 
-                                                    type="text" 
-                                                    value={editForm.linkedIn}
-                                                    onChange={e => setEditForm({...editForm, linkedIn: e.target.value})}
-                                                    placeholder="https://linkedin.com/in/..."
-                                                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-2xl py-3 pl-11 pr-4 text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/20 transition-all text-slate-900 dark:text-white"
-                                                />
+                                    <form onSubmit={handleUpdateProfile} className="space-y-6">
+                                        <div className="flex flex-col items-center mb-4">
+                                            <div className="relative group">
+                                                <label className="cursor-pointer group block">
+                                                    <input 
+                                                        type="file" 
+                                                        onChange={handleAvatarChange}
+                                                        className="hidden" 
+                                                        accept="image/*"
+                                                    />
+                                                    <div className="w-24 h-24 rounded-[2.5rem] bg-slate-100 dark:bg-slate-800 overflow-hidden border-2 border-slate-200 dark:border-white/10 p-0.5 transition-transform group-hover:scale-[1.02]">
+                                                        <img 
+                                                            src={editForm.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${editForm.name}`} 
+                                                            className="w-full h-full object-cover rounded-[2.3rem]"
+                                                        />
+                                                    </div>
+                                                    <div className="absolute bottom-0 right-0 p-2 bg-blue-600 text-white rounded-xl shadow-lg border-2 border-white dark:border-slate-900 transform transition-transform group-hover:scale-110">
+                                                        <Camera size={14} />
+                                                    </div>
+                                                </label>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <div className="pt-6 pb-12 sm:pb-8 flex flex-col sm:flex-row gap-3 mt-auto">
-                                        <button 
-                                            type="submit"
-                                            className="w-full bg-blue-600 text-white font-extrabold py-4 rounded-2xl shadow-xl shadow-blue-500/20 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all order-1 sm:order-2"
-                                        >
-                                            <Save size={18} />
-                                            Save Changes
-                                        </button>
-                                        <button 
-                                            type="button"
-                                            onClick={() => setIsEditing(false)}
-                                            className="w-full bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 font-bold py-4 rounded-2xl hover:bg-slate-200 dark:hover:bg-white/10 transition-all order-2 sm:order-1"
-                                        >
-                                            Cancel
-                                        </button>
-                                    </div>
-                                    {/* Mobile safe area spacer */}
-                                    <div className="h-8 sm:hidden" />
-                                </form>
-                            </div>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
+                                        <div className="space-y-4">
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 ml-1">Display Name</label>
+                                                <input 
+                                                    type="text" 
+                                                    value={editForm.name}
+                                                    onChange={e => setEditForm({...editForm, name: e.target.value})}
+                                                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-2xl py-3 px-4 text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/20 transition-all text-slate-900 dark:text-white"
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 ml-1">Professional Bio</label>
+                                                <textarea 
+                                                    rows={4}
+                                                    value={editForm.bio}
+                                                    onChange={e => setEditForm({...editForm, bio: e.target.value})}
+                                                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-2xl py-3 px-4 text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/20 transition-all text-slate-900 dark:text-white resize-none"
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 ml-1">LinkedIn URL</label>
+                                                <div className="relative">
+                                                    <Linkedin size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                                    <input 
+                                                        type="text" 
+                                                        value={editForm.linkedIn}
+                                                        onChange={e => setEditForm({...editForm, linkedIn: e.target.value})}
+                                                        placeholder="https://linkedin.com/in/..."
+                                                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-2xl py-3 pl-11 pr-4 text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/20 transition-all text-slate-900 dark:text-white"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="pt-6 pb-12 sm:pb-8 flex flex-col sm:flex-row gap-3 mt-auto">
+                                            <button 
+                                                type="submit"
+                                                className="w-full bg-blue-600 text-white font-extrabold py-4 rounded-2xl shadow-xl shadow-blue-500/20 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all order-1 sm:order-2"
+                                            >
+                                                <Save size={18} />
+                                                Save Changes
+                                            </button>
+                                            <button 
+                                                type="button"
+                                                onClick={() => setIsEditing(false)}
+                                                className="w-full bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 font-bold py-4 rounded-2xl hover:bg-slate-200 dark:hover:bg-white/10 transition-all order-2 sm:order-1"
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                        {/* Mobile safe area spacer */}
+                                        <div className="h-8 sm:hidden" />
+                                    </form>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>,
+                document.body
+            )}
         </div>
     );
 };
