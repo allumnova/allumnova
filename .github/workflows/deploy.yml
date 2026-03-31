@@ -22,7 +22,8 @@ jobs:
           timeout: "60s"
           script: |
             cd ~/allumnova
-            git pull origin main
+            git fetch origin main
+            git reset --hard origin/main
             
             # Create directories for SSL and Uploads
             mkdir -p certbot/conf certbot/www backend/uploads/avatars backend/uploads/documents backend/uploads/chat

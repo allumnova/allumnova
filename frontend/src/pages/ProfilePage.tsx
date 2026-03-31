@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useCollege } from '../contexts/CollegeContext';
 import api from '../api/axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Settings, Shield, Award, Grid, Clock, UserPlus, User as UserIcon, MessageCircle, Check, X, Calendar, MapPin, Mail, Linkedin, Camera, Save, Sparkles, GraduationCap, CheckCircle2 } from 'lucide-react';
+import { Settings, Shield, Award, Grid, Clock, UserPlus, User as UserIcon, MessageCircle, Check, X, Calendar, MapPin, Mail, Linkedin, Camera, Save, Sparkles, GraduationCap, CheckCircle2, Search } from 'lucide-react';
 import PostCard from '../components/PostCard';
 import MentorshipRequestModal from '../components/profile/MentorshipRequestModal';
 import { Post } from '../types';
@@ -208,13 +208,22 @@ const ProfilePage = () => {
 
                 <div className="flex items-center gap-3 mt-8 w-full">
                     {isOwnProfile ? (
-                        <button 
-                            onClick={() => setIsEditing(true)}
-                            className="flex-1 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-extrabold py-4 rounded-2xl shadow-xl shadow-black/10 dark:shadow-white/5 transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
-                        >
-                            <Settings size={18} />
-                            Edit Profile
-                        </button>
+                        <>
+                            <button 
+                                onClick={() => setIsEditing(true)}
+                                className="flex-1 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-extrabold py-4 rounded-2xl shadow-xl shadow-black/10 dark:shadow-white/5 transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+                            >
+                                <Settings size={18} />
+                                Edit Profile
+                            </button>
+                            <Link 
+                                to="/discover"
+                                className="flex-1 bg-blue-600 text-white font-extrabold py-4 rounded-2xl shadow-xl shadow-blue-500/20 transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+                            >
+                                <Search size={18} />
+                                Discover
+                            </Link>
+                        </>
                     ) : (
                         <>
                             <button 

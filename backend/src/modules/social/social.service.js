@@ -2,18 +2,28 @@ const prisma = require('../../models');
 const notificationService = require('../notification/notification.service');
 const socketUtil = require('../../utils/socket');
 
-exports.discoverUsers = async (userId, collegeId, cursor, limit = 20) => {
+exports.discoverUsers = async (userId, collegeId, cursor, limit = 20, search, role, batchYear) => {
     const where = {
         id: { not: userId },
         colleges: {
-            some: { collegeId: collegeId }
+            some: { 
+                collegeId: collegeId,
+                ...(role && { role }),
+                ...(batchYear && { batch: batchYear })
+            }
         },
         sentRequests: {
             none: { receiverId: userId }
         },
         receivedRequests: {
             none: { senderId: userId }
-        }
+        },
+        ...(search && {
+            name: {
+                contains: search,
+                mode: 'insensitive'
+            }
+        })
     };
 
     return await prisma.user.findMany({

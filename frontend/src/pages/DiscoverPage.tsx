@@ -16,11 +16,18 @@ const DiscoverPage = () => {
         searchParams.get('tab') === 'hubs' ? 'hubs' : 'people'
     );
     const [isSuggesting, setIsSuggesting] = useState(searchParams.get('suggest') === 'true');
-    const [colleges, setColleges] = useState<any[]>([]);
     const [hubs, setHubs] = useState<any[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
+    const [roleFilter, setRoleFilter] = useState('');
+    const [batchFilter, setBatchFilter] = useState('');
     const [loading, setLoading] = useState(true);
     const queryClient = useQueryClient();
+
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedSearch(searchQuery), 500);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
 
     // Form state for suggestions
     const [suggestName, setSuggestName] = useState('');
@@ -47,10 +54,16 @@ const DiscoverPage = () => {
         isFetchingNextPage: isFetchingMoreUsers,
         status: userStatus
     } = useInfiniteQuery({
-        queryKey: ['discover-people', activeCollege?.id],
+        queryKey: ['discover-people', activeCollege?.id, debouncedSearch, roleFilter, batchFilter],
         queryFn: async ({ pageParam }) => {
             const res = await api.get('/social/discover', {
-                params: { cursor: pageParam, limit: 12 }
+                params: { 
+                    cursor: pageParam, 
+                    limit: 12,
+                    ...(debouncedSearch && { search: debouncedSearch }),
+                    ...(roleFilter && { role: roleFilter }),
+                    ...(batchFilter && { batchYear: batchFilter })
+                }
             });
             return res.data;
         },
@@ -144,16 +157,38 @@ const DiscoverPage = () => {
                     <button onClick={() => setTab('hubs')} className={`text-sm font-bold pb-2 border-b-2 transition-all ${tab === 'hubs' ? 'border-blue-500 text-blue-500' : 'border-transparent text-slate-400'}`}>Hubs</button>
                     <button onClick={() => { setTab('colleges'); setIsSuggesting(false); }} className={`text-sm font-bold pb-2 border-b-2 transition-all ${tab === 'colleges' ? 'border-blue-500 text-blue-500' : 'border-transparent text-slate-400'}`}>Colleges</button>
                 </div>
-                <div className="relative max-w-xl">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-                    <input
-                        type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder={
-                            tab === 'people' ? "Search for peers..." : 
-                            tab === 'hubs' ? "Search for hubs..." : "Search for colleges..."
-                        }
-                        className="w-full bg-slate-100 dark:bg-slate-950/50 border border-slate-200 dark:border-white/5 rounded-2xl py-4 pl-14 pr-6 text-slate-900 dark:text-white outline-none"
-                    />
+                <div className="flex flex-col sm:flex-row gap-3 max-w-3xl">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                        <input
+                            type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder={
+                                tab === 'people' ? "Search for peers..." : 
+                                tab === 'hubs' ? "Search for hubs..." : "Search for colleges..."
+                            }
+                            className="w-full bg-slate-100 dark:bg-slate-950/50 border border-slate-200 dark:border-white/5 rounded-2xl py-4 pl-14 pr-6 text-slate-900 dark:text-white outline-none"
+                        />
+                    </div>
+                    {tab === 'people' && (
+                        <div className="flex gap-3">
+                            <select 
+                                value={roleFilter} 
+                                onChange={(e) => setRoleFilter(e.target.value)}
+                                className="bg-slate-100 dark:bg-slate-950/50 border border-slate-200 dark:border-white/5 rounded-2xl py-4 px-4 text-sm text-slate-900 dark:text-white outline-none"
+                            >
+                                <option value="">All Roles</option>
+                                <option value="STUDENT">Student</option>
+                                <option value="ALUMNI">Alumni</option>
+                            </select>
+                            <input 
+                                type="text"
+                                placeholder="Batch (e.g. 2024)"
+                                value={batchFilter}
+                                onChange={(e) => setBatchFilter(e.target.value)}
+                                className="w-32 bg-slate-100 dark:bg-slate-950/50 border border-slate-200 dark:border-white/5 rounded-2xl py-4 px-4 text-sm text-slate-900 dark:text-white outline-none"
+                            />
+                        </div>
+                    )}
                 </div>
             </div>
 

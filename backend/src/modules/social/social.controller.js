@@ -4,12 +4,15 @@ const prisma = require('../../models');
 exports.getDiscover = async (req, res) => {
     try {
         const collegeId = req.headers['x-college-id'];
-        const { cursor, limit } = req.query;
+        const { cursor, limit, search, role, batchYear } = req.query;
         const users = await socialService.discoverUsers(
             req.user.userId, 
             collegeId, 
             cursor, 
-            limit ? parseInt(limit) : 20
+            limit ? parseInt(limit) : 20,
+            search,
+            role,
+            batchYear
         );
         res.json(users);
     } catch (error) {
