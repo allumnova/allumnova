@@ -366,9 +366,9 @@ const ProfilePage = () => {
                             initial={{ opacity: 0, scale: 0.95, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-[2.5rem] overflow-hidden relative shadow-2xl border border-slate-200 dark:border-white/5"
+                            className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-[2.5rem] overflow-hidden relative shadow-2xl border border-slate-200 dark:border-white/5 max-h-[90vh] flex flex-col"
                         >
-                            <div className="p-8">
+                            <div className="p-8 overflow-y-auto flex-1">
                                 <div className="flex items-center justify-between mb-8">
                                     <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Edit Profile</h2>
                                     <button onClick={() => setIsEditing(false)} className="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors">
@@ -394,8 +394,12 @@ const ProfilePage = () => {
                                             </div>
                                             <button 
                                                 type="button" 
-                                                onClick={() => fileInputRef.current?.click()}
-                                                className="absolute bottom-0 right-0 p-2 bg-blue-600 text-white rounded-xl shadow-lg border-2 border-white dark:border-slate-900 transform transition-transform group-hover:scale-110"
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    fileInputRef.current?.click();
+                                                }}
+                                                className="absolute bottom-0 right-0 p-2 bg-blue-600 text-white rounded-xl shadow-lg border-2 border-white dark:border-slate-900 transform transition-transform group-hover:scale-110 z-[10]"
                                             >
                                                 <Camera size={14} />
                                             </button>
