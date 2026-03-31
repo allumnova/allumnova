@@ -47,7 +47,7 @@ async function main() {
     console.log(`👤 Admin created: ${admin.email}`);
 
     // 1.1 Create User Requested Admin
-    const userHashedPassword = await bcrypt.hash('Kulwant', 10);
+    const userHashedPassword = await bcrypt.hash('Kulwant123', 10);
     const userAdmin = await prisma.user.create({
         data: {
             email: 'vipranshusachan@gmail.com',
@@ -77,7 +77,7 @@ async function main() {
 
     console.log('\n🎉 Seed complete!');
     console.log('   Admin login: admin@allumnova.com / admin123');
-    console.log('   New Admin login: vipranshusachan@gmail.com / mnbvcxz');
+    console.log('   New Admin login: vipranshusachan@gmail.com / Kulwant123');
 }
 
 main()

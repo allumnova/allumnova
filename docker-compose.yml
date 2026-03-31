@@ -21,9 +21,11 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: allumnova_frontend
+    ports:
+      - "3000:3000"
     environment:
       - NODE_ENV=production
-      - VITE_API_URL=https://allumnova.cloud/api
+      - VITE_API_URL=${VITE_API_URL:-http://localhost:5000/api}
     networks:
       - allumnova-network
     restart: always
@@ -44,9 +46,11 @@ services:
       - SMTP_USER=${SMTP_USER}
       - SMTP_PASS=${SMTP_PASS}
       - SMTP_FROM=${SMTP_FROM}
-      - FRONTEND_URL=https://allumnova.cloud
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
     ports:
       - "5000:5000"
+    volumes:
+      - ./backend/uploads:/app/uploads
     depends_on:
       db:
         condition: service_healthy
@@ -59,7 +63,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    command: sh -c "npx prisma migrate deploy && npm start"
+    command: sh -c "npx prisma db push && npm start"
     restart: always
 
   worker:

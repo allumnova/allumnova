@@ -157,7 +157,7 @@ const listPendingVerifications = async () => {
 
 const verifyUser = async (mappingId, status) => {
     const finalStatus = status.toUpperCase();
-    return await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
         const mapping = await tx.collegeMembership.update({
             where: { id: mappingId },
             data: { status: finalStatus },
@@ -175,14 +175,23 @@ const verifyUser = async (mappingId, status) => {
                     verificationLevel: 'VERIFIED'
                 }
             });
-            
-            // Send Verification Emails
-            await emailService.sendUserApproval(mapping.user.email, mapping.college.name);
-            await emailService.sendWelcomeEmail(mapping.user.email, mapping.user.name);
         }
 
         return mapping;
     });
+
+    // Send emails outside the transaction to avoid timeouts
+    if (finalStatus === 'VERIFIED') {
+        try {
+            await emailService.sendUserApproval(result.user.email, result.college.name);
+            await emailService.sendWelcomeEmail(result.user.email, result.user.name);
+        } catch (emailError) {
+            console.error('VERIFICATION_EMAIL_ERROR:', emailError);
+            // We don't fail the verification if email fails, but we log it
+        }
+    }
+
+    return result;
 };
 
 const updatePulse = async (userId, { pulse, pulseEmoji }) => {
