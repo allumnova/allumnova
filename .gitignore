@@ -4,3 +4,10 @@ node_modules
 *.log
 dist
 .DS_Store
+.vite
+.turbo
+.expo
+.history
+.system_generated
+tmp
+brain
