@@ -88,6 +88,7 @@ exports.sendConnectionRequest = async (senderId, receiverId) => {
     // Trigger Notification for the receiver
     await notificationService.createNotification(receiverId, 'connect_request', {
         reference_id: connection.id,
+        actorId: senderId,
         senderName: connection.sender.name,
         message: `${connection.sender.name} sent you a connection request`
     });
@@ -130,6 +131,7 @@ exports.acceptConnectionRequest = async (requestId, userId) => {
     // Trigger Notification for the sender (the one who initiated the request)
     await notificationService.createNotification(request.senderId, 'connect_accept', {
         reference_id: updated.id,
+        actorId: userId,
         receiverName: updated.receiver.name,
         message: `${updated.receiver.name} accepted your connection request`
     });
@@ -203,46 +205,31 @@ exports.removeConnection = async (userId, targetId) => {
 exports.getNotifications = async (userId) => {
     const notifications = await prisma.notification.findMany({
         where: { userId },
+        include: { actor: { select: { id: true, name: true, avatar: true } } },
         orderBy: { createdAt: 'desc' },
         take: 20
     });
 
-    const enriched = await Promise.all(notifications.map(async (notif) => {
-        let actorInfo = { name: 'System', avatar: null };
+    const enriched = notifications.map((notif) => {
         let type = notif.type;
-
         // Map backend types to frontend types if they differ
         if (type === 'connect_request') type = 'connect';
-        if (type === 'appreciate') type = 'appreciate';
-        if (type === 'discuss') type = 'discuss';
 
-        // Extract actor info from message or reference_id
-        if (notif.type === 'connect_request' && notif.reference_id) {
-            const conn = await prisma.connection.findUnique({
-                where: { id: notif.reference_id },
-                include: { sender: { select: { name: true, avatar: true } } }
-            });
-            if (conn?.sender) {
-                actorInfo = conn.sender;
-            }
-        } else if (notif.message.includes(' appreciated ') || notif.message.includes(' commented ') || notif.message.includes(' boosted ')) {
-            // Very basic extraction of actor name from message for now since schema change failed
-            const name = notif.message.split(' ')[0];
-            actorInfo = { name, avatar: null };
-        }
+        // Use actor relation if available
+        const actor = notif.actor || { name: 'System', avatar: null };
 
         return {
-            id: notif.reference_id || notif.id, // Use reference_id for actions (requestId)
+            id: notif.reference_id || notif.id,
             type: type,
             user: {
-                name: actorInfo.name,
-                avatar: actorInfo.avatar
+                name: actor.name,
+                avatar: actor.avatar
             },
             content: notif.message,
             time: new Date(notif.createdAt).toLocaleDateString(),
             isImportant: !notif.is_read
         };
-    }));
+    });
 
     return enriched;
 };

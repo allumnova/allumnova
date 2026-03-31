@@ -8,12 +8,13 @@ const socketUtil = require('../../utils/socket');
  * @param {object} payload - Notification data (targetId, message, etc.)
  */
 const createNotification = async (userId, type, payload) => {
-    const { message, reference_id } = payload;
+    const { message, reference_id, actorId } = payload;
 
     // 1. Store in DB
     const notification = await prisma.notification.create({
         data: {
             userId,
+            actorId: actorId || null,
             type,
             message,
             reference_id: reference_id || null,

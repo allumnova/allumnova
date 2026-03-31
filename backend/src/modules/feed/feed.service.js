@@ -336,6 +336,7 @@ const interact = async (userId, postId, type, content = null) => {
 
         await notificationService.createNotification(interaction.post.authorId, type, {
             reference_id: postId,
+            actorId: userId,
             triggerUser: user.name,
             message: `${user.name} ${descriptions[type] || 'interacted with your post'}`
         });
