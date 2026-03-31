@@ -64,7 +64,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose, onSu
                         initial={{ opacity: 0, scale: 0.9, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                        className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-white/10 rounded-t-[2.5rem] p-8 z-[101] shadow-2xl transition-colors"
+                        className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-white/10 rounded-t-[2.5rem] p-8 pb-12 z-[101] shadow-2xl transition-colors max-h-[90vh] overflow-y-auto"
                     >
                         <div className="flex items-center justify-between mb-8">
                             <h2 className="text-xl font-bold text-slate-900 dark:text-white transition-colors">Create Post</h2>

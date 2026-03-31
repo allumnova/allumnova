@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useCollege } from '../contexts/CollegeContext';
@@ -25,6 +25,8 @@ const ProfilePage = () => {
         linkedIn: '',
         avatar: ''
     });
+    const [avatarFile, setAvatarFile] = useState<File | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const isOwnProfile = !userId || userId === 'me' || userId === currentUser?.id;
     const targetId = isOwnProfile ? 'me' : userId;
@@ -67,11 +69,37 @@ const ProfilePage = () => {
         }
     };
 
+    const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setAvatarFile(file);
+            // Show preview
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setEditForm(prev => ({ ...prev, avatar: reader.result as string }));
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const handleUpdateProfile = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await api.patch('/profile', editForm);
+            const formData = new FormData();
+            formData.append('name', editForm.name);
+            formData.append('bio', editForm.bio);
+            formData.append('linkedIn', editForm.linkedIn);
+            if (avatarFile) {
+                formData.append('avatar', avatarFile);
+            }
+
+            await api.patch('/profile/me', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
             setIsEditing(false);
+            setAvatarFile(null);
             fetchProfile();
         } catch (err) {
             console.error('Update failed:', err);
@@ -348,13 +376,24 @@ const ProfilePage = () => {
                                 <form onSubmit={handleUpdateProfile} className="space-y-6">
                                     <div className="flex flex-col items-center mb-4">
                                         <div className="relative group">
+                                            <input 
+                                                type="file" 
+                                                ref={fileInputRef}
+                                                onChange={handleAvatarChange}
+                                                className="hidden" 
+                                                accept="image/*"
+                                            />
                                             <div className="w-24 h-24 rounded-[2.5rem] bg-slate-100 dark:bg-slate-800 overflow-hidden border-2 border-slate-200 dark:border-white/10 p-0.5">
                                                 <img 
                                                     src={editForm.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${editForm.name}`} 
                                                     className="w-full h-full object-cover rounded-[2.3rem]"
                                                 />
                                             </div>
-                                            <button type="button" className="absolute bottom-0 right-0 p-2 bg-blue-600 text-white rounded-xl shadow-lg border-2 border-white dark:border-slate-900 transform transition-transform group-hover:scale-110">
+                                            <button 
+                                                type="button" 
+                                                onClick={() => fileInputRef.current?.click()}
+                                                className="absolute bottom-0 right-0 p-2 bg-blue-600 text-white rounded-xl shadow-lg border-2 border-white dark:border-slate-900 transform transition-transform group-hover:scale-110"
+                                            >
                                                 <Camera size={14} />
                                             </button>
                                         </div>

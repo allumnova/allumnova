@@ -14,7 +14,7 @@ const MainLayout: React.FC = () => {
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col transition-colors duration-300">
             <TopBar />
-            <main className="max-w-[1400px] mx-auto pt-24 px-4 min-h-screen flex-1 w-full overflow-x-hidden">
+            <main className="max-w-[1400px] mx-auto pt-24 pb-32 px-4 min-h-screen flex-1 w-full overflow-x-hidden">
                 <AnimatePresence mode="wait">
                     <motion.div
                         key={location.pathname}

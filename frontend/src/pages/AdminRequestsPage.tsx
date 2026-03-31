@@ -177,7 +177,7 @@ const AdminRequestsPage = () => {
                                         <div className="mt-3 inline-flex items-center gap-2 p-2 px-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl">
                                             <FileText size={14} className="text-blue-500" />
                                             <a
-                                                href={req.documentUrl.startsWith('http') ? req.documentUrl : `http://localhost:5000${req.documentUrl}`}
+                                                href={req.documentUrl.startsWith('http') ? req.documentUrl : req.documentUrl}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="text-[11px] font-bold text-slate-600 dark:text-slate-300 hover:text-blue-500 transition-colors"

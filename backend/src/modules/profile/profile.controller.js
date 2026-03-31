@@ -23,7 +23,11 @@ const getPublicProfile = async (req, res) => {
 
 const updateMyProfile = async (req, res) => {
     try {
-        const profile = await profileService.updateProfile(req.user.userId, req.body);
+        const updateData = { ...req.body };
+        if (req.file) {
+            updateData.avatar = `/uploads/avatars/${req.file.filename}`;
+        }
+        const profile = await profileService.updateProfile(req.user.userId, updateData);
         res.status(200).json({ success: true, data: profile });
     } catch (error) {
         console.error('Update Profile Error:', error);
