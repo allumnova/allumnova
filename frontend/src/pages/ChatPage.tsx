@@ -20,6 +20,7 @@ const ChatPage = () => {
     const [isUploading, setIsUploading] = useState(false);
     const [uploadPreview, setUploadPreview] = useState<any>(null);
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const [socketStatus, setSocketStatus] = useState<'connected' | 'connecting' | 'disconnected'>('connecting');
     
     const socketRef = useRef<any>(null);
     const messagesEndRef = useRef<null | HTMLDivElement>(null);
@@ -56,8 +57,16 @@ const ChatPage = () => {
         if (!user) return;
         
         socketRef.current = io('/', {
-            query: { userId: user.id, collegeId: activeCollege?.id }
+            query: { userId: user.id, collegeId: activeCollege?.id },
+            transports: ['websocket'],
+            reconnectionAttempts: 5,
+            reconnectionDelay: 1000,
         });
+
+        socketRef.current.on('connect', () => setSocketStatus('connected'));
+        socketRef.current.on('disconnect', () => setSocketStatus('disconnected'));
+        socketRef.current.on('connect_error', () => setSocketStatus('disconnected'));
+        socketRef.current.on('reconnect_attempt', () => setSocketStatus('connecting'));
 
         return () => {
             if (socketRef.current) {
@@ -289,8 +298,9 @@ const ChatPage = () => {
                                     <h3 className="text-[15px] font-bold text-slate-900 dark:text-white leading-tight">
                                         {activeConversation.users?.[0]?.name || 'Chat Participant'}
                                     </h3>
-                                    <p className="text-[11px] text-emerald-500 font-medium">
-                                        Active now
+                                    <p className={`text-[11px] font-medium ${socketStatus === 'connected' ? 'text-emerald-500' : 'text-amber-500'}`}>
+                                        {socketStatus === 'connected' ? 'Active now' : 
+                                         socketStatus === 'connecting' ? 'Reconnecting...' : 'Offline'}
                                     </p>
                                 </div>
                             </div>

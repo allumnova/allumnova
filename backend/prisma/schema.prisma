@@ -91,6 +91,8 @@ model CollegeMembership {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, collegeId])
+  @@index([collegeId])
+  @@index([status])
 }
 
 model Post {
@@ -110,6 +112,10 @@ model Post {
   likes      PostLike[]
   media      PostMedia[]
   savedBy    SavedPost[]
+
+  @@index([collegeId])
+  @@index([authorId])
+  @@index([visibility])
 }
 
 model PostLike {
@@ -134,6 +140,9 @@ model Comment {
   replies           Comment[] @relation("Thread")
   post              Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
   user              User      @relation(fields: [userId], references: [id])
+
+  @@index([postId])
+  @@index([userId])
 }
 
 model PostMedia {
@@ -153,6 +162,10 @@ model Connection {
   createdAt  DateTime @default(now())
   receiver   User     @relation("ReceivedConnections", fields: [receiverId], references: [id])
   sender     User     @relation("SentConnections", fields: [senderId], references: [id])
+
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([status])
 }
 
 model Conversation {
@@ -305,6 +318,10 @@ model Project {
   college     College            @relation(fields: [collegeId], references: [id])
   milestones  ProjectMilestone[]
   hypes       ProjectHype[]
+
+  @@index([collegeId])
+  @@index([ownerId])
+  @@index([status])
 }
 
 model ProjectMilestone {

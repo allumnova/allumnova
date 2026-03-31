@@ -18,6 +18,8 @@ jobs:
           host: ${{ secrets.VPS_IP }}
           username: ${{ secrets.VPS_USER }}
           password: ${{ secrets.VPS_PASSWORD }}
+          command_timeout: "10m"
+          timeout: "60s"
           script: |
             cd ~/allumnova
             git pull origin main
@@ -25,17 +27,17 @@ jobs:
             # Create directories for SSL
             mkdir -p certbot/conf certbot/www
             
-            # Create .env file from secrets
-            echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" > .env
-            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+            # Create .env file from secrets (Sanitized)
+            echo "DATABASE_URL=\"$(echo "${{ secrets.DATABASE_URL }}" | xargs)\"" > .env
+            echo "JWT_SECRET=\"$(echo "${{ secrets.JWT_SECRET }}" | xargs)\"" >> .env
             echo "REDIS_URL=redis://redis:6379" >> .env
             echo "NODE_ENV=production" >> .env
-            echo "SMTP_HOST=${{ secrets.SMTP_HOST }}" >> .env
-            echo "SMTP_PORT=${{ secrets.SMTP_PORT }}" >> .env
-            echo "SMTP_USER=${{ secrets.SMTP_USER }}" >> .env
-            echo "SMTP_PASS=${{ secrets.SMTP_PASS }}" >> .env
-            echo "SMTP_FROM=${{ secrets.SMTP_FROM }}" >> .env
-            echo "FRONTEND_URL=${{ secrets.FRONTEND_URL }}" >> .env
+            echo "SMTP_HOST=\"$(echo "${{ secrets.SMTP_HOST }}" | xargs)\"" >> .env
+            echo "SMTP_PORT=\"$(echo "${{ secrets.SMTP_PORT }}" | xargs)\"" >> .env
+            echo "SMTP_USER=\"$(echo "${{ secrets.SMTP_USER }}" | xargs)\"" >> .env
+            echo "SMTP_PASS=\"$(echo "${{ secrets.SMTP_PASS }}" | xargs)\"" >> .env
+            echo "SMTP_FROM=\"$(echo "${{ secrets.SMTP_FROM }}" | xargs)\"" >> .env
+            echo "FRONTEND_URL=\"$(echo "${{ secrets.FRONTEND_URL }}" | xargs)\"" >> .env
 
             docker compose down --remove-orphans || true
             docker rm -f allumnova_nginx allumnova_frontend allumnova_backend allumnova_worker allumnova_db allumnova_redis || true
