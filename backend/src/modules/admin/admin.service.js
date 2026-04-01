@@ -11,21 +11,18 @@ const getDashboardStats = async () => {
     const reportedContent = await prisma.report.count();
 
     // Fetch recent activity loosely
-    // Get newest users
     const recentUsers = await prisma.user.findMany({
         orderBy: { createdAt: 'desc' },
         take: 3,
         select: { id: true, name: true, createdAt: true, is_verified: true }
     });
 
-    // Get newest college requests
     const recentCollegeRequests = await prisma.collegeRequest.findMany({
         orderBy: { createdAt: 'desc' },
         take: 3,
         select: { id: true, name: true, createdAt: true, status: true, requesterId: true }
     });
 
-    // Combine and format activity
     let recentActivity = [];
 
     recentUsers.forEach(u => {
@@ -42,17 +39,15 @@ const getDashboardStats = async () => {
         recentActivity.push({
             id: `colreq_${r.id}`,
             type: 'college_request',
-            user: r.name, // Using college name as the actor for simplicity in dashboard
+            user: r.name,
             detail: `New college request submitted. Status: ${r.status}`,
             time: r.createdAt
         });
     });
 
-    // Sort combined activity by time desc and take top 5
     recentActivity.sort((a, b) => new Date(b.time) - new Date(a.time));
     recentActivity = recentActivity.slice(0, 5);
 
-    // Format dates to relative strings for the frontend
     const formatTimeAgo = (date) => {
         const seconds = Math.floor((new Date() - new Date(date)) / 1000);
         let interval = seconds / 31536000;
@@ -68,11 +63,6 @@ const getDashboardStats = async () => {
         return Math.floor(seconds) + " seconds ago";
     };
 
-    recentActivity = recentActivity.map(act => ({
-        ...act,
-        time: formatTimeAgo(act.time)
-    }));
-
     return {
         stats: {
             totalUsers,
@@ -80,10 +70,24 @@ const getDashboardStats = async () => {
             pendingVerifications,
             reportedContent
         },
-        recentActivity
+        recentActivity: recentActivity.map(act => ({ ...act, time: formatTimeAgo(act.time) }))
     };
 };
 
+const getAllPosts = async (limit = 50, cursor) => {
+    const prisma = require('../../models');
+    return await prisma.post.findMany({
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+            author: { select: { id: true, name: true, avatar: true, reputationScore: true, tierLevel: true } },
+            media: true,
+            _count: { select: { likes: true, comments: true } }
+        }
+    });
+};
+
 module.exports = {
-    getDashboardStats
+    getDashboardStats,
+    getAllPosts
 };

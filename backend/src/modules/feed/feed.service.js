@@ -249,7 +249,8 @@ const getPersonalizedFeed = async (collegeId, userId, limit = 20, cursor, type =
 };
 
 const createPost = async (userId, collegeId, postData) => {
-    const { content, type, metadata } = postData;
+    const { content, metadata } = postData;
+    const type = postData.post_type || postData.type || 'general';
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 

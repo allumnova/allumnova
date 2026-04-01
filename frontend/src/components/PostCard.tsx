@@ -267,7 +267,7 @@ const PostCard: React.FC<PostCardProps> = ({ post: initialPost, onAppreciate, on
 
             <div className="mb-4">
                 <p className={clsx(
-                    "text-slate-600 dark:text-slate-200 text-sm leading-relaxed whitespace-pre-wrap transition-colors mb-4",
+                    "text-slate-600 dark:text-slate-200 text-sm leading-relaxed whitespace-pre-wrap break-words overflow-hidden transition-colors mb-4",
                     post.post_type === 'achievement' ? "text-base font-medium italic" : ""
                 )}>
                     {post.content}

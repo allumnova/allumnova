@@ -9,6 +9,21 @@ const getProfile = async (userId) => {
                 include: {
                     college: true
                 }
+            },
+            posts: {
+                orderBy: { createdAt: 'desc' },
+                take: 50,
+                include: {
+                    author: { 
+                        select: { id: true, name: true, avatar: true, reputationScore: true, tierLevel: true, is_verified: true } 
+                    },
+                    media: true,
+                    _count: { select: { likes: true, comments: true } }
+                }
+            },
+            projects: {
+                orderBy: { createdAt: 'desc' },
+                take: 20
             }
         }
     });

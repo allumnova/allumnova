@@ -183,10 +183,25 @@ const deleteCollege = async (req, res) => {
     }
 };
 
+const getAllPostsList = async (req, res) => {
+    try {
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ success: false, error: 'Unauthorized' });
+        }
+        const { limit = 50, cursor } = req.query;
+        const posts = await adminService.getAllPosts(parseInt(limit), cursor);
+        res.status(200).json({ success: true, data: posts });
+    } catch (error) {
+        console.error('Admin Get Posts Error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
 module.exports = {
     getDashboardStats,
     getUsersList,
     updateUserRole,
     getCollegesList,
-    deleteCollege
+    deleteCollege,
+    getAllPostsList
 };

@@ -28,6 +28,14 @@ api.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response?.status === 401 || error.response?.status === 403) {
+            const data = error.response.data;
+            const skipLogoutCodes = ['COLLEGE_UNVERIFIED', 'UNVERIFIED'];
+            
+            if (skipLogoutCodes.includes(data.code)) {
+                console.info(`[Auth] Staying logged in for status: ${data.code}`);
+                return Promise.reject(error);
+            }
+
             console.warn(`Auth Error (${error.response.status}) at: ${error.config?.url}`);
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
             // Don't auto-logout if using demo token

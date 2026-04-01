@@ -36,6 +36,8 @@ exports.listMessages = async (conversationId, userId) => {
         include: { members: { select: { userId: true } } }
     });
 
+    if (!conversation) return [];
+
     if (!conversation || !conversation.members.some(m => m.userId === userId)) {
         throw new Error('Unauthorized');
     }
