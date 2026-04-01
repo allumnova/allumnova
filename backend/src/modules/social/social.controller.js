@@ -13,6 +13,16 @@ exports.getSuggestions = async (req, res) => {
     }
 };
 
+exports.getRecommended = async (req, res) => {
+    try {
+        const collegeId = req.headers['x-college-id'];
+        const users = await socialService.getRecommendedPeers(req.user.userId, collegeId);
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 exports.getDiscover = async (req, res) => {
     try {
         const collegeId = req.headers['x-college-id'];

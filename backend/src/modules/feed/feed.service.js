@@ -133,7 +133,16 @@ const getPersonalizedFeed = async (collegeId, userId, limit = 20, cursor, type =
 
     if (postIds.length === 0 && !cursor) {
         const whereClause = { collegeId };
-        if (hubId && hubId !== 'null') whereClause.environmentId = hubId;
+        if (hubId && hubId !== 'null') {
+            // Check if user is APPROVED member of this hub
+            const membership = await prisma.environmentMembership.findUnique({
+                where: { userId_environmentId: { userId, environmentId: hubId } }
+            });
+            if (!membership || membership.status !== 'APPROVED') {
+                return []; // Or some message saying membership required
+            }
+            whereClause.environmentId = hubId;
+        }
         else if (type && type !== 'null') whereClause.post_type = type;
 
         const posts = await prisma.post.findMany({

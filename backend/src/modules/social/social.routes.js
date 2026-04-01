@@ -5,6 +5,7 @@ const { authenticate } = require('../../middlewares/auth.middleware');
 
 router.get('/connect/pending', authenticate, socialController.getPendingRequests);
 router.get('/discover', authenticate, socialController.getDiscover);
+router.get('/alumni', authenticate, socialController.getAlumni);
 router.get('/suggestions', authenticate, socialController.getSuggestions);
 router.post('/connect', authenticate, socialController.sendRequest);
 router.post('/connect/accept', authenticate, socialController.acceptRequest);

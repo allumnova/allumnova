@@ -1,35 +1,60 @@
 const environmentService = require('./environment.service');
 
-exports.getEnvironments = async (req, res) => {
+const listHubs = async (req, res) => {
     try {
-        const collegeId = req.header('X-College-ID');
-        if (!collegeId) return res.status(400).json({ message: 'College ID required' });
-        const environments = await environmentService.listEnvironments(collegeId);
-        res.json(environments);
+        const collegeId = req.headers['x-college-id'];
+        const hubs = await environmentService.listEnvironments(collegeId, req.user.userId);
+        res.json(hubs);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
-exports.joinEnvironment = async (req, res) => {
+const sendProposal = async (req, res) => {
     try {
-        const { environmentId } = req.body;
-        if (!environmentId) return res.status(400).json({ message: 'Environment ID required' });
-        const membership = await environmentService.joinEnvironment(req.user.userId, environmentId);
+        const collegeId = req.headers['x-college-id'];
+        const hub = await environmentService.proposeEnvironment(collegeId, req.user.userId, req.body);
+        res.status(201).json(hub);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const joinHub = async (req, res) => {
+    try {
+        const { hubId } = req.params;
+        const membership = await environmentService.requestToJoin(req.user.userId, hubId);
         res.json(membership);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
-exports.proposeEnvironment = async (req, res) => {
+const updateMembership = async (req, res) => {
     try {
-        const collegeId = req.collegeId || req.header('X-College-ID');
-        if (!collegeId) return res.status(400).json({ success: false, message: 'College ID required' });
-        
-        const environment = await environmentService.proposeEnvironment(collegeId, req.user.userId, req.body);
-        res.status(201).json({ success: true, data: environment });
+        const { id } = req.params;
+        const { status } = req.body;
+        const updated = await environmentService.manageMembership(id, status, req.user.userId);
+        res.json(updated);
     } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+        res.status(403).json({ message: error.message });
     }
+};
+
+const getPendingHubRequests = async (req, res) => {
+    try {
+        const { hubId } = req.params;
+        const pending = await environmentService.listPendingMembers(hubId, req.user.userId);
+        res.json(pending);
+    } catch (error) {
+        res.status(403).json({ message: error.message });
+    }
+};
+
+module.exports = {
+    listHubs,
+    sendProposal,
+    joinHub,
+    updateMembership,
+    getPendingHubRequests
 };
