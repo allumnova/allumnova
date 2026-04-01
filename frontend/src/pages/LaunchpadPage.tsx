@@ -28,12 +28,15 @@ const LaunchpadPage = () => {
             });
             if (res.data.success) {
                 let processedProjects = res.data.projects;
-                
-                // Client-side sorting/filtering based on tabs
-                if (activeTab === 'trending') {
-                    processedProjects = [...processedProjects].sort((a, b) => (b.hypeScore || 0) - (a.hypeScore || 0));
-                } else if (activeTab === 'workspace') {
-                    processedProjects = processedProjects.filter((p: any) => p.ownerId === user?.id);
+                if (Array.isArray(processedProjects)) {
+                    // Client-side sorting/filtering based on tabs
+                    if (activeTab === 'trending') {
+                        processedProjects = [...processedProjects].sort((a, b) => (b.hypeScore || 0) - (a.hypeScore || 0));
+                    } else if (activeTab === 'workspace') {
+                        processedProjects = processedProjects.filter((p: any) => p.ownerId === user?.id);
+                    }
+                } else {
+                    processedProjects = [];
                 }
 
                 setProjects(processedProjects);

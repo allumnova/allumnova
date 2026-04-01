@@ -15,7 +15,7 @@ const PendingApprovalPage: React.FC = () => {
         navigate('/');
     };
 
-    const otherVerifiedColleges = allColleges.filter(c => c.id !== activeCollege?.id);
+    const otherVerifiedColleges = (allColleges || []).filter(c => c && c.id !== activeCollege?.id);
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-6 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-blue-500/10 via-transparent to-transparent transition-colors duration-500">
