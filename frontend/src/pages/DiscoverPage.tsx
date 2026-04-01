@@ -124,13 +124,16 @@ const DiscoverPage = () => {
     const handleConnect = async (userId: string) => {
         try {
             await api.post('/social/connect', { receiverId: userId });
-            // Optimistically remove from discover list
-            queryClient.setQueryData(['discover-people', activeCollege?.id], (old: any) => ({
-                ...old,
-                pages: old.pages.map((page: any) => page.filter((u: any) => u.id !== userId))
-            }));
-        } catch (err) {
+            
+            // Invalidate the discover and suggestions queries to refresh the list
+            queryClient.invalidateQueries({ queryKey: ['discover-people', activeCollege?.id] });
+            queryClient.invalidateQueries({ queryKey: ['suggested-peers', activeCollege?.id] });
+            
+            alert('Connection request sent!');
+        } catch (err: any) {
             console.error(err);
+            const message = err.response?.data?.message || 'Failed to send connection request.';
+            alert(message);
         }
     };
 

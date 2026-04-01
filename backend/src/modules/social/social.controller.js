@@ -41,7 +41,7 @@ exports.sendRequest = async (req, res) => {
         res.status(201).json(connection);
     } catch (error) {
         console.error('sendRequest error:', error);
-        res.status(500).json({ message: error.message });
+        res.status(400).json({ success: false, message: error.message });
     }
 };
 
