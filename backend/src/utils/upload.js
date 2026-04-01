@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 
 // Ensure upload directories exist
-const uploadDirs = ['uploads/documents', 'uploads/avatars', 'uploads/chat'];
+const uploadDirs = ['uploads/documents', 'uploads/avatars', 'uploads/chat', 'uploads/posts'];
 uploadDirs.forEach(dir => {
     const fullPath = path.join(process.cwd(), dir);
     if (!fs.existsSync(fullPath)) {
@@ -17,6 +17,8 @@ const storage = multer.diskStorage({
             cb(null, 'uploads/documents');
         } else if (file.fieldname === 'chat') {
             cb(null, 'uploads/chat');
+        } else if (file.fieldname === 'post_media') {
+            cb(null, 'uploads/posts');
         } else {
             cb(null, 'uploads/avatars');
         }

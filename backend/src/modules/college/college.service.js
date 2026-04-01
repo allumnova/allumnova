@@ -74,7 +74,8 @@ const suggestCollege = async (requesterId, data) => {
         data: {
             requesterId,
             name: data.name,
-            domain: data.domain, // Changed from subdomain to domain
+            domain: data.domain || data.subdomain || null,
+            subdomain: data.subdomain || null,
             website: data.website,
             logo: data.logo,
             location: data.location,

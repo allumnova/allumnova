@@ -19,7 +19,27 @@ const getFeed = async (req, res) => {
 
 const postContent = async (req, res) => {
     try {
-        const post = await feedService.createPost(req.user.userId, req.collegeId, req.body);
+        const postData = { ...req.body };
+        
+        // Handle uploaded media
+        if (req.files && req.files.length > 0) {
+            postData.media = req.files.map(file => ({
+                url: `/uploads/posts/${file.filename}`,
+                type: file.mimetype.startsWith('video') ? 'video' : 
+                      file.mimetype === 'application/pdf' ? 'pdf' : 'image'
+            }));
+        }
+
+        // Parse metadata if it's a string (common with multipart/form-data)
+        if (typeof postData.metadata === 'string') {
+            try {
+                postData.metadata = JSON.parse(postData.metadata);
+            } catch (e) {
+                console.warn('Failed to parse metadata JSON', e);
+            }
+        }
+
+        const post = await feedService.createPost(req.user.userId, req.collegeId, postData);
         res.status(201).json({ success: true, data: post });
     } catch (error) {
         console.error(`ERROR: postContent failed - ${error.message}`);

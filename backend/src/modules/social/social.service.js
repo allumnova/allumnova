@@ -2,6 +2,45 @@ const prisma = require('../../models');
 const notificationService = require('../notification/notification.service');
 const socketUtil = require('../../utils/socket');
 
+exports.getSuggestedPeers = async (userId, collegeId) => {
+    // 1. Get current user's batch
+    const userMembership = await prisma.collegeMembership.findUnique({
+        where: { userId_collegeId: { userId, collegeId } }
+    });
+
+    const userBatch = userMembership?.batch;
+
+    // 2. Suggest users from same college, same batch (if available), not already connected
+    return await prisma.user.findMany({
+        where: {
+            id: { not: userId },
+            colleges: {
+                some: { 
+                    collegeId: collegeId,
+                    status: 'VERIFIED'
+                }
+            },
+            sentRequests: { none: { receiverId: userId } },
+            receivedRequests: { none: { senderId: userId } }
+        },
+        select: {
+            id: true,
+            name: true,
+            avatar: true,
+            reputationScore: true,
+            colleges: {
+                where: { collegeId: collegeId },
+                select: { role: true, batch: true }
+            }
+        },
+        orderBy: [
+            { reputationScore: 'desc' },
+            { createdAt: 'desc' }
+        ],
+        take: 5
+    });
+};
+
 exports.discoverUsers = async (userId, collegeId, cursor, limit = 20, search, role, batchYear) => {
     const where = {
         id: { not: userId },

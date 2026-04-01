@@ -1,6 +1,18 @@
 const socialService = require('./social.service');
 const prisma = require('../../models');
 
+exports.getSuggestions = async (req, res) => {
+    try {
+        const collegeId = req.headers['x-college-id'];
+        if (!collegeId) return res.status(400).json({ message: 'College ID required' });
+        const suggestions = await socialService.getSuggestedPeers(req.user.userId, collegeId);
+        res.json(suggestions);
+    } catch (error) {
+        console.error('getSuggestions error:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
 exports.getDiscover = async (req, res) => {
     try {
         const collegeId = req.headers['x-college-id'];

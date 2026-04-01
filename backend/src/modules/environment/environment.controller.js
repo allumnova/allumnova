@@ -21,3 +21,15 @@ exports.joinEnvironment = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+exports.proposeEnvironment = async (req, res) => {
+    try {
+        const collegeId = req.collegeId || req.header('X-College-ID');
+        if (!collegeId) return res.status(400).json({ success: false, message: 'College ID required' });
+        
+        const environment = await environmentService.proposeEnvironment(collegeId, req.user.userId, req.body);
+        res.status(201).json({ success: true, data: environment });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};

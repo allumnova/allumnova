@@ -264,8 +264,20 @@ const createPost = async (userId, collegeId, postData) => {
     }
 
     const post = await prisma.post.create({
-        data: { content, post_type: type, authorId: userId, collegeId, metadata },
-        include: { author: true }
+        data: { 
+            content, 
+            post_type: type, 
+            authorId: userId, 
+            collegeId, 
+            metadata,
+            media: {
+                create: postData.media?.map(m => ({
+                    url: m.url,
+                    type: m.type || 'image'
+                })) || []
+            }
+        },
+        include: { author: true, media: true }
     });
 
     await updatePostInFeedCache(collegeId, post.id);

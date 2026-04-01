@@ -356,6 +356,8 @@ model Environment {
   name         String
   description  String?
   icon         String?
+  type         String                  @default("HUB") // HUB, CLUB, STUDY_GROUP
+  status       String                  @default("VERIFIED") // PENDING, VERIFIED, REJECTED
   createdAt    DateTime                @default(now())
   college      College                 @relation(fields: [collegeId], references: [id])
   members      EnvironmentMembership[]
@@ -376,7 +378,7 @@ model CollegeRequest {
   id           String   @id @default(cuid())
   requesterId  String
   name         String
-  domain       String
+  domain       String?
   subdomain    String?
   logo         String?
   website      String?
