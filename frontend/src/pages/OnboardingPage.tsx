@@ -53,9 +53,10 @@ const OnboardingPage = () => {
     }, []);
 
     const filteredColleges = useMemo(() => {
-        if (!collegeSearch.trim()) return colleges;
-        return colleges.filter(c =>
-            c.name.toLowerCase().includes(collegeSearch.toLowerCase())
+        const list = Array.isArray(colleges) ? colleges : [];
+        if (!collegeSearch.trim()) return list;
+        return list.filter(c =>
+            c && c.name && c.name.toLowerCase().includes(collegeSearch.toLowerCase())
         );
     }, [colleges, collegeSearch]);
 

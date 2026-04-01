@@ -234,8 +234,8 @@ const ChatPage = () => {
         }
     };
 
-    const filteredConversations = conversations.filter(c => 
-        c.users?.[0]?.name?.toLowerCase().includes(searchQuery.toLowerCase())
+    const filteredConversations = (Array.isArray(conversations) ? conversations : []).filter(c => 
+        c && c.users?.[0]?.name?.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     const emojis = ['👍', '❤️', '🔥', '😂', '😮', '😢', '🙏', '✨', '✅', '🚀', '💯', '🤔'];

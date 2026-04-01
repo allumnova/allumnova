@@ -365,9 +365,9 @@ const ProfilePage = () => {
                             ))}
                         </div>
 
-                        {profile.posts && profile.posts.filter((p: any) => postType === 'all' || p.post_type === postType).length > 0 ? (
+                        {Array.isArray(profile.posts) && profile.posts.filter((p: any) => p && (postType === 'all' || p.post_type === postType)).length > 0 ? (
                             profile.posts
-                                .filter((p: any) => postType === 'all' || p.post_type === postType)
+                                .filter((p: any) => p && (postType === 'all' || p.post_type === postType))
                                 .map((post: Post) => (
                                     <PostCard 
                                         key={post.id} 
