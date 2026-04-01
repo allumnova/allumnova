@@ -4,10 +4,11 @@ import { useAuth } from '../contexts/AuthContext';
 import { useCollege } from '../contexts/CollegeContext';
 import api from '../api/axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Settings, Shield, Award, Grid, Clock, UserPlus, User as UserIcon, MessageCircle, Check, X, Calendar, MapPin, Mail, Linkedin, Camera, Save, Sparkles, GraduationCap, CheckCircle2, Search } from 'lucide-react';
+import { Settings, Shield, Award, Grid, Clock, UserPlus, User as UserIcon, MessageCircle, Check, X, Calendar, MapPin, Mail, Linkedin, Camera, Save, Sparkles, GraduationCap, CheckCircle2, Search, Rocket, Filter } from 'lucide-react';
 import PostCard from '../components/PostCard';
 import MentorshipRequestModal from '../components/profile/MentorshipRequestModal';
-import { Post } from '../types';
+import ProjectCard from '../components/project/ProjectCard';
+import { Post, Project } from '../types';
 import { createPortal } from 'react-dom';
 
 const ProfilePage = () => {
@@ -16,7 +17,8 @@ const ProfilePage = () => {
     
     const [profile, setProfile] = useState<any>(null);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'posts' | 'about'>('posts');
+    const [activeTab, setActiveTab] = useState<'posts' | 'projects' | 'about'>('posts');
+    const [postType, setPostType] = useState<'all' | 'opportunity' | 'event' | 'achievement' | 'general'>('all');
     const [connectionLoading, setConnectionLoading] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [isMentorshipModalOpen, setIsMentorshipModalOpen] = useState(false);
@@ -146,7 +148,7 @@ const ProfilePage = () => {
     const stats = [
         { label: 'Impact', value: profile.reputationScore || 0, icon: Shield, color: 'text-blue-400' },
         { label: 'Posts', value: profile.posts?.length || 0, icon: Grid, color: 'text-slate-400' },
-        { label: 'Joined', value: new Date(profile.createdAt).getFullYear(), icon: Calendar, color: 'text-emerald-400' },
+        { label: 'Showcase', value: profile.projects?.length || 0, icon: Rocket, color: 'text-purple-400' },
     ];
 
     const getStatusLabel = () => {
@@ -317,59 +319,96 @@ const ProfilePage = () => {
             )}
 
             <div className="flex items-center p-1.5 bg-slate-100 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-white/5 rounded-[1.5rem] shadow-inner">
-                <button 
-                    onClick={() => setActiveTab('posts')}
-                    className={clsx(
-                        "flex-1 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] transition-all",
-                        activeTab === 'posts' ? "bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-xl" : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-                    )}
-                >
-                    Feed Activity
-                </button>
-                <button 
-                  onClick={() => setActiveTab('about')}
-                  className={clsx(
-                    "flex-1 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] transition-all",
-                    activeTab === 'about' ? "bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-xl" : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-                  )}
-                >
-                    Directory Information
-                </button>
+                {[
+                    { id: 'posts', label: 'Feed Activity' },
+                    { id: 'projects', label: 'Showcase' },
+                    { id: 'about', label: 'About' }
+                ].map((t) => (
+                    <button 
+                        key={t.id}
+                        onClick={() => setActiveTab(t.id as any)}
+                        className={clsx(
+                            "flex-1 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] transition-all",
+                            activeTab === t.id ? "bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-xl" : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                        )}
+                    >
+                        {t.label}
+                    </button>
+                ))}
             </div>
 
             <AnimatePresence mode="wait">
                 {activeTab === 'posts' ? (
-                    <motion.div
-                        key="posts"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        className="space-y-4"
-                    >
-                        {profile.posts && profile.posts.length > 0 ? (
-                            profile.posts.map((post: Post) => (
-                                <PostCard 
-                                    key={post.id} 
-                                    post={post} 
-                                    onAppreciate={() => {}} 
-                                    onBoost={() => {}} 
-                                />
-                            ))
+                    <motion.div key="posts" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+                        {/* Post Categories */}
+                        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none no-scrollbar">
+                            <Filter size={16} className="text-slate-400 shrink-0 ml-1" />
+                            {[
+                                { id: 'all', label: 'All' },
+                                { id: 'opportunity', label: 'Opportunities' },
+                                { id: 'event', label: 'Events' },
+                                { id: 'achievement', label: 'Achievements' },
+                                { id: 'general', label: 'General' }
+                            ].map((cat) => (
+                                <button
+                                    key={cat.id}
+                                    onClick={() => setPostType(cat.id as any)}
+                                    className={clsx(
+                                        "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border",
+                                        postType === cat.id 
+                                            ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-transparent shadow-lg" 
+                                            : "bg-white dark:bg-slate-900 text-slate-500 border-slate-200 dark:border-white/5"
+                                    )}
+                                >
+                                    {cat.label}
+                                </button>
+                            ))}
+                        </div>
+
+                        {profile.posts && profile.posts.filter((p: any) => postType === 'all' || p.post_type === postType).length > 0 ? (
+                            profile.posts
+                                .filter((p: any) => postType === 'all' || p.post_type === postType)
+                                .map((post: Post) => (
+                                    <PostCard 
+                                        key={post.id} 
+                                        post={post} 
+                                        onAppreciate={() => {}} 
+                                        onBoost={() => {}} 
+                                    />
+                                ))
                         ) : (
                             <div className="py-20 text-center bg-white dark:bg-slate-900/40 rounded-[2.5rem] border border-dashed border-slate-200 dark:border-white/10">
                                 <Grid size={48} className="mx-auto text-slate-200 dark:text-slate-800 mb-4" strokeWidth={1.5} />
-                                <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">No activity recorded</p>
+                                <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">No {postType !== 'all' ? postType : ''} posts recorded</p>
+                            </div>
+                        )}
+                    </motion.div>
+                ) : activeTab === 'projects' ? (
+                    <motion.div key="projects" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+                        {profile.projects && profile.projects.length > 0 ? (
+                            <div className="grid grid-cols-1 gap-6">
+                                {profile.projects.map((project: Project, idx: number) => (
+                                    <ProjectCard 
+                                        key={project.id} 
+                                        project={project} 
+                                        index={idx} 
+                                        onUpdate={() => fetchProfile()} 
+                                        onEdit={() => {}}
+                                    />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="py-20 text-center bg-white dark:bg-slate-900/40 rounded-[2.5rem] border border-dashed border-slate-200 dark:border-white/10">
+                                <Rocket size={48} className="mx-auto text-slate-200 dark:text-slate-800 mb-4" strokeWidth={1.5} />
+                                <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">No showcase initiatives yet</p>
+                                {isOwnProfile && (
+                                    <Link to="/launchpad" className="mt-4 inline-block text-blue-500 font-bold text-xs uppercase tracking-widest border-b border-blue-500 pb-1">Start your first journey</Link>
+                                )}
                             </div>
                         )}
                     </motion.div>
                 ) : (
-                    <motion.div
-                        key="about"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        className="bg-white dark:bg-slate-900/40 rounded-[2.5rem] p-10 text-center border border-slate-200 dark:border-white/5"
-                    >
+                    <motion.div key="about" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-slate-900/40 rounded-[2.5rem] p-10 text-center border border-slate-200 dark:border-white/5">
                         <UserIcon size={48} className="mx-auto text-slate-200 dark:text-slate-800 mb-4" strokeWidth={1.5} />
                         <h4 className="font-bold text-slate-900 dark:text-white mb-2">Member Metadata</h4>
                         <p className="text-slate-500 text-sm max-w-sm mx-auto leading-relaxed">

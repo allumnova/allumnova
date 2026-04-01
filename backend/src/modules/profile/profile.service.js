@@ -37,9 +37,9 @@ const getUserProfile = async (targetUserId, currentUserId) => {
                 }
             },
             posts: {
-                where: { visibility: 'college' },
+                where: { visibility: { in: ['college', 'public'] } },
                 orderBy: { createdAt: 'desc' },
-                take: 10,
+                take: 50,
                 include: {
                     author: { 
                         select: { 
@@ -51,8 +51,13 @@ const getUserProfile = async (targetUserId, currentUserId) => {
                             is_verified: true
                         } 
                     },
+                    media: true,
                     _count: { select: { likes: true, comments: true } }
                 }
+            },
+            projects: {
+                orderBy: { createdAt: 'desc' },
+                take: 20
             }
         }
     });
