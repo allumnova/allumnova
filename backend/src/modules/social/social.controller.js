@@ -1,11 +1,11 @@
 const socialService = require('./social.service');
 const prisma = require('../../models');
 
-exports.getSuggestions = async (req, res) => {
+const getSuggestions = async (req, res) => {
     try {
         const collegeId = req.headers['x-college-id'];
         if (!collegeId) return res.status(400).json({ message: 'College ID required' });
-        const suggestions = await socialService.getSuggestedPeers(req.user.userId, collegeId);
+        const suggestions = await socialService.getRecommendedPeers(req.user.userId, collegeId);
         res.json(suggestions);
     } catch (error) {
         console.error('getSuggestions error:', error);
@@ -13,17 +13,7 @@ exports.getSuggestions = async (req, res) => {
     }
 };
 
-exports.getRecommended = async (req, res) => {
-    try {
-        const collegeId = req.headers['x-college-id'];
-        const users = await socialService.getRecommendedPeers(req.user.userId, collegeId);
-        res.json(users);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
-exports.getDiscover = async (req, res) => {
+const getDiscover = async (req, res) => {
     try {
         const collegeId = req.headers['x-college-id'];
         const { cursor, limit, search, role, batchYear } = req.query;
@@ -43,105 +33,99 @@ exports.getDiscover = async (req, res) => {
     }
 };
 
-exports.sendRequest = async (req, res) => {
+const getAlumni = async (req, res) => {
+    try {
+        const collegeId = req.headers['x-college-id'];
+        const { cursor, search } = req.query;
+        const users = await socialService.listAlumni(
+            collegeId, 
+            req.user.userId, 
+            cursor, 
+            20, 
+            search
+        );
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const sendRequest = async (req, res) => {
     try {
         const { receiverId } = req.body;
-        console.log(`DEBUG: sendRequest from ${req.user.userId} to ${receiverId}`);
         const connection = await socialService.sendConnectionRequest(req.user.userId, receiverId);
         res.status(201).json(connection);
     } catch (error) {
-        console.error('sendRequest error:', error);
         res.status(400).json({ success: false, message: error.message });
     }
 };
 
-exports.acceptRequest = async (req, res) => {
+const acceptRequest = async (req, res) => {
     try {
-        const { requestId, notificationId } = req.body;
-        // If notificationId is provided, find the connectionId (targetId) from it
-        let actualRequestId = requestId;
-
-        if (notificationId && !actualRequestId) {
-            const notification = await prisma.notification.findUnique({
-                where: { id: notificationId }
-            });
-            if (notification) actualRequestId = notification.targetId;
-        }
-
-        if (!actualRequestId) {
-            return res.status(400).json({ message: 'Missing requestId or valid notificationId' });
-        }
-
-        const connection = await socialService.acceptConnectionRequest(actualRequestId, req.user.userId);
+        const { requestId } = req.body;
+        const connection = await socialService.acceptConnectionRequest(requestId, req.user.userId);
         res.json(connection);
     } catch (error) {
-        console.error('acceptRequest error:', error);
         res.status(500).json({ message: error.message });
     }
 };
 
-exports.declineRequest = async (req, res) => {
+const declineRequest = async (req, res) => {
     try {
-        const { requestId, notificationId } = req.body;
-        let actualRequestId = requestId;
-
-        if (notificationId && !actualRequestId) {
-            const notification = await prisma.notification.findUnique({
-                where: { id: notificationId }
-            });
-            if (notification) actualRequestId = notification.targetId;
-        }
-
-        if (!actualRequestId) {
-            return res.status(400).json({ message: 'Missing requestId or valid notificationId' });
-        }
-
-        const result = await socialService.declineConnectionRequest(actualRequestId, req.user.userId);
+        const { requestId } = req.body;
+        const result = await socialService.declineConnectionRequest(requestId, req.user.userId);
         res.json(result);
     } catch (error) {
-        console.error('declineRequest error:', error);
         res.status(500).json({ message: error.message });
     }
 };
 
-exports.getConnections = async (req, res) => {
+const getConnections = async (req, res) => {
     try {
         const connections = await socialService.listConnections(req.user.userId);
         res.json(connections);
     } catch (error) {
-        console.error('getConnections error:', error);
         res.status(500).json({ message: error.message });
     }
 };
 
-exports.getNotifications = async (req, res) => {
+const getNotifications = async (req, res) => {
     try {
-        // Return pending connection requests as notifications
         const notifications = await socialService.getNotifications(req.user.userId);
         res.json(notifications);
     } catch (error) {
-        console.error('getNotifications error:', error);
         res.status(500).json({ message: error.message });
     }
 };
 
-exports.getPendingRequests = async (req, res) => {
+const getPendingRequests = async (req, res) => {
     try {
         const requests = await socialService.listPendingRequests(req.user.userId);
         res.json(requests);
     } catch (error) {
-        console.error('getPendingRequests error:', error);
         res.status(500).json({ message: error.message });
     }
 };
 
-exports.removeConnection = async (req, res) => {
+const removeConnection = async (req, res) => {
     try {
         const { userId } = req.params;
         const result = await socialService.removeConnection(req.user.userId, userId);
         res.json({ success: true, count: result.count });
     } catch (error) {
-        console.error('removeConnection error:', error);
         res.status(500).json({ message: error.message });
     }
+};
+
+module.exports = {
+    getSuggestions,
+    getDiscover,
+    getAlumni,
+    sendRequest,
+    acceptRequest,
+    declineRequest,
+    getConnections,
+    getNotifications,
+    getPendingRequests,
+    removeConnection
 };
