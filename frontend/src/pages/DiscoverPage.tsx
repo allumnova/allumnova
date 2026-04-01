@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useCollege } from '../contexts/CollegeContext';
-import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Building2, Plus, Users } from 'lucide-react';
+import { Search, Building2, Plus, Users, Image as ImageIcon } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import MentorshipRequestModal from '../components/profile/MentorshipRequestModal';
+import { useAuth } from '../contexts/AuthContext';
 
 const DiscoverPage = () => {
     const { activeCollege, refreshColleges } = useCollege();
@@ -24,6 +26,9 @@ const DiscoverPage = () => {
     const [roleFilter, setRoleFilter] = useState('');
     const [batchFilter, setBatchFilter] = useState('');
     const [loading, setLoading] = useState(true);
+    const [showMentorshipModal, setShowMentorshipModal] = useState(false);
+    const [selectedMentorId, setSelectedMentorId] = useState<string | null>(null);
+    const { user: currentUser } = useAuth();
     const queryClient = useQueryClient();
 
     useEffect(() => {
@@ -70,6 +75,15 @@ const DiscoverPage = () => {
             return res.data;
         },
         getNextPageParam: (lastPage) => (lastPage.length > 0) ? lastPage[lastPage.length - 1].id : undefined,
+        enabled: tab === 'people' && !!activeCollege
+    });
+
+    const { data: suggestions } = useQuery({
+        queryKey: ['suggested-peers', activeCollege?.id],
+        queryFn: async () => {
+            const res = await api.get('/social/suggestions');
+            return res.data;
+        },
         enabled: tab === 'people' && !!activeCollege
     });
 
@@ -195,6 +209,36 @@ const DiscoverPage = () => {
             </div>
 
             <div className="mb-8">
+                {tab === 'people' && suggestions?.length > 0 && (
+                    <div className="mb-12">
+                        <div className="flex items-center gap-2 mb-6">
+                            <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                            <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest">You might know</h2>
+                        </div>
+                        <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
+                            {suggestions.map((user: any) => (
+                                <motion.div 
+                                    key={user.id} 
+                                    whileHover={{ y: -5 }}
+                                    className="flex-shrink-0 w-48 bg-white/50 dark:bg-slate-900/40 backdrop-blur-md border border-slate-200 dark:border-white/5 rounded-3xl p-5 flex flex-col items-center text-center"
+                                >
+                                    <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 mb-3 flex items-center justify-center text-lg font-bold overflow-hidden ring-2 ring-blue-500/20">
+                                        {user.avatar ? <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" /> : user.name.charAt(0)}
+                                    </div>
+                                    <h3 className="text-xs font-bold text-slate-900 dark:text-white mb-1 truncate w-full">{user.name}</h3>
+                                    <p className="text-[9px] text-slate-500 mb-4">{user.colleges?.[0]?.batch ? `Batch ${user.colleges[0].batch}` : 'Peer'}</p>
+                                    <button 
+                                        onClick={() => handleConnect(user.id)}
+                                        className="w-full py-2 bg-blue-600/10 hover:bg-blue-600 text-blue-600 hover:text-white text-[9px] font-bold rounded-xl transition-all"
+                                    >
+                                        Connect
+                                    </button>
+                                </motion.div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 {loading ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {[1, 2, 3, 4].map(i => <div key={i} className="bg-white dark:bg-slate-900/30 h-48 rounded-[2rem] animate-pulse border border-slate-200 dark:border-white/5" />)}
@@ -223,73 +267,91 @@ const DiscoverPage = () => {
                                                     </div>
                                                 </div>
                                                 
-                                                {user.pulse && (
-                                                    <div className="flex items-center gap-1.5 bg-amber-500/10 px-2 py-1 rounded-full mb-4 border border-amber-500/20">
-                                                        <span className="text-xs">{user.pulseEmoji}</span>
-                                                        <span className="text-[8px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest">{user.pulse}</span>
-                                                    </div>
+                                                {user.role === 'ALUMNI' && (
+                                                    <button 
+                                                        onClick={() => {
+                                                            setSelectedMentorId(user.id);
+                                                            setShowMentorshipModal(true);
+                                                        }}
+                                                        className="mt-2 w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-bold py-2 rounded-xl transition-all hover:bg-blue-600 hover:text-white"
+                                                    >
+                                                        Request Mentorship
+                                                    </button>
                                                 )}
-                                                
-                                                <button onClick={() => handleConnect(user.id)} className="mt-auto w-full bg-blue-600 text-white text-[10px] font-bold py-2 rounded-xl transition-all hover:bg-blue-500">Connect</button>
+                                                <button onClick={() => handleConnect(user.id)} className="mt-2 w-full bg-blue-600 text-white text-[10px] font-bold py-2 rounded-xl transition-all hover:bg-blue-500">Connect</button>
                                             </motion.div>
                                         )))
                                     )
                                 ) : tab === 'hubs' ? (
-                                    hubs.map((hub) => (
-                                        <motion.div key={hub.id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="group bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-white/5 rounded-[2rem] p-6 relative overflow-hidden transition-all hover:shadow-2xl hover:shadow-blue-500/10">
-                                            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                                                <div className="w-12 h-12 bg-blue-500 rounded-full blur-2xl" />
+                                    <>
+                                        <motion.div 
+                                            initial={{ opacity: 0, scale: 0.95 }} 
+                                            animate={{ opacity: 1, scale: 1 }} 
+                                            onClick={() => setIsSuggesting(true)}
+                                            className="group bg-blue-500/5 border-2 border-dashed border-blue-500/20 rounded-[2rem] p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-blue-500/10 transition-all"
+                                        >
+                                            <div className="w-12 h-12 rounded-2xl bg-blue-500/20 flex items-center justify-center text-blue-500 mb-4">
+                                                <Plus size={24} />
                                             </div>
-                                            <div className="flex items-center gap-2 mb-4">
-                                                <span className="px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-bold uppercase tracking-wider">{hub.type}</span>
-                                                <span className="flex items-center gap-1 text-[10px] text-slate-400"><Users size={12} /> {hub._count?.members || 0} members</span>
-                                            </div>
-                                            <h3 
-                                                className="text-[15px] font-bold text-slate-900 dark:text-white mb-2 leading-tight hover:text-blue-500 cursor-pointer transition-colors"
-                                                onClick={() => navigate(`/hubs/${hub.id}`)}
-                                            >
-                                                {hub.name}
-                                            </h3>
-                                            <p className="text-[11px] text-slate-500 line-clamp-2 mb-6 h-8">{hub.description || 'No description provided.'}</p>
-                                            
-                                            <div className="flex -space-x-2 mb-6">
-                                                {hub.members?.map((m: any, i: number) => (
-                                                    <div key={i} className="w-6 h-6 rounded-full border-2 border-white dark:border-slate-900 overflow-hidden bg-slate-100 dark:bg-slate-800">
-                                                        {m.user?.avatar ? <img src={m.user.avatar} alt="member" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-[8px] font-bold">{m.user?.name?.charAt(0)}</div>}
-                                                    </div>
-                                                ))}
-                                                {hub._count?.members > 5 && (
-                                                    <div className="w-6 h-6 rounded-full border-2 border-white dark:border-slate-900 bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[8px] font-bold text-slate-500">
-                                                        +{hub._count.members - 5}
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            <button 
-                                                onClick={async () => {
-                                                    try {
-                                                        await api.post('/environments/join', { environmentId: hub.id });
-                                                        alert(`Successfully joined ${hub.name}!`);
-                                                        // Update member count locally
-                                                        setHubs(prev => prev.map(h => h.id === hub.id ? { ...h, _count: { ...h._count, members: h._count.members + 1 } } : h));
-                                                    } catch (err) {
-                                                        alert('Failed to join hub');
-                                                    }
-                                                }}
-                                                className="w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[11px] font-bold py-3 rounded-xl transition-all hover:bg-blue-600 hover:text-white dark:hover:bg-blue-500"
-                                            >
-                                                Join Hub
-                                            </button>
+                                            <h3 className="text-sm font-bold text-blue-600 dark:text-blue-400 mb-1">Propose New Hub</h3>
+                                            <p className="text-[10px] text-slate-500">Start a community around your interests.</p>
                                         </motion.div>
-                                    ))
+                                        
+                                        {hubs.map((hub) => (
+                                            <motion.div key={hub.id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="group bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-white/5 rounded-[2rem] p-6 relative overflow-hidden transition-all hover:shadow-2xl hover:shadow-blue-500/10">
+                                                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                                                    <div className="w-12 h-12 bg-blue-500 rounded-full blur-2xl" />
+                                                </div>
+                                                <div className="flex items-center gap-2 mb-4">
+                                                    <span className="px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-bold uppercase tracking-wider">{hub.type}</span>
+                                                    <span className="flex items-center gap-1 text-[10px] text-slate-400"><Users size={12} /> {hub._count?.members || 0} members</span>
+                                                </div>
+                                                <h3 
+                                                    className="text-[15px] font-bold text-slate-900 dark:text-white mb-2 leading-tight hover:text-blue-500 cursor-pointer transition-colors"
+                                                    onClick={() => navigate(`/hubs/${hub.id}`)}
+                                                >
+                                                    {hub.name}
+                                                </h3>
+                                                <p className="text-[11px] text-slate-500 line-clamp-2 mb-6 h-8">{hub.description || 'No description provided.'}</p>
+                                                
+                                                <div className="flex -space-x-2 mb-6">
+                                                    {hub.members?.map((m: any, i: number) => (
+                                                        <div key={i} className="w-6 h-6 rounded-full border-2 border-white dark:border-slate-900 overflow-hidden bg-slate-100 dark:bg-slate-800">
+                                                            {m.user?.avatar ? <img src={m.user.avatar} alt="member" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-[8px] font-bold">{m.user?.name?.charAt(0)}</div>}
+                                                        </div>
+                                                    ))}
+                                                    {hub._count?.members > 5 && (
+                                                        <div className="w-6 h-6 rounded-full border-2 border-white dark:border-slate-900 bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[8px] font-bold text-slate-500">
+                                                            +{hub._count.members - 5}
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <button 
+                                                    onClick={async () => {
+                                                        try {
+                                                            await api.post('/environments/join', { environmentId: hub.id });
+                                                            alert(`Successfully joined ${hub.name}!`);
+                                                            setHubs(prev => prev.map(h => h.id === hub.id ? { ...h, _count: { ...h._count, members: (h._count?.members || 0) + 1 } } : h));
+                                                        } catch (err) {
+                                                            alert('Failed to join hub');
+                                                        }
+                                                    }}
+                                                    className="w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[11px] font-bold py-3 rounded-xl transition-all hover:bg-blue-600 hover:text-white dark:hover:bg-blue-500"
+                                                >
+                                                    Join Hub
+                                                </button>
+                                            </motion.div>
+                                        ))}
+                                    </>
                                 ) : (
-                                    colleges.map((college) => (
-                                        <motion.div key={college.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-white/5 rounded-[2rem] p-6 flex items-start gap-4">
+                                    colleges.map((col) => (
+                                        <motion.div key={col.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-white/5 rounded-[2rem] p-6 flex items-start gap-4">
                                             <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-blue-500"><Building2 size={24} /></div>
                                             <div className="flex-1 min-w-0">
-                                                <h3 className="text-sm font-bold text-slate-900 dark:text-white truncate">{college.name}</h3>
-                                                <p className="text-[10px] text-slate-500 mb-3">{college.subdomain}.allumnova.com</p>
-                                                <button onClick={() => handleJoinCollege(college.id)} className="bg-slate-100 dark:bg-white/5 hover:bg-blue-600 hover:text-white text-slate-900 dark:text-white text-[10px] font-bold py-1.5 px-4 rounded-lg transition-all flex items-center gap-1"><Plus size={12} /> Join</button>
+                                                <h3 className="text-sm font-bold text-slate-900 dark:text-white truncate">{col.name}</h3>
+                                                <p className="text-[10px] text-slate-500 mb-3">{col.subdomain}.allumnova.com</p>
+                                                <button onClick={() => handleJoinCollege(col.id)} className="bg-slate-100 dark:bg-white/5 hover:bg-blue-600 hover:text-white text-slate-900 dark:text-white text-[10px] font-bold py-1.5 px-4 rounded-lg transition-all flex items-center gap-1"><Plus size={12} /> Join</button>
                                             </div>
                                         </motion.div>
                                     ))
@@ -337,25 +399,42 @@ const DiscoverPage = () => {
                             </div>
                         )}
 
-                        {tab === 'colleges' && isSuggesting && (
+                        {isSuggesting && (
                             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-[2.5rem] p-8 max-w-2xl mx-auto shadow-2xl">
-                                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Suggest College</h3>
-                                <p className="text-xs text-slate-500 mb-6">Provide details for admin approval.</p>
-                                <form onSubmit={handleSuggestCollege} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+                                    {tab === 'hubs' ? 'Propose New Hub' : 'Suggest College'}
+                                </h3>
+                                <p className="text-xs text-slate-500 mb-6">
+                                    {tab === 'hubs' ? 'Start a new community space for your college.' : 'Provide details for admin approval.'}
+                                </p>
+                                <form onSubmit={tab === 'hubs' ? async (e) => {
+                                    e.preventDefault();
+                                    try {
+                                        await api.post('/environments', { name: suggestName, description: suggestDescription });
+                                        alert('Hub proposal submitted! Once approved, it will appear in Discovery.');
+                                        setIsSuggesting(false);
+                                        setSuggestName('');
+                                        setSuggestDescription('');
+                                    } catch (err) {
+                                        alert('Failed to send proposal.');
+                                    }
+                                } : handleSuggestCollege} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="sm:col-span-2">
-                                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1 ml-1">College Name*</label>
-                                        <input required type="text" value={suggestName} onChange={(e) => setSuggestName(e.target.value)} className="w-full bg-slate-100 dark:bg-slate-950/50 border border-slate-200 dark:border-white/5 rounded-xl py-3 px-4 text-sm dark:text-white outline-none" placeholder="e.g. Harvard University" />
+                                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1 ml-1">{tab === 'hubs' ? 'Hub' : 'College'} Name*</label>
+                                        <input required type="text" value={suggestName} onChange={(e) => setSuggestName(e.target.value)} className="w-full bg-slate-100 dark:bg-slate-950/50 border border-slate-200 dark:border-white/5 rounded-xl py-3 px-4 text-sm dark:text-white outline-none" placeholder={tab === 'hubs' ? "e.g. AI Researchers" : "e.g. Harvard University"} />
                                     </div>
-                                    <div>
-                                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1 ml-1">Subdomain*</label>
-                                        <input required type="text" value={suggestSubdomain} onChange={(e) => setSuggestSubdomain(e.target.value)} className="w-full bg-slate-100 dark:bg-slate-950/50 border border-slate-200 dark:border-white/5 rounded-xl py-3 px-4 text-sm dark:text-white outline-none" placeholder="harvard" />
+                                    <div className="sm:col-span-2">
+                                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1 ml-1">Description</label>
+                                        <textarea value={suggestDescription} onChange={(e) => setSuggestDescription(e.target.value)} className="w-full bg-slate-100 dark:bg-slate-950/50 border border-slate-200 dark:border-white/5 rounded-xl py-3 px-4 text-sm dark:text-white outline-none h-24 resize-none" placeholder={tab === 'hubs' ? "What is this hub about?" : "Brief description..."} />
                                     </div>
-                                    <div>
-                                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1 ml-1">Website</label>
-                                        <input type="url" value={suggestWebsite} onChange={(e) => setSuggestWebsite(e.target.value)} className="w-full bg-slate-100 dark:bg-slate-950/50 border border-slate-200 dark:border-white/5 rounded-xl py-3 px-4 text-sm dark:text-white outline-none" placeholder="https://..." />
-                                    </div>
+                                    {tab === 'colleges' && (
+                                        <div className="sm:col-span-2">
+                                            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1 ml-1">College Website</label>
+                                            <input type="url" value={suggestWebsite} onChange={(e) => setSuggestWebsite(e.target.value)} className="w-full bg-slate-100 dark:bg-slate-950/50 border border-slate-200 dark:border-white/5 rounded-xl py-3 px-4 text-sm dark:text-white outline-none" placeholder="https://..." />
+                                        </div>
+                                    )}
                                     <div className="sm:col-span-2 flex gap-3 pt-4">
-                                        <button type="submit" className="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-2xl shadow-lg shadow-blue-500/25 text-sm">Submit</button>
+                                        <button type="submit" disabled={!suggestName} className="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-2xl shadow-lg shadow-blue-500/25 text-sm">Submit</button>
                                         <button type="button" onClick={() => setIsSuggesting(false)} className="px-8 bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 font-bold rounded-2xl text-sm">Cancel</button>
                                     </div>
                                 </form>
@@ -364,6 +443,12 @@ const DiscoverPage = () => {
                     </>
                 )}
             </div>
+
+            <MentorshipRequestModal 
+                isOpen={showMentorshipModal}
+                onClose={() => setShowMentorshipModal(false)}
+                mentorId={selectedMentorId || ''}
+            />
         </div>
     );
 };

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Rocket, Plus, Filter, Search, Zap } from 'lucide-react';
+import { Rocket, Plus, Search, Zap } from 'lucide-react';
+import { clsx } from 'clsx';
 import { useAuth } from '../contexts/AuthContext';
 import { useCollege } from '../contexts/CollegeContext';
 import api from '../api/axios';
@@ -16,7 +17,7 @@ const LaunchpadPage = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingProject, setEditingProject] = useState<Project | undefined>(undefined);
     const [searchTerm, setSearchTerm] = useState('');
-    const [filter, setFilter] = useState<'ALL' | 'COLLABORATORS'>('ALL');
+    const [activeTab, setActiveTab] = useState<'all' | 'trending' | 'workspace'>('all');
 
     const fetchProjects = async (search?: string) => {
         if (!activeCollege) return;
@@ -26,7 +27,16 @@ const LaunchpadPage = () => {
                 params: { search: search || undefined }
             });
             if (res.data.success) {
-                setProjects(res.data.projects);
+                let processedProjects = res.data.projects;
+                
+                // Client-side sorting/filtering based on tabs
+                if (activeTab === 'trending') {
+                    processedProjects = [...processedProjects].sort((a, b) => (b.hypeScore || 0) - (a.hypeScore || 0));
+                } else if (activeTab === 'workspace') {
+                    processedProjects = processedProjects.filter((p: any) => p.ownerId === user?.id);
+                }
+
+                setProjects(processedProjects);
             }
         } catch (error) {
             console.error('Fetch projects error:', error);
@@ -37,69 +47,78 @@ const LaunchpadPage = () => {
 
     useEffect(() => {
         fetchProjects(searchTerm);
-    }, [activeCollege, searchTerm]);
+    }, [activeCollege, searchTerm, activeTab]);
 
-    const filteredProjects = filter === 'ALL' 
-        ? projects 
-        : projects.filter(p => p.lookingFor);
+    const filteredProjects = projects; // Filtering handled in fetchProjects for these specific tabs
 
     return (
-        <div className="max-w-6xl mx-auto px-4 py-8">
-            {/* Header Section */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-                <div>
-                    <motion.div 
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="flex items-center gap-3 mb-4"
-                    >
-                        <div className="p-3 bg-blue-600 rounded-2xl shadow-lg shadow-blue-500/20">
-                            <Rocket className="text-white" size={24} />
-                        </div>
-                        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">The Launchpad</h1>
-                    </motion.div>
-                    <p className="text-slate-500 dark:text-slate-400 max-w-xl text-lg font-medium leading-relaxed">
-                        Where {activeCollege?.name || 'College'} minds build the future. 
-                        Showcase your projects, find co-founders, and get community hype.
-                    </p>
+        <div className="max-w-7xl mx-auto px-6 py-8">
+            {/* Creative Header */}
+            <div className="relative mb-16 p-12 rounded-[3.5rem] bg-slate-900 border border-white/5 overflow-hidden shadow-2xl">
+                <div className="absolute top-0 right-0 p-8 opacity-20 pointer-events-none">
+                    <Rocket size={200} className="text-blue-500 rotate-12" />
                 </div>
-
-                <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => setIsModalOpen(true)}
-                    className="flex items-center gap-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-6 py-4 rounded-[2rem] font-bold shadow-xl transition-all"
-                >
-                    <Plus size={20} />
-                    <span>Launch Project</span>
-                </motion.button>
+                <div className="relative z-10">
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex items-center gap-4 mb-6"
+                    >
+                        <div className="p-3.5 bg-blue-600 rounded-2xl shadow-xl shadow-blue-500/20">
+                            <Rocket className="text-white" size={28} />
+                        </div>
+                        <div>
+                            <h1 className="text-4xl font-black text-white tracking-tight uppercase italic underline decoration-blue-500 decoration-4 underline-offset-8">Launchpad</h1>
+                        </div>
+                    </motion.div>
+                    <p className="text-slate-400 max-w-xl text-lg font-medium leading-relaxed mb-8">
+                        The ultimate stage for {activeCollege?.name || 'College'} innovation. 
+                        Build, showcase, and get the hype your ideas deserve.
+                    </p>
+                    <motion.button
+                        whileHover={{ scale: 1.02, x: 5 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => setIsModalOpen(true)}
+                        className="flex items-center gap-3 bg-white text-slate-900 px-8 py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl transition-all"
+                    >
+                        <Plus size={18} />
+                        <span>Launch New Initiative</span>
+                    </motion.button>
+                </div>
             </div>
 
-            {/* Filters & Search */}
-            <div className="flex flex-wrap items-center justify-between gap-6 mb-8">
-                <div className="flex bg-white dark:bg-white/5 p-1 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm">
-                    <button 
-                        onClick={() => setFilter('ALL')}
-                        className={`px-6 py-2 rounded-xl text-xs font-bold transition-all ${filter === 'ALL' ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-md' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
-                    >
-                        All Projects
-                    </button>
-                    <button 
-                        onClick={() => setFilter('COLLABORATORS')}
-                        className={`px-6 py-2 rounded-xl text-xs font-bold transition-all ${filter === 'COLLABORATORS' ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-md' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}
-                    >
-                        Seeking Collaborators
-                    </button>
+            {/* Premium Tab Navigation */}
+            <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-12">
+                <div className="flex bg-slate-100 dark:bg-white/5 p-1.5 rounded-[2rem] border border-slate-200 dark:border-white/10 w-full md:w-auto">
+                    {[
+                        { id: 'all', label: 'Discovery', icon: Search },
+                        { id: 'trending', label: 'Trending Hype', icon: Zap },
+                        { id: 'workspace', label: 'My Workspace', icon: Rocket }
+                    ].map((tab) => (
+                        <button 
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id as any)}
+                            className={clsx(
+                                "flex-1 md:flex-none flex items-center justify-center gap-2 px-8 py-3.5 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest transition-all duration-300",
+                                activeTab === tab.id 
+                                    ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xl ring-1 ring-slate-200 dark:ring-white/10" 
+                                    : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                            )}
+                        >
+                            <tab.icon size={14} className={activeTab === tab.id ? "text-blue-500" : ""} />
+                            {tab.label}
+                        </button>
+                    ))}
                 </div>
 
-                <div className="relative group flex-1 max-w-md">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={18} />
+                <div className="relative group w-full md:w-96">
+                    <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={18} />
                     <input 
                         type="text"
-                        placeholder="Search projects or technologies..."
+                        placeholder="Search initiatives & tech..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl py-3 pl-12 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all dark:text-white"
+                        className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-[2rem] py-4 pl-14 pr-6 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all dark:text-white"
                     />
                 </div>
             </div>
@@ -113,12 +132,12 @@ const LaunchpadPage = () => {
                 </div>
             ) : filteredProjects.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {filteredProjects.map((project, idx) => (
+                    {projects.map((project: Project, idx: number) => (
                         <ProjectCard 
                             key={project.id} 
                             project={project} 
                             index={idx} 
-                            onUpdate={fetchProjects} 
+                            onUpdate={() => fetchProjects(searchTerm)} 
                             onEdit={(p) => {
                                 setEditingProject(p);
                                 setIsModalOpen(true);

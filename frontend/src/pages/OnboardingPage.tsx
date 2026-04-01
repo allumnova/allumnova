@@ -434,23 +434,26 @@ const OnboardingPage = () => {
                                         <Building2 size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                                         <input name="name" value={suggestData.name} onChange={handleSuggestChange}
                                             className="w-full px-4 py-3 pl-10 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl outline-none dark:text-white text-sm focus:ring-2 focus:ring-blue-500"
-                                            placeholder="e.g. IIT Delhi" required />
+                                            placeholder="e.g. Stanford University" required />
                                     </div>
                                 </div>
                                 <div>
-                                    <label className={labelClass}>Subdomain *</label>
+                                    <label className={labelClass}>College Website</label>
                                     <div className="relative">
                                         <Globe size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                                        <input name="subdomain" value={suggestData.subdomain} onChange={handleSuggestChange}
+                                        <input name="website" value={suggestData.website} onChange={handleSuggestChange}
                                             className="w-full px-4 py-3 pl-10 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl outline-none dark:text-white text-sm focus:ring-2 focus:ring-blue-500"
-                                            placeholder="e.g. iitd" required />
-                                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">.allumnova.com</span>
+                                            placeholder="e.g. stanford.edu" />
                                     </div>
                                 </div>
                                 <div>
-                                    <label className={labelClass}>Website</label>
-                                    <input name="website" value={suggestData.website} onChange={handleSuggestChange}
-                                        className={inputClass} placeholder="https://college.edu" />
+                                    <label className={labelClass}>Location</label>
+                                    <div className="relative">
+                                        <MapPin size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                        <input name="location" value={suggestData.location} onChange={handleSuggestChange}
+                                            className="w-full px-4 py-3 pl-10 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl outline-none dark:text-white text-sm focus:ring-2 focus:ring-blue-500"
+                                            placeholder="City, State" />
+                                    </div>
                                 </div>
                                 <div>
                                     <label className={labelClass}>Location</label>
@@ -467,7 +470,7 @@ const OnboardingPage = () => {
                                         className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl outline-none dark:text-white text-sm focus:ring-2 focus:ring-blue-500 resize-none"
                                         placeholder="Brief description of the college" rows={3} />
                                 </div>
-                                <button type="submit" disabled={suggestLoading || !suggestData.name || !suggestData.subdomain}
+                                <button type="submit" disabled={suggestLoading || !suggestData.name}
                                     className="w-full py-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-500/20 mt-2">
                                     {suggestLoading ? 'Submitting...' : 'Submit Suggestion'}
                                 </button>

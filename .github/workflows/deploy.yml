@@ -26,7 +26,7 @@ jobs:
             git reset --hard origin/main
             
             # Create directories for SSL and Uploads
-            mkdir -p certbot/conf certbot/www backend/uploads/avatars backend/uploads/documents backend/uploads/chat
+            mkdir -p certbot/conf certbot/www backend/uploads/avatars backend/uploads/documents backend/uploads/posts backend/uploads/chat
             chmod -R 777 backend/uploads
             
             # Create .env file from secrets (Sanitized)
