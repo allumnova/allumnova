@@ -35,7 +35,7 @@ const NotificationPage = () => {
     const handleAccept = async (requestId: string) => {
         try {
             await api.post('/social/connect/accept', { requestId });
-            setNotifications(prev => prev.filter((n: Notification) => n.id !== requestId));
+            setNotifications(prev => (Array.isArray(prev) ? prev : []).filter((n: Notification) => n && n.id !== requestId));
         } catch (err) {
             console.error('Failed to accept request:', err);
         }
@@ -44,7 +44,7 @@ const NotificationPage = () => {
     const handleDecline = async (requestId: string) => {
         try {
             await api.post('/social/connect/decline', { requestId });
-            setNotifications(prev => prev.filter((n: Notification) => n.id !== requestId));
+            setNotifications(prev => (Array.isArray(prev) ? prev : []).filter((n: Notification) => n && n.id !== requestId));
         } catch (err) {
             console.error('Failed to decline request:', err);
         }

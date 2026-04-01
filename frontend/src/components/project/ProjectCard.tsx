@@ -49,9 +49,10 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, index, onUpdate, onE
         }
     };
 
-    const completedMilestones = project.milestones.filter(m => m.isCompleted).length;
-    const progress = project.milestones.length > 0 
-        ? (completedMilestones / project.milestones.length) * 100 
+    const milestones = Array.isArray(project.milestones) ? project.milestones : [];
+    const completedMilestones = (Array.isArray(milestones) ? milestones : []).filter(m => m && m.isCompleted).length;
+    const progress = milestones.length > 0 
+        ? (completedMilestones / milestones.length) * 100 
         : 0;
 
     return (
@@ -108,7 +109,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, index, onUpdate, onE
 
                 {/* Milestones List (Toggleable for Owner) */}
                 <div className="space-y-2 mb-6">
-                    {project.milestones.map((m) => (
+                    {(Array.isArray(milestones) ? milestones : []).map((m) => (
                         <div 
                             key={m.id}
                             onClick={(e) => {

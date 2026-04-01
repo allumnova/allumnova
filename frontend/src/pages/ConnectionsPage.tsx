@@ -45,7 +45,7 @@ const ConnectionsPage = () => {
             await api.post('/social/connect/accept', { requestId });
             setPending(prev => ({
                 ...prev,
-                incoming: prev.incoming.filter(r => r.id !== requestId)
+                incoming: (Array.isArray(prev?.incoming) ? prev.incoming : []).filter(r => r && r.id !== requestId)
             }));
             // Optionally refresh connections if we were on that tab, but we're in requests
         } catch (err) {
@@ -58,8 +58,8 @@ const ConnectionsPage = () => {
             await api.post('/social/connect/decline', { requestId });
             setPending(prev => ({
                 ...prev,
-                incoming: prev.incoming.filter(r => r.id !== requestId),
-                outgoing: prev.outgoing.filter(r => r.id !== requestId)
+                incoming: (Array.isArray(prev?.incoming) ? prev.incoming : []).filter(r => r && r.id !== requestId),
+                outgoing: (Array.isArray(prev?.outgoing) ? prev.outgoing : []).filter(r => r && r.id !== requestId)
             }));
         } catch (err) {
             console.error(err);
@@ -69,7 +69,7 @@ const ConnectionsPage = () => {
     const handleConnect = async (userId: string) => {
         try {
             await api.post('/social/connect', { receiverId: userId });
-            setDiscoverUsers(prev => prev.filter(u => u.id !== userId));
+            setDiscoverUsers(prev => (Array.isArray(prev) ? prev : []).filter(u => u && u.id !== userId));
             // Trigger refresh of pending outgoing
         } catch (err) {
             console.error(err);
@@ -82,7 +82,7 @@ const ConnectionsPage = () => {
         if (!window.confirm('Are you sure you want to remove this connection?')) return;
         try {
             await api.delete(`/social/connections/${targetId}`);
-            setConnections(prev => prev.filter(c => c.userId !== targetId));
+            setConnections(prev => (Array.isArray(prev) ? prev : []).filter(c => c && c.userId !== targetId));
         } catch (err) {
             console.error(err);
         }

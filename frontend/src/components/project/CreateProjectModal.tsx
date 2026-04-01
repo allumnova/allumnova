@@ -22,7 +22,7 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose
     const [demoUrl, setDemoUrl] = useState(project?.demoUrl || '');
     const [lookingFor, setLookingFor] = useState(project?.lookingFor || '');
     const [milestones, setMilestones] = useState<string[]>(
-        project?.milestones.map(m => m.title) || ['Initial concept', 'MVP Development']
+        (Array.isArray(project?.milestones) ? project!.milestones : []).map(m => m.title) || ['Initial concept', 'MVP Development']
     );
 
     useEffect(() => {
@@ -32,7 +32,7 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose
             setRepoUrl(project.repoUrl || '');
             setDemoUrl(project.demoUrl || '');
             setLookingFor(project.lookingFor || '');
-            setMilestones(project.milestones.map(m => m.title));
+            setMilestones((Array.isArray(project.milestones) ? project.milestones : []).map(m => m.title));
         } else {
             setTitle('');
             setDescription('');
@@ -49,7 +49,7 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose
         newMilestones[index] = val;
         setMilestones(newMilestones);
     };
-    const removeMilestone = (index: number) => setMilestones(milestones.filter((_, i: number) => i !== index));
+    const removeMilestone = (index: number) => setMilestones((Array.isArray(milestones) ? milestones : []).filter((_, i: number) => i !== index));
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -63,7 +63,7 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose
                 repoUrl,
                 demoUrl,
                 lookingFor,
-                milestones: milestones.filter(m => m.trim()).map(m => ({ title: m, isCompleted: false })),
+                milestones: (Array.isArray(milestones) ? milestones : []).filter(m => m && m.trim()).map(m => ({ title: m, isCompleted: false })),
                 collegeId: activeCollege.id
             };
 

@@ -170,7 +170,7 @@ const ChatPage = () => {
         if (!window.confirm('Delete this message?')) return;
         try {
             await api.delete(`/chat/messages/${msgId}`);
-            setMessages(prev => prev.filter(m => m.id !== msgId));
+            setMessages(prev => (Array.isArray(prev) ? prev : []).filter(m => m && m.id !== msgId));
         } catch (err) {
             console.error('Delete failed:', err);
         }
