@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import LoginPage from './pages/LoginPage';
 import FeedPage from './pages/FeedPage';
@@ -98,7 +98,7 @@ function App() {
                         {/* Protected child routes within MainLayout */}
                     <Route element={
                         isAuthenticated ? (
-                            (user?.is_verified || user?.verificationLevel?.toUpperCase() === 'VERIFIED') ? <React.Fragment /> :
+                            (user?.is_verified || user?.verificationLevel?.toUpperCase() === 'VERIFIED') ? <Outlet /> :
                                 user?.verificationLevel?.toUpperCase() === 'PENDING' ? <Navigate to="/pending" /> :
                                     <Navigate to="/onboarding" />
                         ) : <Navigate to="/login" />
