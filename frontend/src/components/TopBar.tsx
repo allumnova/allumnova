@@ -1,4 +1,4 @@
-import { Bell, ChevronDown, Sun, Moon, ShieldCheck, Sparkles } from 'lucide-react';
+import { Bell, ChevronDown, Sun, Moon, ShieldCheck, Sparkles, LogIn } from 'lucide-react';
 import { useCollege } from '../contexts/CollegeContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -11,7 +11,7 @@ import PulseSelector from './profile/PulseSelector';
 const TopBar = () => {
     const { activeCollege, setActiveCollege, allColleges } = useCollege();
     const { theme, toggleTheme } = useTheme();
-    const { user } = useAuth();
+    const { user, isAuthenticated } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
     const navigate = useNavigate();
 
@@ -68,7 +68,7 @@ const TopBar = () => {
                                     {user?.role === 'admin' && (
                                         <button
                                             onClick={() => {
-                                                navigate('/admin/requests');
+                                                navigate('/admin/dashboard'); // Restored to dashboard
                                                 setIsOpen(false);
                                             }}
                                             className="w-full text-left px-4 py-2 text-xs text-rose-600 dark:text-rose-400 font-bold hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors flex items-center gap-1.5"
@@ -83,7 +83,7 @@ const TopBar = () => {
                 </div>
 
                 <div className="flex items-center gap-2">
-                    <PulseSelector />
+                    {isAuthenticated && <PulseSelector />}
                     <button
                         onClick={toggleTheme}
                         className="p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all transform active:scale-95"
@@ -91,17 +91,28 @@ const TopBar = () => {
                         {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} className="text-slate-600" />}
                     </button>
 
-                    <div className="hidden sm:flex items-center gap-1.5 bg-blue-500/5 dark:bg-blue-400/10 px-3 py-1.5 rounded-2xl border border-blue-500/10 dark:border-blue-400/20">
-                        <Sparkles size={14} className="text-blue-600 dark:text-blue-400" />
-                        <span className="text-[10px] font-bold text-slate-600 dark:text-blue-300/80 uppercase tracking-wider">{user?.tierLevel || 'Identity'}</span>
-                        <div className="w-[1px] h-3 bg-slate-200 dark:bg-white/10 mx-0.5" />
-                        <span className="text-[10px] font-black text-blue-600 dark:text-blue-400">{user?.reputationScore || 0}</span>
-                    </div>
+                    {isAuthenticated ? (
+                        <div className="hidden sm:flex items-center gap-1.5 bg-blue-500/5 dark:bg-blue-400/10 px-3 py-1.5 rounded-2xl border border-blue-500/10 dark:border-blue-400/20">
+                            <Sparkles size={14} className="text-blue-600 dark:text-blue-400" />
+                            <span className="text-[10px] font-bold text-slate-600 dark:text-blue-300/80 uppercase tracking-wider">{user?.tierLevel || 'Identity'}</span>
+                            <div className="w-[1px] h-3 bg-slate-200 dark:bg-white/10 mx-0.5" />
+                            <span className="text-[10px] font-black text-blue-600 dark:text-blue-400">{user?.reputationScore || 0}</span>
+                        </div>
+                    ) : (
+                        <button
+                            onClick={() => navigate('/login')}
+                            className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-lg shadow-blue-500/20 flex items-center gap-2"
+                        >
+                            <LogIn size={14} /> Login
+                        </button>
+                    )}
 
-                    <Link to="/notifications" className="relative p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
-                        <Bell size={22} />
-                        <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white dark:border-slate-950" />
-                    </Link>
+                    {isAuthenticated && (
+                        <Link to="/notifications" className="relative p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+                            <Bell size={22} />
+                            <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white dark:border-slate-950" />
+                        </Link>
+                    )}
                 </div>
             </div>
         </header>

@@ -133,13 +133,24 @@ const getPersonalizedFeed = async (collegeId, userId, limit = 20, cursor, type =
 
     if (postIds.length === 0 && !cursor) {
         const whereClause = { collegeId };
+        
+        // If Global Community OR Guest, only show PUBLIC posts
+        if (collegeId === 'cl_global_allumnova' || !userId) {
+            whereClause.visibility = 'public';
+        }
+
         if (hubId && hubId !== 'null') {
-            // Check if user is APPROVED member of this hub
-            const membership = await prisma.environmentMembership.findUnique({
-                where: { userId_environmentId: { userId, environmentId: hubId } }
-            });
-            if (!membership || membership.status !== 'APPROVED') {
-                return []; // Or some message saying membership required
+            // Check if user is APPROVED member of this hub (if logged in)
+            if (userId) {
+                const membership = await prisma.environmentMembership.findUnique({
+                    where: { userId_environmentId: { userId, environmentId: hubId } }
+                });
+                if (!membership || membership.status !== 'APPROVED') {
+                    return []; 
+                }
+            } else {
+                // Guests can't see private hubs
+                return [];
             }
             whereClause.environmentId = hubId;
         }
@@ -150,10 +161,11 @@ const getPersonalizedFeed = async (collegeId, userId, limit = 20, cursor, type =
             take: 200,
             orderBy: { createdAt: 'desc' },
             include: {
-                author: true,
+                author: { select: { id: true, name: true, avatar: true, reputationScore: true, tierLevel: true } },
                 media: true,
                 likes: true,
                 comments: {
+                    take: 1,
                     include: {
                         user: { select: { id: true, name: true, avatar: true } }
                     }
@@ -277,6 +289,7 @@ const createPost = async (userId, collegeId, postData) => {
         data: { 
             content, 
             post_type: type, 
+            visibility: postData.visibility || 'college',
             authorId: userId, 
             collegeId, 
             metadata,

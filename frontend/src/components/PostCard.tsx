@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Post } from '../types';
-import { Heart, MessageSquare, Share2, Rocket, Zap, UserPlus, FileText, Play, ChevronLeft, ChevronRight, Send, Calendar, Trophy, Briefcase, MoreHorizontal, Edit2, Trash2, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Heart, MessageSquare, Share2, Rocket, Zap, UserPlus, FileText, Play, ChevronLeft, ChevronRight, Send, Calendar, Trophy, Briefcase, MoreHorizontal, Edit2, Trash2, AlertTriangle, CheckCircle2, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { clsx } from 'clsx';
 import api from '../api/axios';
@@ -30,11 +30,13 @@ const PostCard: React.FC<PostCardProps> = ({ post: initialPost, onAppreciate, on
     const [activeImageIndex, setActiveImageIndex] = useState(0);
     const [showMenu, setShowMenu] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
-    const { user: currentUser } = useAuth();
+    const { user: currentUser, isAuthenticated } = useAuth();
+    const navigate = useNavigate();
 
     const [showComments, setShowComments] = useState(false);
     const [commentText, setCommentText] = useState('');
     const [localComments, setLocalComments] = useState<any[]>([]);
+    const [connectionLoading, setConnectionLoading] = useState(false);
 
     // Sync local post state when prop changes
     useEffect(() => {
@@ -48,7 +50,17 @@ const PostCard: React.FC<PostCardProps> = ({ post: initialPost, onAppreciate, on
         }
     }, [post.comments, showComments]);
 
-    const handleAppreciate = () => {
+    const handleProtectedAction = (action: () => void) => {
+        if (!isAuthenticated) {
+            if (window.confirm('Login to interact with the community! Redirect to login?')) {
+                navigate('/login');
+            }
+            return;
+        }
+        action();
+    };
+
+    const handleAppreciate = () => handleProtectedAction(() => {
         const newState = !isLiked;
         setIsLiked(newState);
         if (newState) {
@@ -56,9 +68,9 @@ const PostCard: React.FC<PostCardProps> = ({ post: initialPost, onAppreciate, on
             setTimeout(() => setShowFire(false), 1000);
         }
         onAppreciate(post.id);
-    };
+    });
 
-    const handleConnect = async () => {
+    const handleConnect = async () => handleProtectedAction(async () => {
         if (post.author.connectionStatus || connectionLoading) return;
         setConnectionLoading(true);
         try {
@@ -77,7 +89,7 @@ const PostCard: React.FC<PostCardProps> = ({ post: initialPost, onAppreciate, on
         } finally {
             setConnectionLoading(false);
         }
-    };
+    });
 
     const handleShare = () => {
         const url = `${window.location.origin}/feed?post=${post.id}`;
@@ -87,6 +99,10 @@ const PostCard: React.FC<PostCardProps> = ({ post: initialPost, onAppreciate, on
 
     const handleComment = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!isAuthenticated) {
+            navigate('/login');
+            return;
+        }
         if (!commentText.trim()) return;
         try {
             const res = await api.post('/feed/interact', { postId: post.id, type: 'discuss', content: commentText });
@@ -120,7 +136,7 @@ const PostCard: React.FC<PostCardProps> = ({ post: initialPost, onAppreciate, on
         }
     };
 
-    const handleReport = async () => {
+    const handleReport = async () => handleProtectedAction(async () => {
         const reason = window.prompt('Why are you reporting this post?');
         if (!reason) return;
         try {
@@ -130,13 +146,13 @@ const PostCard: React.FC<PostCardProps> = ({ post: initialPost, onAppreciate, on
         } catch (err) {
             alert('Failed to submit report');
         }
-    };
+    });
 
-    const [connectionLoading, setConnectionLoading] = useState(false);
     const isAuthor = currentUser?.id === post.author.id;
     const connectionStatus = post.author.connectionStatus;
 
     const getConnectLabel = () => {
+        if (!isAuthenticated) return 'Connect';
         if (!connectionStatus) return 'Connect';
         if (connectionStatus.status === 'self') return 'You';
         if (connectionStatus.status === 'accepted') return 'Connected';
@@ -185,7 +201,7 @@ const PostCard: React.FC<PostCardProps> = ({ post: initialPost, onAppreciate, on
 
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                    <Link to={`/profile/${post.author.id}`} className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 p-[2px] hover:scale-105 transition-transform">
+                    <Link to={isAuthenticated ? `/profile/${post.author.id}` : '/login'} className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 p-[2px] hover:scale-105 transition-transform">
                         <div className="w-full h-full rounded-full bg-slate-50 dark:bg-slate-950 flex items-center justify-center font-bold text-xs text-slate-900 dark:text-white transition-colors overflow-hidden">
                             {post.author.avatar ? (
                                 <img src={post.author.avatar} alt="" className="w-full h-full object-cover" />
@@ -194,7 +210,7 @@ const PostCard: React.FC<PostCardProps> = ({ post: initialPost, onAppreciate, on
                     </Link>
                     <div>
                         <div className="flex items-center gap-2">
-                            <Link to={`/profile/${post.author.id}`} className="font-semibold text-slate-900 dark:text-white text-sm transition-colors hover:text-blue-500">{post.author.name}</Link>
+                            <Link to={isAuthenticated ? `/profile/${post.author.id}` : '/login'} className="font-semibold text-slate-900 dark:text-white text-sm transition-colors hover:text-blue-500">{post.author.name}</Link>
                             {post.author.is_verified && (
                                 <CheckCircle2 size={14} className="text-blue-500 fill-blue-500/10" />
                             )}
@@ -349,6 +365,7 @@ const PostCard: React.FC<PostCardProps> = ({ post: initialPost, onAppreciate, on
                         )}
                     >
                         <div className="relative">
+                            {!isAuthenticated && <Lock size={8} className="absolute -top-1 -left-1 text-slate-400" />}
                             <Heart size={18} fill={isLiked ? "currentColor" : "none"} />
                             <AnimatePresence>
                                 {showFire && (
@@ -380,7 +397,7 @@ const PostCard: React.FC<PostCardProps> = ({ post: initialPost, onAppreciate, on
 
                     <button 
                         onClick={handleConnect}
-                        disabled={!!connectionStatus || connectionLoading}
+                        disabled={(isAuthenticated && !!connectionStatus) || connectionLoading}
                         className={clsx(
                             "flex items-center gap-1.5 transition-colors",
                             connectionStatus?.status === 'accepted' ? "text-emerald-500" : 
@@ -388,7 +405,12 @@ const PostCard: React.FC<PostCardProps> = ({ post: initialPost, onAppreciate, on
                             "text-slate-500 dark:text-slate-400 hover:text-blue-500"
                         )}
                     >
-                        {connectionStatus?.status === 'accepted' ? <CheckCircle2 size={18} /> : <UserPlus size={18} />}
+                        {connectionStatus?.status === 'accepted' ? <CheckCircle2 size={18} /> : (
+                            <div className="relative">
+                                {!isAuthenticated && <Lock size={8} className="absolute -top-1 -left-1 text-slate-400" />}
+                                <UserPlus size={18} />
+                            </div>
+                        )}
                         <span className="text-[11px] font-medium">{getConnectLabel()}</span>
                     </button>
                 </div>
@@ -418,7 +440,8 @@ const PostCard: React.FC<PostCardProps> = ({ post: initialPost, onAppreciate, on
                                     type="text"
                                     value={commentText}
                                     onChange={(e) => setCommentText(e.target.value)}
-                                    placeholder="Add a comment..."
+                                    placeholder={isAuthenticated ? "Add a comment..." : "Login to comment"}
+                                    disabled={!isAuthenticated}
                                     className="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 rounded-xl py-2 px-4 text-xs outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
                                 />
                                 <button type="submit" className="bg-blue-600 text-white p-2 rounded-xl">

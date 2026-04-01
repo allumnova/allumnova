@@ -4,7 +4,7 @@ const feedController = require('./feed.controller');
 const { authenticate, checkVerified, checkCollegeAccess } = require('../../middlewares/auth.middleware');
 const upload = require('../../utils/upload');
 
-router.get('/', authenticate, checkCollegeAccess, feedController.getFeed);
+router.get('/', authenticateOptional, checkCollegeAccess, feedController.getFeed);
 router.post('/post', authenticate, checkCollegeAccess, checkVerified, (req, res, next) => {
     // Manually handle fields before multer if needed, but usually we just let multer handle it
     next();

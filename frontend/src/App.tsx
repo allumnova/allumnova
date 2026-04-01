@@ -89,24 +89,27 @@ function App() {
                         ) : <Navigate to="/login" />}
                     />
 
-                    <Route element={
-                        isAuthenticated ? (
-                            user?.role === 'admin' ? <Navigate to="/admin" /> :
-                                (user?.is_verified || user?.verificationLevel?.toUpperCase() === 'VERIFIED') ? <MainLayout /> :
-                                    user?.verificationLevel?.toUpperCase() === 'PENDING' ? <Navigate to="/pending" /> :
-                                        <Navigate to="/onboarding" />
-                        ) : <Navigate to="/login" />
-                    }>
+                    <Route element={<MainLayout />}>
                         <Route path="/" element={<FeedPage />} />
                         <Route path="/discover" element={<DiscoverPage />} />
-                        <Route path="/connections" element={<ConnectionsPage />} />
-                        <Route path="/notifications" element={<NotificationPage />} />
                         <Route path="/profile" element={<ProfilePage />} />
                         <Route path="/profile/:userId" element={<ProfilePage />} />
-                        <Route path="/chat" element={<ChatPage />} />
-                        <Route path="/launchpad" element={<LaunchpadPage />} />
-                        <Route path="/mentorship" element={<MentorshipPage />} />
-                        <Route path="/hubs/:hubId" element={<HubFeedPage />} />
+                        
+                        {/* Protected child routes within MainLayout */}
+                        <Route element={
+                            isAuthenticated ? (
+                                (user?.is_verified || user?.verificationLevel?.toUpperCase() === 'VERIFIED') ? <React.Fragment /> :
+                                    user?.verificationLevel?.toUpperCase() === 'PENDING' ? <Navigate to="/pending" /> :
+                                        <Navigate to="/onboarding" />
+                            ) : <Navigate to="/login" />
+                        }>
+                            <Route path="/connections" element={<ConnectionsPage />} />
+                            <Route path="/notifications" element={<NotificationPage />} />
+                            <Route path="/chat" element={<ChatPage />} />
+                            <Route path="/launchpad" element={<LaunchpadPage />} />
+                            <Route path="/mentorship" element={<MentorshipPage />} />
+                            <Route path="/hubs/:hubId" element={<HubFeedPage />} />
+                        </Route>
                     </Route>
 
                     <Route path="/admin" element={

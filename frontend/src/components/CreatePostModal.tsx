@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Briefcase, Calendar, Trophy, MessageSquare, Send, Image as ImageIcon, Plus } from 'lucide-react';
+import { X, Briefcase, Calendar, Trophy, MessageSquare, Send, Image as ImageIcon, Plus, Globe, Shield } from 'lucide-react';
 import { clsx } from 'clsx';
 import api from '../api/axios';
 import { useCollege } from '../contexts/CollegeContext';
@@ -15,6 +15,7 @@ interface CreatePostModalProps {
 const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose, onSuccess }) => {
     const { activeCollege } = useCollege();
     const [type, setType] = useState<'general' | 'opportunity' | 'event' | 'achievement'>('general');
+    const [visibility, setVisibility] = useState<'college' | 'public'>('college');
     const [content, setContent] = useState('');
     const [metadata, setMetadata] = useState<any>({});
     const [loading, setLoading] = useState(false);
@@ -53,6 +54,8 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose, onSu
             const formData = new FormData();
             formData.append('content', content);
             formData.append('post_type', type);
+            formData.append('visibility', activeCollege.id === 'cl_global_allumnova' ? 'public' : visibility);
+            
             if (type !== 'general') {
                 formData.append('metadata', JSON.stringify(metadata));
             }
@@ -78,9 +81,6 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose, onSu
             setLoading(false);
         }
     };
-
-    // ... (rest of the component)
-    // Add UI after textarea
 
     return (
         <AnimatePresence>
@@ -135,13 +135,39 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose, onSu
 
                         {/* Input */}
                         <form onSubmit={handleSubmit} className="space-y-4">
+                            {/* Visibility Selector */}
+                            {activeCollege?.id !== 'cl_global_allumnova' && (
+                                <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-xl border border-slate-200 dark:border-white/10 mb-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setVisibility('college')}
+                                        className={clsx(
+                                            "flex-1 flex items-center justify-center gap-2 py-2 text-[10px] font-bold rounded-lg transition-all",
+                                            visibility === 'college' ? "bg-white dark:bg-slate-800 shadow-sm text-blue-600 dark:text-blue-400" : "text-slate-500"
+                                        )}
+                                    >
+                                        <Shield size={14} /> My Campus
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setVisibility('public')}
+                                        className={clsx(
+                                            "flex-1 flex items-center justify-center gap-2 py-2 text-[10px] font-bold rounded-lg transition-all",
+                                            visibility === 'public' ? "bg-white dark:bg-slate-800 shadow-sm text-emerald-600 dark:text-emerald-400" : "text-slate-500"
+                                        )}
+                                    >
+                                        <Globe size={14} /> Global Feed
+                                    </button>
+                                </div>
+                            )}
+
                             <textarea
                                 value={content}
                                 onChange={(e) => setContent(e.target.value)}
                                 placeholder={type === 'general' ? "Share documented thoughts..." : `Add more details for this ${type}...`}
                                 className={clsx(
                                     "w-full bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-3xl p-6 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 transition-all resize-none",
-                                    type === 'general' ? "h-60 focus:ring-blue-500/50" : "h-24 focus:ring-blue-500/50"
+                                    type === 'general' ? "h-40 focus:ring-blue-500/50" : "h-24 focus:ring-blue-500/50"
                                 )}
                             />
 
@@ -181,9 +207,14 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose, onSu
                             <PostTypeFields type={type} metadata={metadata} setMetadata={setMetadata} />
 
                             <div className="flex items-center justify-between">
-                                <p className="text-[10px] text-slate-500 max-w-[200px]">
-                                    Posting to <span className="text-slate-900 dark:text-white font-medium transition-colors">{activeCollege?.name}</span>
-                                </p>
+                                <div className="flex flex-col">
+                                    <p className="text-[10px] text-slate-500">
+                                        Posting to <span className="text-slate-900 dark:text-white font-bold transition-colors">{activeCollege?.name}</span>
+                                    </p>
+                                    <p className="text-[8px] text-slate-400 uppercase tracking-widest mt-0.5">
+                                        {activeCollege?.id === 'cl_global_allumnova' || visibility === 'public' ? '🌏 Global Visibility' : '🔒 Campus Only'}
+                                    </p>
+                                </div>
                                 <button
                                     type="submit"
                                     disabled={loading || !content.trim()}
