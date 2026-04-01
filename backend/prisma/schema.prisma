@@ -11,7 +11,7 @@ datasource db {
 model College {
   id           String              @id @default(cuid())
   name         String
-  domain       String              @unique
+  domain       String              @unique @default("")
   subdomain    String?             @unique
   logo         String?
   location     String?
@@ -30,7 +30,7 @@ model College {
 model User {
   id                 String               @id @default(cuid())
   email              String               @unique
-  password_hash      String
+  password_hash      String               @default("")
   name               String
   username           String?              @unique
   avatar             String?
