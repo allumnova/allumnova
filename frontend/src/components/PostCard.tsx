@@ -71,7 +71,7 @@ const PostCard: React.FC<PostCardProps> = ({ post: initialPost, onAppreciate, on
     });
 
     const handleConnect = async () => handleProtectedAction(async () => {
-        if (post.author.connectionStatus || connectionLoading) return;
+        if (!post.author || post.author.connectionStatus || connectionLoading) return;
         setConnectionLoading(true);
         try {
             await api.post('/social/connect', { receiverId: post.author.id });
@@ -148,8 +148,8 @@ const PostCard: React.FC<PostCardProps> = ({ post: initialPost, onAppreciate, on
         }
     });
 
-    const isAuthor = currentUser?.id === post.author.id;
-    const connectionStatus = post.author.connectionStatus;
+    const isAuthor = currentUser?.id === post.author?.id;
+    const connectionStatus = post.author?.connectionStatus;
 
     const getConnectLabel = () => {
         if (!isAuthenticated) return 'Connect';
@@ -201,24 +201,24 @@ const PostCard: React.FC<PostCardProps> = ({ post: initialPost, onAppreciate, on
 
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                    <Link to={isAuthenticated ? `/profile/${post.author.id}` : '/login'} className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 p-[2px] hover:scale-105 transition-transform">
+                    <Link to={isAuthenticated && post.author ? `/profile/${post.author.id}` : '/login'} className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 p-[2px] hover:scale-105 transition-transform">
                         <div className="w-full h-full rounded-full bg-slate-50 dark:bg-slate-950 flex items-center justify-center font-bold text-xs text-slate-900 dark:text-white transition-colors overflow-hidden">
-                            {post.author.avatar ? (
+                            {post.author?.avatar ? (
                                 <img src={post.author.avatar} alt="" className="w-full h-full object-cover" />
-                            ) : post.author.name.charAt(0)}
+                            ) : post.author?.name?.charAt(0) || '?'}
                         </div>
                     </Link>
                     <div>
                         <div className="flex items-center gap-2">
-                            <Link to={isAuthenticated ? `/profile/${post.author.id}` : '/login'} className="font-semibold text-slate-900 dark:text-white text-sm transition-colors hover:text-blue-500">{post.author.name}</Link>
-                            {post.author.is_verified && (
+                            <Link to={isAuthenticated && post.author ? `/profile/${post.author.id}` : '/login'} className="font-semibold text-slate-900 dark:text-white text-sm transition-colors hover:text-blue-500">{post.author?.name || 'Unknown'}</Link>
+                            {post.author?.is_verified && (
                                 <CheckCircle2 size={14} className="text-blue-500 fill-blue-500/10" />
                             )}
                             <div className={clsx(
                                 "flex items-center gap-1 px-2 py-0.5 rounded-full border text-[9px] font-bold uppercase tracking-wider",
-                                getTierStyle(post.author.tierLevel || 'Echo')
+                                getTierStyle(post.author?.tierLevel || 'Echo')
                             )}>
-                                {post.author.tierLevel || 'Echo'} • {post.author.reputationScore}
+                                {post.author?.tierLevel || 'Echo'} • {post.author?.reputationScore || 0}
                             </div>
                         </div>
                         <p className="text-slate-400 text-[10px]">{new Date(post.createdAt).toLocaleDateString()}</p>

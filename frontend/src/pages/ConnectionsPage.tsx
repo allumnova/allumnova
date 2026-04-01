@@ -130,14 +130,14 @@ const ConnectionsPage = () => {
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     {pending.incoming.map((req) => (
                                         <div key={req.id} className="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-white/5 rounded-[2rem] p-5 flex items-center gap-4 group transition-all hover:bg-slate-50 dark:hover:bg-white/[0.02]">
-                                            <Link to={`/profile/${req.user.id}`} className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-500 p-[2px] shadow-lg shadow-blue-500/10 hover:scale-105 transition-transform">
+                                            <Link to={req.user ? `/profile/${req.user.id}` : '#'} className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-500 p-[2px] shadow-lg shadow-blue-500/10 hover:scale-105 transition-transform">
                                                 <div className="w-full h-full rounded-2xl bg-white dark:bg-slate-900 flex items-center justify-center overflow-hidden">
-                                                    {req.user.avatar ? <img src={req.user.avatar} className="w-full h-full object-cover" alt="" /> : <span className="text-lg font-bold">{req.user.name.charAt(0)}</span>}
+                                                    {req.user?.avatar ? <img src={req.user.avatar} className="w-full h-full object-cover" alt="" /> : <span className="text-lg font-bold">{req.user?.name?.charAt(0) || '?'}</span>}
                                                 </div>
                                             </Link>
                                             <div className="flex-1 min-w-0">
-                                                <Link to={`/profile/${req.user.id}`} className="text-sm font-bold text-slate-900 dark:text-white truncate hover:text-blue-500 transition-colors block">{req.user.name}</Link>
-                                                <p className="text-[10px] text-slate-500 truncate">{req.user.department} • {req.user.batch_year}</p>
+                                                <Link to={req.user ? `/profile/${req.user.id}` : '#'} className="text-sm font-bold text-slate-900 dark:text-white truncate hover:text-blue-500 transition-colors block">{req.user?.name || 'Unknown User'}</Link>
+                                                <p className="text-[10px] text-slate-500 truncate">{req.user?.department || 'Department'} • {req.user?.batch_year || 'Batch'}</p>
                                             </div>
                                             <div className="flex gap-2">
                                                 <button onClick={() => handleAccept(req.id)} className="w-9 h-9 bg-emerald-500/10 text-emerald-500 rounded-xl flex items-center justify-center hover:bg-emerald-500 hover:text-white transition-all">
@@ -168,8 +168,8 @@ const ConnectionsPage = () => {
                                                 {req.user.avatar ? <img src={req.user.avatar} className="w-full h-full object-cover" alt="" /> : <span className="text-sm font-bold text-slate-400">{req.user.name.charAt(0)}</span>}
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <h3 className="text-sm font-semibold text-slate-900 dark:text-white truncate">{req.user.name}</h3>
-                                                <p className="text-[10px] text-slate-400">Sent on {new Date(req.createdAt).toLocaleDateString()}</p>
+                                                <h3 className="text-sm font-semibold text-slate-900 dark:text-white truncate">{req.user?.name || 'Unknown'}</h3>
+                                                <p className="text-[10px] text-slate-400">Sent on {req.createdAt ? new Date(req.createdAt).toLocaleDateString() : 'N/A'}</p>
                                             </div>
                                             <button onClick={() => handleDecline(req.id)} className="text-[10px] font-bold text-slate-400 hover:text-rose-500 transition-colors px-3 py-1 bg-slate-100 dark:bg-white/5 rounded-lg">Cancel</button>
                                         </div>
@@ -191,7 +191,7 @@ const ConnectionsPage = () => {
                                                 {conn.avatar ? <img src={conn.avatar} className="w-full h-full object-cover" alt="" /> : <span className="text-2xl font-bold">{conn.name.charAt(0)}</span>}
                                             </div>
                                         </Link>
-                                        <Link to={`/profile/${conn.userId}`} className="text-base font-bold text-slate-900 dark:text-white mb-1 hover:text-blue-500 transition-colors block">{conn.name}</Link>
+                                        <Link to={conn.userId ? `/profile/${conn.userId}` : '#'} className="text-base font-bold text-slate-900 dark:text-white mb-1 hover:text-blue-500 transition-colors block">{conn.name || 'User'}</Link>
                                         <p className="text-xs text-slate-500 mb-6">{conn.role || 'Student'}</p>
                                         <div className="flex gap-2">
                                             <button 
@@ -242,8 +242,8 @@ const ConnectionsPage = () => {
                                             {u.avatar ? <img src={u.avatar} className="w-full h-full object-cover" alt="" /> : <span className="text-lg font-bold text-slate-400">{u.name.charAt(0)}</span>}
                                         </Link>
                                         <div className="flex-1 min-w-0">
-                                            <Link to={`/profile/${u.id}`} className="text-sm font-bold text-slate-900 dark:text-white truncate hover:text-blue-500 transition-colors block">{u.name}</Link>
-                                            <p className="text-[10px] text-slate-500 truncate">{u.colleges?.[0]?.batch} • {u.colleges?.[0]?.role}</p>
+                                            <Link to={u.id ? `/profile/${u.id}` : '#'} className="text-sm font-bold text-slate-900 dark:text-white truncate hover:text-blue-500 transition-colors block">{u.name || 'User'}</Link>
+                                            <p className="text-[10px] text-slate-500 truncate">{u.colleges?.[0]?.batch || 'Batch'} • {u.colleges?.[0]?.role || 'Role'}</p>
                                         </div>
                                         <button onClick={() => handleConnect(u.id)} className="px-4 py-2 bg-blue-600 text-white text-[10px] font-bold rounded-xl shadow-lg shadow-blue-500/20 hover:scale-105 transition-all flex items-center gap-1.5">
                                             <UserPlus size={14} />

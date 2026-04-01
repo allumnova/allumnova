@@ -139,7 +139,7 @@ const NotificationPage = () => {
                                 <div className="flex-1 min-w-0">
                                     <div className="flex justify-between items-start mb-1">
                                         <h3 className="text-sm font-bold text-slate-900 dark:text-white truncate transition-colors">
-                                            {notif.user.name}
+                                            {notif.user?.name || 'User'}
                                         </h3>
                                         <span className="text-[10px] text-slate-400 dark:text-slate-500 whitespace-nowrap ml-2">
                                             {notif.time}

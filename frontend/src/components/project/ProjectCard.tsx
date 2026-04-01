@@ -94,11 +94,11 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, index, onUpdate, onE
                 {/* Author Info */}
                 <div className="flex items-center gap-3 mb-6">
                     <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-white/10 overflow-hidden ring-2 ring-slate-100 dark:ring-white/5">
-                        {project.owner.avatar && <img src={project.owner.avatar} alt={project.owner.name} className="w-full h-full object-cover" />}
+                        {project.owner?.avatar && <img src={project.owner.avatar} alt={project.owner.name} className="w-full h-full object-cover" />}
                     </div>
                     <div>
-                        <p className="text-[10px] font-bold text-slate-900 dark:text-white leading-none mb-1">{project.owner.name}</p>
-                        <p className="text-[8px] text-slate-500 uppercase tracking-tighter">Reputation: {project.owner.reputationScore}</p>
+                        <p className="text-[10px] font-bold text-slate-900 dark:text-white leading-none mb-1">{project.owner?.name || 'Unknown User'}</p>
+                        <p className="text-[8px] text-slate-500 uppercase tracking-tighter">Reputation: {project.owner?.reputationScore || 0}</p>
                     </div>
                 </div>
 
