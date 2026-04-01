@@ -29,42 +29,62 @@ export const CollegeProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     const refreshColleges = async () => {
         try {
-            let userColleges: College[] = [];
+            let publicColleges: College[] = [];
             if (isAuthenticated) {
+                try {
                 const res = await api.get('/colleges');
-                userColleges = res.data.data || res.data;
+                publicColleges = res.data.data || res.data;
+                } catch (apiErr) {
+                    console.error('Failed to fetch public colleges:', apiErr);
+                }
             }
             
-            // Always include Global Community at the top
-            const updatedColleges = [GLOBAL_COLLEGE, ...userColleges.filter(c => c.id !== GLOBAL_COLLEGE.id)];
-            setAllColleges(updatedColleges);
+            // Extract user-specific joined colleges (including Pending)
+            const membershipColleges: College[] = (user?.colleges || [])
+                .filter(m => m.status !== 'REJECTED') // Include VERIFIED and PENDING
+                .map(m => (m as any).college)
+                .filter(Boolean); // Filter out any nulls
+
+            // Merge all sources: [Global, MemberColleges, PublicColleges]
+            const merged = [GLOBAL_COLLEGE, ...membershipColleges, ...publicColleges];
+            
+            // Deduplicate by ID
+            const uniqueCollegesMap = new Map();
+            merged.forEach(c => {
+                if (!uniqueCollegesMap.has(c.id)) {
+                    uniqueCollegesMap.set(c.id, c);
+                }
+            });
+            const finalColleges = Array.from(uniqueCollegesMap.values());
+            
+            setAllColleges(finalColleges);
 
             const savedCollegeId = localStorage.getItem('activeCollegeId');
             if (savedCollegeId) {
-                const college = updatedColleges.find((c: College) => c.id === savedCollegeId);
-                if (college) {
-                    setActiveCollegeState(college);
+                const saved = finalColleges.find((c: College) => c.id === savedCollegeId);
+                if (saved) {
+                    setActiveCollegeState(saved);
                 } else {
                     setActiveCollegeState(GLOBAL_COLLEGE);
                 }
             } else {
-                // If logged in and has colleges, pick the first user college, else Global
-                if (isAuthenticated && userColleges.length > 0) {
-                    setActiveCollegeState(userColleges[0]);
-                    localStorage.setItem('activeCollegeId', userColleges[0].id);
+                // Priority: Member College > Global
+                if (membershipColleges.length > 0) {
+                    setActiveCollegeState(membershipColleges[0]);
+                    localStorage.setItem('activeCollegeId', membershipColleges[0].id);
                 } else {
                     setActiveCollegeState(GLOBAL_COLLEGE);
                 }
             }
         } catch (err) {
-            console.error('Failed to fetch colleges:', err);
+            console.error('Failed to refresh environment:', err);
             setActiveCollegeState(GLOBAL_COLLEGE);
         }
     };
 
     useEffect(() => {
         refreshColleges();
-    }, [isAuthenticated]);
+    }, [isAuthenticated, user?.id]); // Re-run if user identity changes
 
     const setActiveCollege = (college: College) => {
         setActiveCollegeState(college);

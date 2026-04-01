@@ -5,7 +5,7 @@ const getFeed = async (req, res) => {
         const { limit, cursor, type, hubId } = req.query;
         const posts = await feedService.getPersonalizedFeed(
             req.collegeId,
-            req.user.id,
+            req.user?.id,
             limit ? parseInt(limit) : 20,
             cursor,
             type,

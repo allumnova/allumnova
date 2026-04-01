@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const feedController = require('./feed.controller');
-const { authenticate, checkVerified, checkCollegeAccess } = require('../../middlewares/auth.middleware');
+const { authenticate, authenticateOptional, checkVerified, checkCollegeAccess } = require('../../middlewares/auth.middleware');
 const upload = require('../../utils/upload');
 
 router.get('/', authenticateOptional, checkCollegeAccess, feedController.getFeed);
