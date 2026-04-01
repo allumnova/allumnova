@@ -69,17 +69,17 @@ const FeedPage = () => {
     const handleInteraction = async (postId: string, type: 'appreciate' | 'boost') => {
         // Optimistic Update
         queryClient.setQueryData(['feed', activeCollege?.id, activeType], (oldData: any) => {
-            if (!oldData) return oldData;
+            if (!oldData || !Array.isArray(oldData.pages)) return oldData;
             return {
                 ...oldData,
                 pages: oldData.pages.map((page: any) =>
-                    page.map((post: any) => {
+                    (Array.isArray(page) ? page : []).map((post: any) => {
                         if (post.id === postId) {
                             if (type === 'appreciate') {
                                 const hasAppreciated = !post.hasAppreciated;
                                 return {
                                     ...post,
-                                    _count: { ...post._count, likes: Math.max(0, post._count.likes + (hasAppreciated ? 1 : -1)) },
+                                    _count: { ...post._count, likes: Math.max(0, (post._count?.likes || 0) + (hasAppreciated ? 1 : -1)) },
                                     hasAppreciated
                                 };
                             } else if (type === 'boost') {
@@ -165,8 +165,8 @@ const FeedPage = () => {
                 </>
             ) : data?.pages.some((page) => page.length > 0) ? (
                 <div className="space-y-4">
-                    {data?.pages.map((page) => (
-                        page.map((post: any) => (
+                    {Array.isArray(data?.pages) && data.pages.map((page) => (
+                        Array.isArray(page) && page.map((post: any) => (
                             <PostCard
                                 key={post.id}
                                 post={post}
