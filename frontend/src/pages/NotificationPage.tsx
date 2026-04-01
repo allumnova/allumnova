@@ -66,9 +66,10 @@ const NotificationPage = () => {
         setLoading(true);
         try {
             const res = await api.get('/social/notifications');
-            setNotifications(res.data);
+            setNotifications(Array.isArray(res.data) ? res.data : []);
         } catch (err) {
             console.error('Failed to fetch notifications:', err);
+            setNotifications([]);
         } finally {
             setLoading(false);
         }
@@ -82,14 +83,14 @@ const NotificationPage = () => {
         <div className="pb-24 pt-6">
             <div className="flex items-center justify-between mb-8 px-2">
                 <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight transition-colors">Notifications</h1>
-                {notifications.length > 0 && (
-                    <button 
-                        onClick={handleMarkAllRead}
-                        className="text-[10px] text-blue-500 dark:text-blue-400 font-bold uppercase tracking-widest bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20 hover:bg-blue-500/20 transition-all"
-                    >
-                        Mark all as read
-                    </button>
-                )}
+            {Array.isArray(notifications) && notifications.length > 0 && (
+                <button 
+                    onClick={handleMarkAllRead}
+                    className="text-[10px] text-blue-500 dark:text-blue-400 font-bold uppercase tracking-widest bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20 hover:bg-blue-500/20 transition-all"
+                >
+                    Mark all as read
+                </button>
+            )}
             </div>
 
             {loading ? (
@@ -106,9 +107,9 @@ const NotificationPage = () => {
                         </div>
                     ))}
                 </div>
-            ) : notifications.length > 0 ? (
+            ) : (Array.isArray(notifications) && notifications.length > 0) ? (
                 <div className="space-y-4">
-                    {notifications.map((notif, idx) => (
+                    {Array.isArray(notifications) && notifications.map((notif, idx) => (
                         <motion.div
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}

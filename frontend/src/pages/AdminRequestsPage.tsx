@@ -76,8 +76,7 @@ const AdminRequestsPage = () => {
                 </div>
             ) : (
                 <div className="space-y-4">
-                    {collegeRequests.map((req) => {
-                        const isEditing = !!editingCollege[req.id];
+                    {Array.isArray(collegeRequests) && collegeRequests.map((req) => {
                         const editData = editingCollege[req.id] || { name: req.name, subdomain: req.subdomain || '' };
 
                         return (
@@ -152,7 +151,7 @@ const AdminRequestsPage = () => {
                 </div>
             ) : (
                 <div className="space-y-4">
-                    {userRequests.map((req) => (
+                    {Array.isArray(userRequests) && userRequests.map((req) => (
                         <motion.div
                             key={req.id}
                             initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}
@@ -160,18 +159,18 @@ const AdminRequestsPage = () => {
                         >
                             <div className="flex gap-5 flex-1 items-start">
                                 <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-blue-500 overflow-hidden shrink-0 shadow-inner">
-                                    {req.user.avatar ? <img src={req.user.avatar} alt="Avatar" className="w-full h-full object-cover" /> : <User size={32} />}
+                                    {req.user?.avatar ? <img src={req.user.avatar} alt="Avatar" className="w-full h-full object-cover" /> : <User size={32} />}
                                 </div>
                                 <div className="space-y-2 flex-1 min-w-0">
                                     <div className="flex items-center gap-2 flex-wrap">
-                                        <h3 className="font-bold text-slate-900 dark:text-white truncate">{req.user.name}</h3>
+                                        <h3 className="font-bold text-slate-900 dark:text-white truncate">{req.user?.name}</h3>
                                         <span className="text-[10px] uppercase font-black tracking-widest px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-500">
                                             {req.role}
                                         </span>
                                     </div>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-500">
-                                        <span className="flex items-center gap-1.5"><Phone size={12} /> {req.user.phone || 'No Phone'}</span>
-                                        {req.user.linkedIn && <a href={req.user.linkedIn} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-blue-500 hover:underline"><Linkedin size={12} /> LinkedIn</a>}
+                                        <span className="flex items-center gap-1.5"><Phone size={12} /> {req.user?.phone || 'No Phone'}</span>
+                                        {req.user?.linkedIn && <a href={req.user.linkedIn} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-blue-500 hover:underline"><Linkedin size={12} /> LinkedIn</a>}
                                     </div>
                                     {req.documentUrl && (
                                         <div className="mt-3 inline-flex items-center gap-2 p-2 px-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl">

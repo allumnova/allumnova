@@ -93,7 +93,7 @@ const AdminUsersPage = () => {
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 flex items-center justify-center font-bold">
-                                                    {user.name.charAt(0).toUpperCase()}
+                                                    {user.name?.charAt(0).toUpperCase()}
                                                 </div>
                                                 <div>
                                                     <p className="font-medium text-slate-900 dark:text-white">{user.name}</p>
@@ -121,16 +121,17 @@ const AdminUsersPage = () => {
                                                 )}
                                             </div>
                                             <div className="text-xs text-slate-500 mt-1 truncate max-w-[200px]">
-                                                {user.colleges?.length > 0
-                                                    ? user.colleges.map((c: any) => c.college.name).join(', ')
+                                                {Array.isArray(user.colleges) && user.colleges.length > 0
+                                                    ? user.colleges.map((c: any) => c.college?.name).join(', ')
                                                     : 'No college linked'}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-sm text-slate-500">
-                                            {new Date(user.createdAt).toLocaleDateString()}
+                                            {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
                                         </td>
+                                        <td className="px-6 py-4 text-right">
                                             <div className="flex items-center justify-end gap-2">
-                                                {user.colleges?.[0]?.documentUrl && (
+                                                {Array.isArray(user.colleges) && user.colleges[0]?.documentUrl && (
                                                     <a
                                                         href={user.colleges[0].documentUrl}
                                                         target="_blank"
@@ -153,6 +154,7 @@ const AdminUsersPage = () => {
                                                     <ShieldAlert size={18} />
                                                 </button>
                                             </div>
+                                        </td>
                                     </motion.tr>
                                 ))
                             )}

@@ -33,19 +33,22 @@ const ChatPage = () => {
         const fetchConversations = async () => {
             try {
                 const res = await api.get('/chat/conversations');
-                setConversations(res.data);
-                if (res.data.length > 0 && !activeConversation) setActiveConversation(res.data[0]);
+                const data = Array.isArray(res.data) ? res.data : [];
+                setConversations(data);
+                if (data.length > 0 && !activeConversation) setActiveConversation(data[0]);
             } catch (err) {
                 console.error(err);
+                setConversations([]);
             }
         };
 
         const fetchConnections = async () => {
             try {
                 const res = await api.get('/social/connections');
-                setConnections(res.data);
+                setConnections(Array.isArray(res.data) ? res.data : []);
             } catch (err) {
                 console.error(err);
+                setConnections([]);
             }
         };
 
@@ -54,7 +57,10 @@ const ChatPage = () => {
     }, [user, activeCollege]);
 
     const startNewChat = React.useCallback((targetUser: any) => {
-        const existing = conversations.find(c => c.users?.some((u: any) => u.id === targetUser.id));
+        if (!targetUser) return;
+        const existing = (Array.isArray(conversations) ? conversations : []).find(c => 
+            c && Array.isArray(c.users) && c.users.some((u: any) => u && u.id === targetUser.id)
+        );
         if (existing) {
             setActiveConversation(existing);
             return;
@@ -72,8 +78,8 @@ const ChatPage = () => {
     const [searchParams] = useSearchParams();
     useEffect(() => {
         const targetUserId = searchParams.get('userId');
-        if (targetUserId && connections.length > 0) {
-            const target = connections.find(c => c.userId === targetUserId || c.id === targetUserId);
+        if (targetUserId && Array.isArray(connections) && connections.length > 0) {
+            const target = connections.find(c => c && (c.userId === targetUserId || c.id === targetUserId));
             if (target) {
                 // Adapt target object to what startNewChat expects
                 startNewChat({
@@ -117,8 +123,8 @@ const ChatPage = () => {
                 setMessages(prev => [...prev, data]);
             }
             // Update conversations list summary if needed
-            setConversations(prev => prev.map(c => 
-                c.id === data.conversationId ? { ...c, messages: [data, ...(c.messages || [])] } : c
+            setConversations(prev => (Array.isArray(prev) ? prev : []).map(c => 
+                c && c.id === data.conversationId ? { ...c, messages: [data, ...(c.messages || [])] } : c
             ));
         };
 
@@ -143,9 +149,10 @@ const ChatPage = () => {
             const fetchMessages = async () => {
                 try {
                     const res = await api.get(`/chat/messages/${activeConversation.id}`);
-                    setMessages(res.data);
+                    setMessages(Array.isArray(res.data) ? res.data : []);
                 } catch (err) {
                     console.error(err);
+                    setMessages([]);
                 }
             };
             fetchMessages();
@@ -267,7 +274,7 @@ const ChatPage = () => {
                 </div>
 
                 <div className="flex-1 overflow-y-auto px-3 space-y-1 custom-scrollbar">
-                    {filteredConversations.length > 0 ? (
+                    {Array.isArray(filteredConversations) && filteredConversations.length > 0 ? (
                         filteredConversations.map((conv) => (
                             <button
                                 key={conv.id || 'temp'}
@@ -349,7 +356,8 @@ const ChatPage = () => {
                                 <span className="px-4 py-1.5 bg-slate-100 dark:bg-slate-900/50 rounded-full text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Today</span>
                             </div>
 
-                            {messages.map((msg, idx) => {
+                            {Array.isArray(messages) && messages.map((msg, idx) => {
+                                if (!msg) return null;
                                 const isMe = msg.senderId === user?.id;
                                 const isNextMe = messages[idx + 1]?.senderId === msg.senderId;
                                 return (
@@ -588,7 +596,7 @@ const ChatPage = () => {
                                 </div>
 
                                 <div className="max-h-80 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
-                                    {connections.length > 0 ? (
+                                    {Array.isArray(connections) && connections.length > 0 ? (
                                         connections.map((conn) => (
                                             <button
                                                 key={conn.id}

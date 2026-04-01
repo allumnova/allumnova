@@ -25,16 +25,22 @@ const ConnectionsPage = () => {
         try {
             if (tab === 'requests') {
                 const res = await api.get('/social/connect/pending');
-                setPending(res.data);
+                setPending({
+                    incoming: Array.isArray(res.data?.incoming) ? res.data.incoming : [],
+                    outgoing: Array.isArray(res.data?.outgoing) ? res.data.outgoing : []
+                });
             } else if (tab === 'my') {
                 const res = await api.get('/social/connections');
-                setConnections(res.data);
+                setConnections(Array.isArray(res.data) ? res.data : []);
             } else if (tab === 'discover') {
                 const res = await api.get('/social/discover');
-                setDiscoverUsers(res.data);
+                setDiscoverUsers(Array.isArray(res.data) ? res.data : []);
             }
         } catch (err) {
             console.error(err);
+            if (tab === 'requests') setPending({ incoming: [], outgoing: [] });
+            else if (tab === 'my') setConnections([]);
+            else if (tab === 'discover') setDiscoverUsers([]);
         } finally {
             setLoading(false);
         }
@@ -110,7 +116,7 @@ const ConnectionsPage = () => {
                             {tab === t.id && (
                                 <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 rounded-full" />
                             )}
-                            {t.id === 'requests' && pending.incoming.length > 0 && (
+                            {tab === 'requests' && Array.isArray(pending?.incoming) && pending.incoming.length > 0 && (
                                 <span className="ml-1 w-4 h-4 bg-rose-500 text-white text-[10px] flex items-center justify-center rounded-full animate-pulse">
                                     {pending.incoming.length}
                                 </span>
@@ -126,24 +132,24 @@ const ConnectionsPage = () => {
                         {/* Incoming Requests */}
                         <div>
                             <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4 ml-4">Incoming Requests</h2>
-                            {pending.incoming.length > 0 ? (
+                            {Array.isArray(pending?.incoming) && pending.incoming.length > 0 ? (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     {pending.incoming.map((req) => (
-                                        <div key={req.id} className="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-white/5 rounded-[2rem] p-5 flex items-center gap-4 group transition-all hover:bg-slate-50 dark:hover:bg-white/[0.02]">
-                                            <Link to={req.user ? `/profile/${req.user.id}` : '#'} className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-500 p-[2px] shadow-lg shadow-blue-500/10 hover:scale-105 transition-transform">
+                                        <div key={req?.id} className="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-white/5 rounded-[2rem] p-5 flex items-center gap-4 group transition-all hover:bg-slate-50 dark:hover:bg-white/[0.02]">
+                                            <Link to={req?.user ? `/profile/${req.user.id}` : '#'} className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-500 p-[2px] shadow-lg shadow-blue-500/10 hover:scale-105 transition-transform">
                                                 <div className="w-full h-full rounded-2xl bg-white dark:bg-slate-900 flex items-center justify-center overflow-hidden">
-                                                    {req.user?.avatar ? <img src={req.user.avatar} className="w-full h-full object-cover" alt="" /> : <span className="text-lg font-bold">{req.user?.name?.charAt(0) || '?'}</span>}
+                                                    {req?.user?.avatar ? <img src={req.user.avatar} className="w-full h-full object-cover" alt="" /> : <span className="text-lg font-bold">{req?.user?.name?.charAt(0) || '?'}</span>}
                                                 </div>
                                             </Link>
                                             <div className="flex-1 min-w-0">
-                                                <Link to={req.user ? `/profile/${req.user.id}` : '#'} className="text-sm font-bold text-slate-900 dark:text-white truncate hover:text-blue-500 transition-colors block">{req.user?.name || 'Unknown User'}</Link>
-                                                <p className="text-[10px] text-slate-500 truncate">{req.user?.department || 'Department'} • {req.user?.batch_year || 'Batch'}</p>
+                                                <Link to={req?.user ? `/profile/${req.user.id}` : '#'} className="text-sm font-bold text-slate-900 dark:text-white truncate hover:text-blue-500 transition-colors block">{req?.user?.name || 'Unknown User'}</Link>
+                                                <p className="text-[10px] text-slate-500 truncate">{req?.user?.department || 'Department'} • {req?.user?.batch_year || 'Batch'}</p>
                                             </div>
                                             <div className="flex gap-2">
-                                                <button onClick={() => handleAccept(req.id)} className="w-9 h-9 bg-emerald-500/10 text-emerald-500 rounded-xl flex items-center justify-center hover:bg-emerald-500 hover:text-white transition-all">
+                                                <button onClick={() => handleAccept(req?.id)} className="w-9 h-9 bg-emerald-500/10 text-emerald-500 rounded-xl flex items-center justify-center hover:bg-emerald-500 hover:text-white transition-all">
                                                     <Check size={18} />
                                                 </button>
-                                                <button onClick={() => handleDecline(req.id)} className="w-9 h-9 bg-rose-500/10 text-rose-500 rounded-xl flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all">
+                                                <button onClick={() => handleDecline(req?.id)} className="w-9 h-9 bg-rose-500/10 text-rose-500 rounded-xl flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all">
                                                     <X size={18} />
                                                 </button>
                                             </div>
@@ -160,18 +166,18 @@ const ConnectionsPage = () => {
                         {/* Outgoing Requests */}
                         <div>
                             <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4 ml-4">Sent Requests</h2>
-                            {pending.outgoing.length > 0 ? (
+                            {Array.isArray(pending?.outgoing) && pending.outgoing.length > 0 ? (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     {pending.outgoing.map((req) => (
-                                        <div key={req.id} className="bg-white dark:bg-slate-900/30 border border-slate-200 dark:border-white/5 rounded-[2rem] p-5 flex items-center gap-4 opacity-80">
+                                        <div key={req?.id} className="bg-white dark:bg-slate-900/30 border border-slate-200 dark:border-white/5 rounded-[2rem] p-5 flex items-center gap-4 opacity-80">
                                             <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden">
-                                                {req.user.avatar ? <img src={req.user.avatar} className="w-full h-full object-cover" alt="" /> : <span className="text-sm font-bold text-slate-400">{req.user.name.charAt(0)}</span>}
+                                                {req?.user?.avatar ? <img src={req.user.avatar} className="w-full h-full object-cover" alt="" /> : <span className="text-sm font-bold text-slate-400">{req?.user?.name?.charAt(0) || '?'}</span>}
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <h3 className="text-sm font-semibold text-slate-900 dark:text-white truncate">{req.user?.name || 'Unknown'}</h3>
-                                                <p className="text-[10px] text-slate-400">Sent on {req.createdAt ? new Date(req.createdAt).toLocaleDateString() : 'N/A'}</p>
+                                                <h3 className="text-sm font-semibold text-slate-900 dark:text-white truncate">{req?.user?.name || 'Unknown'}</h3>
+                                                <p className="text-[10px] text-slate-400">Sent on {req?.createdAt ? new Date(req.createdAt).toLocaleDateString() : 'N/A'}</p>
                                             </div>
-                                            <button onClick={() => handleDecline(req.id)} className="text-[10px] font-bold text-slate-400 hover:text-rose-500 transition-colors px-3 py-1 bg-slate-100 dark:bg-white/5 rounded-lg">Cancel</button>
+                                            <button onClick={() => handleDecline(req?.id)} className="text-[10px] font-bold text-slate-400 hover:text-rose-500 transition-colors px-3 py-1 bg-slate-100 dark:bg-white/5 rounded-lg">Cancel</button>
                                         </div>
                                     ))}
                                 </div>
@@ -182,26 +188,26 @@ const ConnectionsPage = () => {
 
                 {tab === 'my' && (
                     <motion.div key="my" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="space-y-4">
-                        {connections.length > 0 ? (
+                        {Array.isArray(connections) && connections.length > 0 ? (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {connections.map((conn) => (
-                                    <div key={conn.id} className="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-white/5 rounded-[2.5rem] p-6 text-center group transition-all hover:bg-blue-500/[0.02] hover:border-blue-500/20 shadow-sm">
-                                        <Link to={`/profile/${conn.userId}`} className="w-20 h-20 mx-auto rounded-[2rem] bg-gradient-to-tr from-blue-500 to-emerald-500 p-[3px] mb-4 shadow-xl shadow-blue-500/10 hover:scale-105 transition-transform block">
+                                    <div key={conn?.id} className="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-white/5 rounded-[2.5rem] p-6 text-center group transition-all hover:bg-blue-500/[0.02] hover:border-blue-500/20 shadow-sm">
+                                        <Link to={conn?.userId ? `/profile/${conn.userId}` : '#'} className="w-20 h-20 mx-auto rounded-[2rem] bg-gradient-to-tr from-blue-500 to-emerald-500 p-[3px] mb-4 shadow-xl shadow-blue-500/10 hover:scale-105 transition-transform block">
                                             <div className="w-full h-full rounded-[1.8rem] bg-white dark:bg-slate-900 flex items-center justify-center overflow-hidden">
-                                                {conn.avatar ? <img src={conn.avatar} className="w-full h-full object-cover" alt="" /> : <span className="text-2xl font-bold">{conn.name.charAt(0)}</span>}
+                                                {conn?.avatar ? <img src={conn.avatar} className="w-full h-full object-cover" alt="" /> : <span className="text-2xl font-bold">{conn?.name?.charAt(0) || '?'}</span>}
                                             </div>
                                         </Link>
-                                        <Link to={conn.userId ? `/profile/${conn.userId}` : '#'} className="text-base font-bold text-slate-900 dark:text-white mb-1 hover:text-blue-500 transition-colors block">{conn.name || 'User'}</Link>
-                                        <p className="text-xs text-slate-500 mb-6">{conn.role || 'Student'}</p>
+                                        <Link to={conn?.userId ? `/profile/${conn.userId}` : '#'} className="text-base font-bold text-slate-900 dark:text-white mb-1 hover:text-blue-500 transition-colors block">{conn?.name || 'User'}</Link>
+                                        <p className="text-xs text-slate-500 mb-6">{conn?.role || 'Student'}</p>
                                         <div className="flex gap-2">
                                             <button 
-                                                onClick={() => navigate(`/chat?userId=${conn.userId}`)}
+                                                onClick={() => conn?.userId && navigate(`/chat?userId=${conn.userId}`)}
                                                 className="flex-1 bg-blue-600 text-white text-xs font-bold py-2.5 rounded-2xl shadow-lg shadow-blue-500/20 hover:scale-[1.02] active:scale-95 transition-all"
                                             >
                                                 Message
                                             </button>
                                             <button 
-                                                onClick={() => handleRemoveConnection(conn.userId)}
+                                                onClick={() => conn?.userId && handleRemoveConnection(conn.userId)}
                                                 className="px-4 bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 rounded-2xl hover:bg-rose-500/10 hover:text-rose-500 transition-all"
                                             >
                                                 Remove
@@ -234,18 +240,18 @@ const ConnectionsPage = () => {
                             />
                         </div>
 
-                        {discoverUsers.length > 0 ? (
+                        {Array.isArray(discoverUsers) && discoverUsers.length > 0 ? (
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {discoverUsers.map((u) => (
-                                    <div key={u.id} className="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-white/5 rounded-[2rem] p-5 flex items-center gap-4 group transition-all hover:bg-slate-50 dark:hover:bg-white/5">
-                                        <Link to={`/profile/${u.id}`} className="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden border-2 border-slate-50 dark:border-slate-800 shadow-inner hover:scale-105 transition-transform">
-                                            {u.avatar ? <img src={u.avatar} className="w-full h-full object-cover" alt="" /> : <span className="text-lg font-bold text-slate-400">{u.name.charAt(0)}</span>}
+                                    <div key={u?.id} className="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-white/5 rounded-[2rem] p-5 flex items-center gap-4 group transition-all hover:bg-slate-50 dark:hover:bg-white/5">
+                                        <Link to={u?.id ? `/profile/${u.id}` : '#'} className="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden border-2 border-slate-50 dark:border-slate-800 shadow-inner hover:scale-105 transition-transform">
+                                            {u?.avatar ? <img src={u.avatar} className="w-full h-full object-cover" alt="" /> : <span className="text-lg font-bold text-slate-400">{u?.name?.charAt(0) || '?'}</span>}
                                         </Link>
                                         <div className="flex-1 min-w-0">
-                                            <Link to={u.id ? `/profile/${u.id}` : '#'} className="text-sm font-bold text-slate-900 dark:text-white truncate hover:text-blue-500 transition-colors block">{u.name || 'User'}</Link>
-                                            <p className="text-[10px] text-slate-500 truncate">{u.colleges?.[0]?.batch || 'Batch'} • {u.colleges?.[0]?.role || 'Role'}</p>
+                                            <Link to={u?.id ? `/profile/${u.id}` : '#'} className="text-sm font-bold text-slate-900 dark:text-white truncate hover:text-blue-500 transition-colors block">{u?.name || 'User'}</Link>
+                                            <p className="text-[10px] text-slate-500 truncate">{u?.colleges?.[0]?.batch || 'Batch'} • {u?.colleges?.[0]?.role || 'Role'}</p>
                                         </div>
-                                        <button onClick={() => handleConnect(u.id)} className="px-4 py-2 bg-blue-600 text-white text-[10px] font-bold rounded-xl shadow-lg shadow-blue-500/20 hover:scale-105 transition-all flex items-center gap-1.5">
+                                        <button onClick={() => u?.id && handleConnect(u.id)} className="px-4 py-2 bg-blue-600 text-white text-[10px] font-bold rounded-xl shadow-lg shadow-blue-500/20 hover:scale-105 transition-all flex items-center gap-1.5">
                                             <UserPlus size={14} />
                                             Connect
                                         </button>

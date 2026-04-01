@@ -75,7 +75,7 @@ const AdminCollegesPage = () => {
                                         Loading colleges...
                                     </td>
                                 </tr>
-                            ) : data?.colleges.length === 0 ? (
+                            ) : (Array.isArray(data?.colleges) && data.colleges.length === 0) || !data?.colleges ? (
                                 <tr>
                                     <td colSpan={5} className="px-6 py-8 text-center text-slate-500">
                                         No colleges found matching "{searchTerm}"

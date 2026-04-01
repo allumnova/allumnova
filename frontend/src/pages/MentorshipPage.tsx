@@ -79,7 +79,7 @@ const MentorshipPage = () => {
                 </div>
             ) : requests.length > 0 ? (
                 <div className="grid grid-cols-1 gap-4">
-                    {requests.map((req, idx) => (
+                    {Array.isArray(requests) && requests.map((req, idx) => (
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}

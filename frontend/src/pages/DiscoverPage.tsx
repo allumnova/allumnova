@@ -3,7 +3,7 @@ import { useCollege } from '../contexts/CollegeContext';
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Building2, Plus, Users, Sparkles, GraduationCap, UserPlus, Check, X, Filter, Rocket, Info, ChevronRight, Loader2 } from 'lucide-react';
+import { Search, Building2, Plus, Users, Sparkles, GraduationCap, UserPlus, Check, X, Filter, Rocket, Info, ChevronRight, Loader2, Globe } from 'lucide-react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import MentorshipRequestModal from '../components/profile/MentorshipRequestModal';
 import { useAuth } from '../contexts/AuthContext';
@@ -95,6 +95,16 @@ const DiscoverPage = () => {
             return res.data;
         },
         enabled: tab === 'hubs' && !!activeCollege
+    });
+    
+    // 5. Colleges List
+    const { data: colleges } = useQuery({
+        queryKey: ['colleges'],
+        queryFn: async () => {
+            const res = await api.get('/colleges');
+            return res.data.data;
+        },
+        enabled: tab === 'colleges'
     });
 
     const handleConnect = async (userId: string) => {
@@ -369,6 +379,58 @@ const DiscoverPage = () => {
                             )}
                         </section>
                     </>
+                )}
+
+                {tab === 'colleges' && (
+                    <section>
+                        <div className="flex items-center gap-3 mb-8 px-2">
+                            <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-500">
+                                <Building2 size={20} />
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Partner Institutions</h2>
+                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">Explore other campuses in the network</p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {Array.isArray(colleges) && colleges.map((college: any) => (
+                                <motion.div 
+                                    key={college.id} 
+                                    whileHover={{ y: -5 }}
+                                    className="bg-white dark:bg-slate-900/50 backdrop-blur-3xl border border-slate-200 dark:border-white/5 rounded-[2.5rem] p-8 flex flex-col shadow-sm group"
+                                >
+                                    <div className="flex items-start justify-between mb-6">
+                                        <div className="w-16 h-16 rounded-[1.5rem] bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-2xl shadow-inner group-hover:scale-110 transition-transform duration-500" style={{ backgroundColor: college.primaryColor + '10', color: college.primaryColor }}>
+                                            <Building2 size={32} />
+                                        </div>
+                                        <div className="flex flex-col items-end gap-1">
+                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Est. {new Date(college.createdAt).getFullYear()}</span>
+                                            <div className="px-3 py-1 bg-indigo-500/10 text-indigo-500 text-[8px] font-black uppercase tracking-widest rounded-lg border border-indigo-500/20">Verified</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2">{college.name}</h3>
+                                    <p className="text-slate-500 text-sm font-medium line-clamp-2 mb-6">
+                                        {college.description || `The official Allumnova portal for ${college.name} students and alumni.`}
+                                    </p>
+
+                                    <div className="flex items-center justify-between pt-6 border-t border-slate-100 dark:border-white/5 mt-auto">
+                                        <div className="flex items-center gap-2">
+                                            <Globe size={16} className="text-slate-400" />
+                                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{college.domain || `${college.subdomain}.allumnova.com`}</span>
+                                        </div>
+                                        <Link 
+                                            to={`/?college=${college.id}`}
+                                            className="px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-black uppercase tracking-widest rounded-xl hover:scale-105 transition-all shadow-lg active:scale-95"
+                                        >
+                                            Visit
+                                        </Link>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+                    </section>
                 )}
 
                 {tab === 'hubs' && (

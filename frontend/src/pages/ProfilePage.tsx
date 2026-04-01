@@ -201,7 +201,7 @@ const ProfilePage = () => {
                         {profile.department} {profile.batch_year ? `'${profile.batch_year.toString().slice(-2)}` : ''}
                     </p>
                     <div className="flex items-center justify-center gap-2 mt-2 pt-1">
-                        {profile.colleges?.map((mc: any) => (
+                        {Array.isArray(profile.colleges) && profile.colleges.map((mc: any) => (
                             <span key={mc.collegeId} className="text-[10px] font-bold text-blue-500 dark:text-blue-400 bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20 uppercase tracking-wider">
                                 {mc.college.name}
                             </span>
@@ -282,14 +282,14 @@ const ProfilePage = () => {
             {!isOwnProfile && profile.mutualCount > 0 && (
                 <div className="flex items-center gap-3 px-6 py-4 bg-blue-500/5 border border-blue-500/10 rounded-3xl">
                     <div className="flex -space-x-2.5">
-                        {profile.mutualConnections?.map((m: any, i: number) => (
+                        {Array.isArray(profile.mutualConnections) && profile.mutualConnections.map((m: any, i: number) => (
                             <div key={m.id} className="w-8 h-8 rounded-full border-2 border-white dark:border-slate-900 overflow-hidden bg-slate-100 shrink-0 shadow-sm" style={{ zIndex: 3 - i }}>
                                 <img src={m.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${m.name}`} className="w-full h-full object-cover" alt="" />
                             </div>
                         ))}
                     </div>
                     <p className="text-xs font-bold text-slate-500 dark:text-slate-400">
-                        <span className="text-blue-500">{profile.mutualCount}</span> Mutual connection{profile.mutualCount > 1 ? 's' : ''} including <span className="text-slate-900 dark:text-white">{profile.mutualConnections?.[0]?.name}</span>
+                        <span className="text-blue-500">{profile.mutualCount}</span> Mutual connection{profile.mutualCount > 1 ? 's' : ''} including <span className="text-slate-900 dark:text-white">{Array.isArray(profile.mutualConnections) && profile.mutualConnections[0]?.name}</span>
                     </p>
                 </div>
             )}
@@ -385,7 +385,7 @@ const ProfilePage = () => {
                     </motion.div>
                 ) : activeTab === 'projects' ? (
                     <motion.div key="projects" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-                        {profile.projects && profile.projects.length > 0 ? (
+                        {Array.isArray(profile.projects) && profile.projects.length > 0 ? (
                             <div className="grid grid-cols-1 gap-6">
                                 {profile.projects.map((project: Project, idx: number) => (
                                     <ProjectCard 

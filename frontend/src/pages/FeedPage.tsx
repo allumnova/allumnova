@@ -163,7 +163,7 @@ const FeedPage = () => {
                     <SkeletonCard />
                     <SkeletonCard />
                 </>
-            ) : data?.pages.some((page) => page.length > 0) ? (
+            ) : (Array.isArray(data?.pages) && data.pages.some((page) => Array.isArray(page) && page.length > 0)) ? (
                 <div className="space-y-4">
                     {Array.isArray(data?.pages) && data.pages.map((page) => (
                         Array.isArray(page) && page.map((post: any) => (

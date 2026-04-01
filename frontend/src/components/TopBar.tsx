@@ -36,7 +36,7 @@ const TopBar = () => {
                                 exit={{ opacity: 0, y: 10 }}
                                 className="absolute top-full left-0 mt-2 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden py-2 transition-colors"
                             >
-                                {allColleges.length > 0 ? allColleges.map((college) => (
+                                {Array.isArray(allColleges) && allColleges.length > 0 ? allColleges.map((college) => (
                                     <button
                                         key={college.id}
                                         onClick={() => {

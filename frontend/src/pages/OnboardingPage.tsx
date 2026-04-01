@@ -206,7 +206,7 @@ const OnboardingPage = () => {
                             {/* College List */}
                             {!formData.collegeId && (
                                 <div className="mt-3 max-h-40 overflow-y-auto space-y-2 scrollbar-thin">
-                                    {filteredColleges.length > 0 ? (
+                                    {Array.isArray(filteredColleges) && filteredColleges.length > 0 ? (
                                         filteredColleges.map(c => (
                                             <button
                                                 key={c.id}

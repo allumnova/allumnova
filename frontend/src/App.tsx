@@ -96,13 +96,13 @@ function App() {
                         <Route path="/profile/:userId" element={<ProfilePage />} />
                         
                         {/* Protected child routes within MainLayout */}
-                        <Route element={
-                            isAuthenticated ? (
-                                (user?.is_verified || user?.verificationLevel?.toUpperCase() === 'VERIFIED') ? <React.Fragment /> :
-                                    user?.verificationLevel?.toUpperCase() === 'PENDING' ? <Navigate to="/pending" /> :
-                                        <Navigate to="/onboarding" />
-                            ) : <Navigate to="/login" />
-                        }>
+                    <Route element={
+                        isAuthenticated ? (
+                            (user?.is_verified || user?.verificationLevel?.toUpperCase() === 'VERIFIED') ? <React.Fragment /> :
+                                user?.verificationLevel?.toUpperCase() === 'PENDING' ? <Navigate to="/pending" /> :
+                                    <Navigate to="/onboarding" />
+                        ) : <Navigate to="/login" />
+                    }>
                             <Route path="/connections" element={<ConnectionsPage />} />
                             <Route path="/notifications" element={<NotificationPage />} />
                             <Route path="/chat" element={<ChatPage />} />
