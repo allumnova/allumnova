@@ -41,8 +41,8 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose, onSu
     };
 
     const removeFile = (index: number) => {
-        setFiles(prev => prev.filter((_, i) => i !== index));
-        setFilePreviews(prev => prev.filter((_, i) => i !== index));
+        setFiles(prev => (Array.isArray(prev) ? prev : []).filter((_, i) => i !== index));
+        setFilePreviews(prev => (Array.isArray(prev) ? prev : []).filter((_, i) => i !== index));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
