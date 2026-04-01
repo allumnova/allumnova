@@ -17,9 +17,9 @@ jobs:
         with:
           host: ${{ secrets.VPS_IP }}
           username: ${{ secrets.VPS_USER }}
-          password: ${{ secrets.VPS_PASSWORD }}
-          command_timeout: "10m"
-          timeout: "60s"
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          command_timeout: "15m"
+          timeout: "120s"
           script: |
             cd ~/allumnova
             git fetch origin main
