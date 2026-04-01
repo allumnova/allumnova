@@ -28,6 +28,7 @@ const DiscoverPage = () => {
     const [loading, setLoading] = useState(true);
     const [showMentorshipModal, setShowMentorshipModal] = useState(false);
     const [selectedMentorId, setSelectedMentorId] = useState<string | null>(null);
+    const [selectedMentorName, setSelectedMentorName] = useState<string>('');
     const { user: currentUser } = useAuth();
     const queryClient = useQueryClient();
 
@@ -267,13 +268,14 @@ const DiscoverPage = () => {
                                                     </div>
                                                 </div>
                                                 
-                                                {user.role === 'ALUMNI' && (
+                                                {(user.role === 'alumni' || user.role === 'ALUMNI') && (
                                                     <button 
                                                         onClick={() => {
                                                             setSelectedMentorId(user.id);
+                                                            setSelectedMentorName(user.name);
                                                             setShowMentorshipModal(true);
                                                         }}
-                                                        className="mt-2 w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-bold py-2 rounded-xl transition-all hover:bg-blue-600 hover:text-white"
+                                                        className="mt-4 w-full py-2 bg-blue-600/10 hover:bg-blue-600 text-blue-600 hover:text-white dark:text-blue-400 font-bold rounded-xl text-xs transition-all border border-blue-500/20"
                                                     >
                                                         Request Mentorship
                                                     </button>
@@ -447,7 +449,8 @@ const DiscoverPage = () => {
             <MentorshipRequestModal 
                 isOpen={showMentorshipModal}
                 onClose={() => setShowMentorshipModal(false)}
-                mentorId={selectedMentorId || ''}
+                alumniId={selectedMentorId || ''}
+                alumniName={selectedMentorName || ''}
             />
         </div>
     );
