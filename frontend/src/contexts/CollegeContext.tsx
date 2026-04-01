@@ -33,25 +33,26 @@ export const CollegeProvider: React.FC<{ children: React.ReactNode }> = ({ child
             if (isAuthenticated) {
                 try {
                 const res = await api.get('/colleges');
-                publicColleges = res.data.data || res.data;
+                const rawData = res.data.data || res.data;
+                publicColleges = Array.isArray(rawData) ? rawData : [];
                 } catch (apiErr) {
                     console.error('Failed to fetch public colleges:', apiErr);
                 }
             }
             
             // Extract user-specific joined colleges (including Pending)
-            const membershipColleges: College[] = (user?.colleges || [])
-                .filter(m => m.status !== 'REJECTED') // Include VERIFIED and PENDING
+            const membershipColleges: College[] = (Array.isArray(user?.colleges) ? user.colleges : [])
+                .filter(m => m && m.status !== 'REJECTED') // Include VERIFIED and PENDING
                 .map(m => (m as any).college)
                 .filter(Boolean); // Filter out any nulls
 
-            // Merge all sources: [Global, MemberColleges, PublicColleges]
+            // Merge all sources safely
             const merged = [GLOBAL_COLLEGE, ...membershipColleges, ...publicColleges];
             
             // Deduplicate by ID
             const uniqueCollegesMap = new Map();
             merged.forEach(c => {
-                if (!uniqueCollegesMap.has(c.id)) {
+                if (c && c.id && !uniqueCollegesMap.has(c.id)) {
                     uniqueCollegesMap.set(c.id, c);
                 }
             });
