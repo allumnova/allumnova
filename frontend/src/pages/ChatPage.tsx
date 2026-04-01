@@ -4,7 +4,7 @@ import { useCollege } from '../contexts/CollegeContext';
 import { useSearchParams } from 'react-router-dom';
 import api from '../api/axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Search, MoreVertical, MessageCircle, Users, Sparkles, Phone, Video, Info, Paperclip, Smile, Image as ImageIcon, Check, FileIcon, Download, X, Loader2 } from 'lucide-react';
+import { Send, Search, MoreVertical, MessageCircle, MessageSquare, Users, Sparkles, Phone, Video, Info, Paperclip, Smile, Image as ImageIcon, Check, FileIcon, Download, X, Loader2 } from 'lucide-react';
 import { io } from 'socket.io-client';
 
 const ChatPage = () => {
