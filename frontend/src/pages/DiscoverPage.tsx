@@ -284,7 +284,7 @@ const DiscoverPage = () => {
                                     </div>
                                 </div>
                                 <div className="flex gap-5 overflow-x-auto pb-6 px-1 no-scrollbar scroll-smooth">
-                                    {suggestions.map((user: any) => (
+                                    {Array.isArray(suggestions) && suggestions.map((user: any) => (
                                         <div key={user.id} className="w-64 shrink-0">
                                             {renderUserCard(user)}
                                         </div>
@@ -313,7 +313,9 @@ const DiscoverPage = () => {
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                                    {alumniData?.pages.map((page: any) => page.map((user: any) => renderUserCard(user)))}
+                                    {Array.isArray(alumniData?.pages) && alumniData.pages.map((page: any) => 
+                                        Array.isArray(page) && page.map((user: any) => renderUserCard(user))
+                                    )}
                                 </div>
                             )}
                             
@@ -348,7 +350,9 @@ const DiscoverPage = () => {
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                                    {studentData?.pages.map((page: any) => page.map((user: any) => renderUserCard(user)))}
+                                    {Array.isArray(studentData?.pages) && studentData.pages.map((page: any) => 
+                                        Array.isArray(page) && page.map((user: any) => renderUserCard(user))
+                                    )}
                                 </div>
                             )}
 
@@ -386,7 +390,7 @@ const DiscoverPage = () => {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {hubs?.map((hub: any) => (
+                            {Array.isArray(hubs) && hubs.map((hub: any) => (
                                 <div key={hub.id} className="bg-white dark:bg-slate-900/50 backdrop-blur-3xl border border-slate-200 dark:border-white/5 rounded-[2.5rem] p-8 flex flex-col shadow-sm">
                                     <div className="flex items-start justify-between mb-6">
                                         <div className="w-16 h-16 rounded-[1.5rem] bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-2xl shadow-inner">

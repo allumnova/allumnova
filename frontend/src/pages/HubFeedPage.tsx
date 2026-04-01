@@ -93,8 +93,8 @@ const HubFeedPage = () => {
                 </div>
             ) : data?.pages.some((page) => page.length > 0) ? (
                 <div className="space-y-4">
-                    {data?.pages.map((page) => (
-                        page.map((post: any) => (
+                    {Array.isArray(data?.pages) && data.pages.map((page) => (
+                        Array.isArray(page) && page.map((post: any) => (
                             <PostCard
                                 key={post.id}
                                 post={post}
