@@ -6,9 +6,18 @@ import { Clock, ShieldAlert, LogOut, LayoutGrid, ArrowRight, CheckCircle2 } from
 import { motion } from 'framer-motion';
 
 const PendingApprovalPage: React.FC = () => {
-    const { logout, user } = useAuth();
+    const { logout, user, refreshUser } = useAuth();
     const { activeCollege, allColleges, setActiveCollege } = useCollege();
     const navigate = useNavigate();
+
+    const handleRefresh = async () => {
+        const updatedUser = await refreshUser();
+        if (updatedUser?.is_verified) {
+            navigate('/');
+        } else {
+            window.location.reload();
+        }
+    };
 
     const handleSwitchCollege = (college: any) => {
         setActiveCollege(college);
@@ -81,7 +90,7 @@ const PendingApprovalPage: React.FC = () => {
 
                         <div className="flex flex-col gap-3">
                             <button
-                                onClick={() => window.location.reload()}
+                                onClick={handleRefresh}
                                 className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-extrabold rounded-2xl transition-all shadow-xl shadow-blue-600/30 active:scale-[0.98]"
                             >
                                 Refresh Status
