@@ -305,6 +305,7 @@ module.exports = {
     getProfile,
     getUserProfile,
     updateProfile,
+    getPortfolioByUsername,
     completeOnboarding,
     listPendingVerifications,
     verifyUser,
