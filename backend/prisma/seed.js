@@ -6,31 +6,47 @@ const prisma = new PrismaClient();
 async function main() {
     console.log('🧹 CLEAN SWEEP: Clearing all existing data for launch...');
 
-    // Delete in FK-safe order
+    // Delete in strict FK-safe order to prevent P2003 errors
+    // 1. Dependency Tier 3 (Farthest from User/College)
     await prisma.analyticsEvent.deleteMany({});
     await prisma.report.deleteMany({});
     await prisma.eventAttendee.deleteMany({});
-    await prisma.event.deleteMany({});
     await prisma.mentorshipRequest.deleteMany({});
     await prisma.jobApplication.deleteMany({});
-    await prisma.job.deleteMany({});
-    await prisma.notification.deleteMany({});
-    await prisma.message.deleteMany({});
-    await prisma.conversationMember.deleteMany({});
-    await prisma.conversation.deleteMany({});
-    await prisma.connection.deleteMany({});
     await prisma.postLike.deleteMany({});
     await prisma.comment.deleteMany({});
     await prisma.postMedia.deleteMany({});
     await prisma.savedPost.deleteMany({});
+    await prisma.message.deleteMany({});
+    await prisma.projectMilestone.deleteMany({});
+    await prisma.projectHype.deleteMany({});
+    await prisma.follow.deleteMany({});
+
+    // 2. Dependency Tier 2 (Middle relationships)
+    await prisma.notification.deleteMany({});
+    await prisma.event.deleteMany({});
+    await prisma.job.deleteMany({});
+    await prisma.conversationMember.deleteMany({});
     await prisma.post.deleteMany({});
+    await prisma.project.deleteMany({});
+    await prisma.experience.deleteMany({});
+    await prisma.education.deleteMany({});
+
+    // 3. Dependency Tier 1 (Direct links to User/College/Environment)
+    await prisma.conversation.deleteMany({});
+    await prisma.connection.deleteMany({});
     await prisma.collegeMembership.deleteMany({});
+    await prisma.collegeRequest.deleteMany({});
+    await prisma.environmentMembership.deleteMany({});
+
+    // 4. Base Tier (The roots)
+    await prisma.environment.deleteMany({});
     await prisma.college.deleteMany({});
     await prisma.user.deleteMany({});
 
     console.log('✅ Database cleared.');
 
-    // 1. Create the ONLY Admin User (Your requested credentials)
+    // Create the ONLY Admin User
     const adminEmail = 'vipranshusachan@gmail.com';
     const hashedPassword = await bcrypt.hash('mnbvcxz', 10);
     
@@ -49,7 +65,7 @@ async function main() {
     
     console.log(`👤 Platform Admin created: ${adminEmail}`);
 
-    // 2. Create HBTU College
+    // Create HBTU College
     const hbtu = await prisma.college.create({
         data: {
             name: 'HBTU Kanpur',
