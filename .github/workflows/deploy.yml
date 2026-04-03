@@ -49,6 +49,10 @@ jobs:
             docker compose build backend
             docker compose run --rm backend npx prisma migrate deploy
             
-            # 2. Start all services normally
+            # 2. Run Data Repair (Syncs statuses)
+            echo "Running data repair script..."
+            docker compose run --rm backend node src/scripts/repair_status.js
+            
+            # 3. Start all services normally
             echo "Starting all services..."
             docker compose up -d --build
