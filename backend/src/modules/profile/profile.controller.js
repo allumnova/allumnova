@@ -34,7 +34,32 @@ const getPortfolioByUsername = async (req, res) => {
 
 const updateMyProfile = async (req, res) => {
     try {
-        const updateData = { ...req.body };
+        const { 
+            name, bio, linkedIn, department, role, username, 
+            careerObjective, techSkills, achievements, hobbies, isPublic 
+        } = req.body;
+
+        const updateData = {
+            name,
+            bio,
+            linkedIn,
+            department,
+            role,
+            username,
+            careerObjective,
+            isPublic: isPublic === 'true' || isPublic === true
+        };
+
+        // Safely parse JSON strings from FormData
+        try {
+            if (techSkills) updateData.techSkills = JSON.parse(techSkills);
+            if (achievements) updateData.achievements = JSON.parse(achievements);
+            if (hobbies) updateData.hobbies = JSON.parse(hobbies);
+        } catch (parseError) {
+            console.error('Error parsing profile JSON fields:', parseError);
+            // If parsing fails locally, we still continue with basic fields
+        }
+
         if (req.files) {
             if (req.files.avatar) {
                 updateData.avatar = `/uploads/avatars/${req.files.avatar[0].filename}`;
@@ -43,6 +68,7 @@ const updateMyProfile = async (req, res) => {
                 updateData.resumeUrl = `/uploads/resumes/${req.files.resume[0].filename}`;
             }
         }
+
         const profile = await profileService.updateProfile(req.user.userId, updateData);
         res.status(200).json({ success: true, data: profile });
     } catch (error) {
