@@ -40,14 +40,14 @@ export const CollegeProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 }
             }
             
-            // Extract user-specific joined colleges (including Pending)
+            // Extract user-specific joined colleges (Filtered for APPROVED status)
             const membershipColleges: College[] = (Array.isArray(user?.colleges) ? user.colleges : [])
-                .filter(m => m && m.status !== 'REJECTED') // Include VERIFIED and PENDING
+                .filter(m => m && (m.status === 'APPROVED' || user?.role === 'admin'))
                 .map(m => (m as any).college)
-                .filter(Boolean); // Filter out any nulls
+                .filter(Boolean);
 
-            // Merge all sources safely
-            const merged = [GLOBAL_COLLEGE, ...membershipColleges, ...publicColleges];
+            // Merged list for the switcher - ONLY Global + Approved Memberships
+            const merged = [GLOBAL_COLLEGE, ...membershipColleges];
             
             // Deduplicate by ID
             const uniqueCollegesMap = new Map();

@@ -25,7 +25,7 @@ export interface User {
     colleges?: {
         id: string; // collegeId
         role: string;
-        status: 'PENDING' | 'VERIFIED' | 'REJECTED';
+        status: 'PENDING' | 'APPROVED' | 'REJECTED';
     }[];
 }
 

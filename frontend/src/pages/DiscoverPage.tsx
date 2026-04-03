@@ -9,7 +9,7 @@ import MentorshipRequestModal from '../components/profile/MentorshipRequestModal
 import { useAuth } from '../contexts/AuthContext';
 
 const DiscoverPage = () => {
-    const { activeCollege } = useCollege();
+    const { activeCollege, setActiveCollege } = useCollege();
     const location = useLocation();
     const navigate = useNavigate();
     const searchParams = new URLSearchParams(location.search);
@@ -415,18 +415,46 @@ const DiscoverPage = () => {
                                         {college.description || `The official Allumnova portal for ${college.name} students and alumni.`}
                                     </p>
 
-                                    <div className="flex items-center justify-between pt-6 border-t border-slate-100 dark:border-white/5 mt-auto">
-                                        <div className="flex items-center gap-2">
-                                            <Globe size={16} className="text-slate-400" />
-                                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{college.domain || `${college.subdomain}.allumnova.com`}</span>
+                                        <div className="flex items-center justify-between pt-6 border-t border-slate-100 dark:border-white/5 mt-auto">
+                                            <div className="flex items-center gap-2">
+                                                <Globe size={16} className="text-slate-400" />
+                                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{college.domain || `${college.subdomain}.allumnova.com`}</span>
+                                            </div>
+                                            {(() => {
+                                                const membership = currentUser?.colleges?.find((m: any) => m.collegeId === college.id || m.id === college.id);
+                                                const status = membership?.status;
+
+                                                if (status === 'APPROVED') {
+                                                    return (
+                                                        <button 
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                setActiveCollege(college);
+                                                                navigate('/');
+                                                            }}
+                                                            className="px-5 py-2.5 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:scale-105 transition-all shadow-lg active:scale-95"
+                                                        >
+                                                            Switch
+                                                        </button>
+                                                    );
+                                                } else if (status === 'PENDING') {
+                                                    return (
+                                                        <div className="px-5 py-2.5 bg-amber-500/10 text-amber-600 text-[10px] font-black uppercase tracking-widest rounded-xl border border-amber-500/20">
+                                                            Pending
+                                                        </div>
+                                                    );
+                                                } else {
+                                                    return (
+                                                        <Link 
+                                                            to={`/onboarding?collegeId=${college.id}`}
+                                                            className="px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-black uppercase tracking-widest rounded-xl hover:scale-105 transition-all shadow-lg active:scale-95"
+                                                        >
+                                                            Join Campus
+                                                        </Link>
+                                                    );
+                                                }
+                                            })()}
                                         </div>
-                                        <Link 
-                                            to={`/?college=${college.id}`}
-                                            className="px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-black uppercase tracking-widest rounded-xl hover:scale-105 transition-all shadow-lg active:scale-95"
-                                        >
-                                            Visit
-                                        </Link>
-                                    </div>
                                 </motion.div>
                             ))}
                         </div>

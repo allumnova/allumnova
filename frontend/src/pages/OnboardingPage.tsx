@@ -44,7 +44,23 @@ const OnboardingPage = () => {
         const fetchColleges = async () => {
             try {
                 const res = await api.get('/colleges');
-                setColleges(res.data.data);
+                const list = res.data.data;
+                setColleges(list);
+
+                // Handle pre-selection from query params
+                const params = new URLSearchParams(window.location.search);
+                const preSelectId = params.get('collegeId');
+                if (preSelectId && Array.isArray(list)) {
+                    const selected = list.find(c => c.id === preSelectId);
+                    if (selected) {
+                        setFormData(prev => ({ ...prev, collegeId: selected.id }));
+                        setSelectedCollegeName(selected.name);
+                        setCollegeSearch(selected.name);
+                        // If they are coming from a specific "Join" link, 
+                        // they likely already filled step 1 or want to jump to college details
+                        setStep(2); 
+                    }
+                }
             } catch (err) {
                 console.error(err);
             }
