@@ -4,75 +4,66 @@ const bcrypt = require('bcryptjs');
 const prisma = new PrismaClient();
 
 async function main() {
-    console.log('🌱 Starting non-destructive seeding...');
+    console.log('🧹 CLEAN SWEEP: Clearing all existing data for launch...');
 
-    // 1. Create Admin User (Only if not exists)
-    const adminEmail = 'admin@allumnova.com';
-    const existingAdmin = await prisma.user.findUnique({ where: { email: adminEmail } });
+    // Delete in FK-safe order
+    await prisma.analyticsEvent.deleteMany({});
+    await prisma.report.deleteMany({});
+    await prisma.eventAttendee.deleteMany({});
+    await prisma.event.deleteMany({});
+    await prisma.mentorshipRequest.deleteMany({});
+    await prisma.jobApplication.deleteMany({});
+    await prisma.job.deleteMany({});
+    await prisma.notification.deleteMany({});
+    await prisma.message.deleteMany({});
+    await prisma.conversationMember.deleteMany({});
+    await prisma.conversation.deleteMany({});
+    await prisma.connection.deleteMany({});
+    await prisma.postLike.deleteMany({});
+    await prisma.comment.deleteMany({});
+    await prisma.postMedia.deleteMany({});
+    await prisma.savedPost.deleteMany({});
+    await prisma.post.deleteMany({});
+    await prisma.collegeMembership.deleteMany({});
+    await prisma.college.deleteMany({});
+    await prisma.user.deleteMany({});
 
-    if (!existingAdmin) {
-        const hashedPassword = await bcrypt.hash('admin123', 10);
-        await prisma.user.create({
-            data: {
-                email: adminEmail,
-                password_hash: hashedPassword,
-                name: 'Admin',
-                username: 'admin',
-                role: 'admin',
-                is_verified: true,
-                verificationLevel: 'VERIFIED',
-                reputationScore: 100,
-            },
-        });
-        console.log(`👤 Admin created: ${adminEmail}`);
-    } else {
-        console.log(`ℹ️ Admin already exists: ${adminEmail}`);
-    }
+    console.log('✅ Database cleared.');
 
-    // 1.1 Create User Requested Admin (Only if not exists)
-    const userAdminEmail = 'vipranshusachan@gmail.com';
-    const existingUserAdmin = await prisma.user.findUnique({ where: { email: userAdminEmail } });
+    // 1. Create the ONLY Admin User (Your requested credentials)
+    const adminEmail = 'vipranshusachan@gmail.com';
+    const hashedPassword = await bcrypt.hash('mnbvcxz', 10);
+    
+    const admin = await prisma.user.create({
+        data: {
+            email: adminEmail,
+            password_hash: hashedPassword,
+            name: 'Vipranshu Sachan',
+            username: 'admin-vips',
+            role: 'admin',
+            is_verified: true,
+            verificationLevel: 'VERIFIED',
+            reputationScore: 100,
+        },
+    });
+    
+    console.log(`👤 Platform Admin created: ${adminEmail}`);
 
-    if (!existingUserAdmin) {
-        const userHashedPassword = await bcrypt.hash('Kulwant123', 10);
-        await prisma.user.create({
-            data: {
-                email: userAdminEmail,
-                password_hash: userHashedPassword,
-                name: 'Vipranshu Sachan',
-                username: 'vipranshu',
-                role: 'admin',
-                is_verified: true,
-                verificationLevel: 'VERIFIED',
-                reputationScore: 100,
-            },
-        });
-        console.log(`👤 New Admin created: ${userAdminEmail}`);
-    } else {
-        console.log(`ℹ️ User Admin already exists: ${userAdminEmail}`);
-    }
+    // 2. Create HBTU College
+    const hbtu = await prisma.college.create({
+        data: {
+            name: 'HBTU Kanpur',
+            domain: 'hbtu.edu.in',
+            subdomain: 'hbtu',
+            location: 'Kanpur, UP',
+            website: 'https://hbtu.ac.in',
+            primaryColor: '#1A237E',
+        },
+    });
+    console.log(`🏫 College created: ${hbtu.name}`);
 
-    // 2. Create HBTU College (Only if not exists)
-    const collegeDomain = 'hbtu.edu.in';
-    const existingCollege = await prisma.college.findUnique({ where: { domain: collegeDomain } });
-
-    if (!existingCollege) {
-        await prisma.college.create({
-            data: {
-                name: 'HBTU Kanpur',
-                domain: collegeDomain,
-                subdomain: 'hbtu',
-                location: 'Kanpur, UP',
-                website: 'https://hbtu.ac.in',
-                primaryColor: '#1A237E',
-            },
-        });
-        console.log(`🏫 College created: HBTU Kanpur`);
-    } else {
-        console.log(`ℹ️ College already exists: HBTU Kanpur`);
-    }
-
-    console.log('\n✅ Seeding logic completed (Safety Mode Active).');
+    console.log('\n🎉 ALLUMNOVA IS READY FOR LAUNCH!');
+    console.log('   Admin login: vipranshusachan@gmail.com / mnbvcxz');
 }
 
 main()
