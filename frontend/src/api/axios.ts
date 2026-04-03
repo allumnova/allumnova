@@ -38,8 +38,11 @@ api.interceptors.response.use(
 
             console.warn(`Auth Error (${error.response.status}) at: ${error.config?.url}`);
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-            // Don't auto-logout if using demo token
-            if (token && token !== 'demo_token') {
+            const userJson = localStorage.getItem('user') || sessionStorage.getItem('user');
+            const user = userJson ? JSON.parse(userJson) : null;
+            
+            // Don't auto-logout if using demo token or if user is an admin
+            if (token && token !== 'demo_token' && user?.role !== 'admin') {
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
                 sessionStorage.removeItem('token');

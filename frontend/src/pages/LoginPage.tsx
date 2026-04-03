@@ -47,7 +47,11 @@ const LoginPage = () => {
             const res = await api.post('/auth/login', { email: loginEmail, password: loginPassword });
             const { user, token } = res.data.data;
             login(token, user, rememberMe);
-            navigate('/');
+            if (user.role === 'admin') {
+                navigate('/admin');
+            } else {
+                navigate('/');
+            }
         } catch (err: any) {
             setError(err.response?.data?.error || 'Invalid credentials. Please try again.');
         } finally {
@@ -82,7 +86,11 @@ const LoginPage = () => {
             const res = await api.post('/auth/verify-otp', { email: signupEmail, otp: signupOtp });
             const { user, token } = res.data.data;
             login(token, user);
-            navigate('/onboarding');
+            if (user.role === 'admin') {
+                navigate('/admin');
+            } else {
+                navigate('/onboarding');
+            }
         } catch (err: any) {
             setError(err.response?.data?.error || 'Invalid OTP. Please try again.');
         } finally {
