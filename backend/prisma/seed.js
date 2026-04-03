@@ -78,6 +78,18 @@ async function main() {
     });
     console.log(`🏫 College created: ${hbtu.name}`);
 
+    // Create Admin Membership for HBTU
+    await prisma.collegeMembership.create({
+        data: {
+            userId: admin.id,
+            collegeId: hbtu.id,
+            role: 'admin',
+            status: 'APPROVED',
+            batch: 'N/A'
+        }
+    });
+    console.log(`✅ Admin membership for ${hbtu.name} created.`);
+
     console.log('\n🎉 ALLUMNOVA IS READY FOR LAUNCH!');
     console.log('   Admin login: vipranshusachan@gmail.com / mnbvcxz');
 }

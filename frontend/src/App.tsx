@@ -101,9 +101,10 @@ function App() {
                         {/* Protected child routes within MainLayout */}
                     <Route element={
                         isAuthenticated ? (
-                            (user?.is_verified || user?.verificationLevel?.toUpperCase() === 'VERIFIED') ? <Outlet /> :
-                                user?.verificationLevel?.toUpperCase() === 'PENDING' ? <Navigate to="/pending" /> :
-                                    <Navigate to="/onboarding" />
+                            // Only block if trying to access private campus features AND not approved yet
+                            // (Global Hub features are handled within the components or by backend)
+                            (user?.is_verified || user?.role === 'admin') ? <Outlet /> : 
+                                <Navigate to="/pending" />
                         ) : <Navigate to="/login" />
                     }>
                             <Route path="/connections" element={<ConnectionsPage />} />

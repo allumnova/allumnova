@@ -41,8 +41,11 @@ api.interceptors.response.use(
             const userJson = localStorage.getItem('user') || sessionStorage.getItem('user');
             const user = userJson ? JSON.parse(userJson) : null;
             
-            // Don't auto-logout if using demo token or if user is an admin
-            if (token && token !== 'demo_token' && user?.role !== 'admin') {
+            // Safety bypass for users on the /pending or /onboarding pages
+            const isPendingRoute = window.location.pathname.startsWith('/pending') || window.location.pathname.startsWith('/onboarding');
+            
+            // Don't auto-logout if on a pending route, using demo token, or if user is an admin
+            if (token && token !== 'demo_token' && user?.role !== 'admin' && !isPendingRoute) {
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
                 sessionStorage.removeItem('token');

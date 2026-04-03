@@ -248,7 +248,7 @@ const verifyUser = async (mappingId, status) => {
             }
         });
 
-        if (finalStatus === 'VERIFIED') {
+        if (finalStatus === 'APPROVED') {
             await tx.user.update({
                 where: { id: mapping.userId },
                 data: { 
@@ -262,7 +262,7 @@ const verifyUser = async (mappingId, status) => {
     });
 
     // Send emails outside the transaction to avoid timeouts
-    if (finalStatus === 'VERIFIED') {
+    if (finalStatus === 'APPROVED') {
         try {
             await emailService.sendUserApproval(result.user.email, result.college.name);
             await emailService.sendWelcomeEmail(result.user.email, result.user.name);
@@ -285,7 +285,7 @@ const updatePulse = async (userId, { pulse, pulseEmoji }) => {
         },
         include: {
             colleges: {
-                where: { status: 'VERIFIED' },
+                where: { status: 'APPROVED' },
                 select: { collegeId: true }
             }
         }

@@ -192,7 +192,7 @@ const checkCollegeAccess = (req, res, next) => {
         return res.status(403).json({ success: false, error: 'Forbidden: No access to this college' });
     }
 
-    if (collegeAssociation.status !== 'VERIFIED' && req.user.role !== 'admin') {
+    if (collegeAssociation.status !== 'APPROVED' && req.user.role !== 'admin') {
         return res.status(403).json({
             success: false,
             error: 'Access to this college is pending verification.',
