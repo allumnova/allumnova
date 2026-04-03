@@ -39,13 +39,16 @@ const updateMyProfile = async (req, res) => {
             careerObjective, techSkills, achievements, hobbies, isPublic 
         } = req.body;
 
+        // Sanitize username: empty string or whitespace should be null to avoid unique constraint issues
+        const sanitizedUsername = (username && username.trim() !== '') ? username.trim().toLowerCase() : null;
+
         const updateData = {
             name,
             bio,
             linkedIn,
             department,
             role,
-            username,
+            username: sanitizedUsername,
             careerObjective,
             isPublic: isPublic === 'true' || isPublic === true
         };
@@ -57,7 +60,6 @@ const updateMyProfile = async (req, res) => {
             if (hobbies) updateData.hobbies = JSON.parse(hobbies);
         } catch (parseError) {
             console.error('Error parsing profile JSON fields:', parseError);
-            // If parsing fails locally, we still continue with basic fields
         }
 
         if (req.files) {
@@ -69,11 +71,19 @@ const updateMyProfile = async (req, res) => {
             }
         }
 
+        console.log('--- VPS Profile Update Request ---');
+        console.log('User ID:', req.user.userId);
+        console.log('Sanitized Update Data:', JSON.stringify(updateData, null, 2));
+
         const profile = await profileService.updateProfile(req.user.userId, updateData);
         res.status(200).json({ success: true, data: profile });
     } catch (error) {
-        console.error('Update Profile Error:', error);
-        res.status(500).json({ success: false, error: error.message });
+        console.error('CRITICAL Profile Update Error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined 
+        });
     }
 };
 
