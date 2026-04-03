@@ -24,10 +24,12 @@ const getPublicProfile = async (req, res) => {
 const getPortfolioByUsername = async (req, res) => {
     try {
         const { username } = req.params;
+        console.log(`--- Portfolio Lookup Request: ${username} ---`);
         const profile = await profileService.getPortfolioByUsername(username);
+        console.log(`--- Portfolio Found for: ${username} (User ID: ${profile.id}) ---`);
         res.status(200).json({ success: true, data: profile });
     } catch (error) {
-        console.error('Get Portfolio By Username Error:', error);
+        console.error(`--- Portfolio NOT Found for: ${req.params.username} Error: ${error.message} ---`);
         res.status(404).json({ success: false, error: 'Portfolio not found' });
     }
 };
