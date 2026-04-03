@@ -1,20 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { createPortal } from 'react-dom';
 import { useCollege } from '../contexts/CollegeContext';
 import api from '../api/axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Settings, Shield, Award, Grid, UserPlus, User as UserIcon, MessageCircle, Check, X, MapPin, Linkedin, Camera, Save, Sparkles, GraduationCap, CheckCircle2, Search, Rocket, Filter, Globe, Download } from 'lucide-react';
+import { 
+    Settings, Shield, Award, Grid, UserPlus, User as UserIcon, MessageCircle, 
+    Check, X, MapPin, Linkedin, Camera, Save, Sparkles, GraduationCap, 
+    CheckCircle2, Search, Rocket, Filter, Globe, Download 
+} from 'lucide-react';
 import PostCard from '../components/PostCard';
 import MentorshipRequestModal from '../components/profile/MentorshipRequestModal';
 import ProjectCard from '../components/project/ProjectCard';
 import { Post, Project } from '../types';
-import { createPortal } from 'react-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const ProfilePage = () => {
     const { userId } = useParams<{ userId: string }>();
     const { user: currentUser } = useAuth();
-    
     const [profile, setProfile] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'posts' | 'projects' | 'about'>('posts');
@@ -31,6 +34,7 @@ const ProfilePage = () => {
         department: '',
         role: '',
         username: '',
+        isPublic: true,
         careerObjective: '',
         techSkills: {} as any,
         achievements: [] as string[],
@@ -39,7 +43,6 @@ const ProfilePage = () => {
     });
     const [avatarFile, setAvatarFile] = useState<File | null>(null);
     const [resumeFile, setResumeFile] = useState<File | null>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
     const navigate = useNavigate();
 
     const isOwnProfile = !userId || userId === 'me' || userId === currentUser?.id;
@@ -60,6 +63,7 @@ const ProfilePage = () => {
                     department: data.department || '',
                     role: data.role || 'student',
                     username: data.username || '',
+                    isPublic: data.isPublic !== false,
                     careerObjective: data.careerObjective || '',
                     techSkills: data.techSkills || {},
                     achievements: data.achievements || [],
@@ -74,40 +78,9 @@ const ProfilePage = () => {
         }
     };
 
-    const handleConnect = async () => {
-        if (!profile || connectionLoading) return;
-        setConnectionLoading(true);
-        try {
-            const { status, isSender, id: requestId } = profile.connectionStatus || {};
-            
-            if (status === 'pending' && !isSender) {
-                // Accept instead
-                await api.post('/social/connect/accept', { requestId });
-            } else {
-                // Send new request
-                await api.post('/social/connect', { receiverId: profile.id });
-            }
-            fetchProfile();
-        } catch (err) {
-            console.error('Connection action failed:', err);
-        } finally {
-            setConnectionLoading(false);
-        }
-    };
-
     useEffect(() => {
         fetchProfile();
-    }, [userId]);
-
-    const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setAvatarFile(file);
-            const reader = new FileReader();
-            reader.onloadend = () => setEditForm(prev => ({ ...prev, avatar: reader.result as string }));
-            reader.readAsDataURL(file);
-        }
-    };
+    }, [userId, currentUser]);
 
     const handleUpdateProfile = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -119,16 +92,49 @@ const ProfilePage = () => {
             formData.append('department', editForm.department);
             formData.append('role', editForm.role);
             formData.append('username', editForm.username);
+            formData.append('isPublic', String(editForm.isPublic));
+            formData.append('careerObjective', editForm.careerObjective);
+            formData.append('techSkills', JSON.stringify(editForm.techSkills));
+            formData.append('achievements', JSON.stringify(editForm.achievements));
+            formData.append('hobbies', JSON.stringify(editForm.hobbies));
+            
             if (avatarFile) formData.append('avatar', avatarFile);
+            if (resumeFile) formData.append('resume', resumeFile);
 
             await api.patch('/profile/me', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             setIsEditing(false);
             setAvatarFile(null);
+            setResumeFile(null);
             fetchProfile();
         } catch (err) {
             console.error('Update failed:', err);
+        }
+    };
+
+    const handleConnect = async () => {
+        if (!profile) return;
+        setConnectionLoading(true);
+        try {
+            if (profile.connectionStatus?.status === 'pending' && !profile.connectionStatus?.isSender) {
+                await api.patch(`/social/connections/${profile.connectionStatus.id}`, { status: 'accepted' });
+            } else {
+                await api.post('/social/connections/request', { receiverId: profile.id });
+            }
+            fetchProfile();
+        } catch (err) {
+            console.error('Connection action failed:', err);
+        } finally {
+            setConnectionLoading(false);
+        }
+    };
+
+    const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setAvatarFile(file);
+            setEditForm(prev => ({ ...prev, avatar: URL.createObjectURL(file) }));
         }
     };
 
@@ -146,7 +152,7 @@ const ProfilePage = () => {
         }));
     };
 
-    if (loading) return <div className="p-20 text-center animate-pulse">Loading Profile...</div>;
+    if (loading) return <div className="p-20 text-center animate-pulse text-slate-500 font-bold uppercase tracking-widest text-xs">Loading Profile...</div>;
     if (!profile) return <div className="p-20 text-center">User not found.</div>;
 
     const stats = [
@@ -216,7 +222,6 @@ const ProfilePage = () => {
                 </div>
             </header>
 
-            {/* ... stats and tabs ... */}
             <div className="grid grid-cols-3 gap-4">
                 {stats.map((stat) => (
                     <div key={stat.label} className="bg-white dark:bg-slate-900/50 backdrop-blur-3xl border border-slate-200 dark:border-white/5 rounded-[2rem] p-5 flex flex-col items-center gap-1 shadow-sm transition-transform hover:-translate-y-1">
@@ -284,13 +289,12 @@ const ProfilePage = () => {
                                         <button onClick={() => setIsEditing(false)} className="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-500 transition-colors hover:text-red-500"><X size={20} /></button>
                                     </div>
 
-                                    {/* Edit Tabs */}
                                     <div className="flex gap-2 p-1.5 bg-slate-100 dark:bg-slate-950 rounded-2xl mb-8">
                                         <button onClick={() => setEditTab('basic')} className={`flex-1 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${editTab === 'basic' ? "bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-lg" : "text-slate-400"}`}>Basic Info</button>
                                         <button onClick={() => setEditTab('professional')} className={`flex-1 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${editTab === 'professional' ? "bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-lg" : "text-slate-400"}`}>Professional Resume</button>
                                     </div>
 
-                                    <form onSubmit={handleUpdateProfile} className="space-y-6 flex-1 overflow-y-auto px-1 profile-scrollbar">
+                                    <form onSubmit={handleUpdateProfile} className="space-y-6 flex-1 overflow-y-auto px-1 profile-scrollbar text-left">
                                         {editTab === 'basic' ? (
                                             <div className="space-y-6 pb-4">
                                                 <div className="flex flex-col items-center">
@@ -318,6 +322,9 @@ const ProfilePage = () => {
                                                             <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">@</span>
                                                             <input type="text" value={editForm.username} onChange={e => setEditForm({...editForm, username: e.target.value.toLowerCase().replace(/\s+/g, '-')})} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-2xl py-4 pl-10 pr-5 text-sm font-bold outline-none focus:ring-4 focus:ring-blue-500/10 text-slate-900 dark:text-white" />
                                                         </div>
+                                                        <p className="text-[9px] text-slate-400 font-bold mt-1.5 ml-1 flex items-center gap-1">
+                                                            <Globe size={10} /> Sets your public URL: allumnova.cloud/u/{editForm.username || 'username'}
+                                                        </p>
                                                     </div>
 
                                                     <div className="grid grid-cols-2 gap-4">
@@ -350,6 +357,20 @@ const ProfilePage = () => {
                                             </div>
                                         ) : (
                                             <div className="space-y-6 pb-6">
+                                                <div className="flex items-center justify-between bg-blue-600/5 p-5 rounded-3xl border border-blue-600/10">
+                                                    <div>
+                                                        <h4 className="text-xs font-black text-blue-600 uppercase tracking-widest">Public Portfolio</h4>
+                                                        <p className="text-[10px] text-slate-500 font-bold">Allow anyone with the link to see your resume.</p>
+                                                    </div>
+                                                    <button 
+                                                        type="button"
+                                                        onClick={() => setEditForm({...editForm, isPublic: !editForm.isPublic})}
+                                                        className={`w-14 h-8 rounded-full transition-all relative ${editForm.isPublic ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-700'}`}
+                                                    >
+                                                        <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${editForm.isPublic ? 'left-7' : 'left-1'}`} />
+                                                    </button>
+                                                </div>
+
                                                 <div className="space-y-1.5">
                                                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Career Objective</label>
                                                     <textarea rows={4} placeholder="Full-stack developer skilled in PHP, JS, and Python..." value={editForm.careerObjective} onChange={e => setEditForm({...editForm, careerObjective: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-2xl py-4 px-5 text-sm font-medium outline-none focus:ring-4 focus:ring-blue-500/10 text-slate-900 dark:text-white resize-none" />

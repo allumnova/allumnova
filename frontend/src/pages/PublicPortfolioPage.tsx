@@ -18,7 +18,9 @@ import {
     MapPin,
     Layers,
     Rocket,
-    Printer
+    Printer,
+    Shield,
+    CheckCircle2
 } from 'lucide-react';
 
 const PublicPortfolioPage = () => {
@@ -26,6 +28,7 @@ const PublicPortfolioPage = () => {
     const [profile, setProfile] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [downloading, setDownloading] = useState(false);
+    const [isPrivate, setIsPrivate] = useState(false);
     const [error, setError] = useState(false);
 
     const handleDownload = () => {
@@ -37,8 +40,15 @@ const PublicPortfolioPage = () => {
     useEffect(() => {
         const fetchPortfolio = async () => {
             try {
-                const res = await api.get(`/profile/u/${username}`);
-                setProfile(res.data.data);
+                // Try fetching by username first (the URL slug)
+                const res = await api.get(`/profile/portfolio/${username}`);
+                const data = res.data.data;
+                
+                if (data.isPublic === false) {
+                    setIsPrivate(true);
+                } else {
+                    setProfile(data);
+                }
             } catch (err) {
                 console.error('Failed to fetch portfolio:', err);
                 setError(true);
@@ -49,23 +59,43 @@ const PublicPortfolioPage = () => {
         fetchPortfolio();
     }, [username]);
 
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-white flex items-center justify-center">
-                <div className="w-12 h-12 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin" />
-            </div>
-        );
-    }
+    if (loading) return (
+        <div className="min-h-screen bg-white flex flex-col items-center justify-center gap-4">
+            <div className="w-12 h-12 border-4 border-slate-100 border-t-blue-600 rounded-full animate-spin" />
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Building Portfolio...</p>
+        </div>
+    );
 
-    if (error || !profile) {
-        return (
-            <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
-                <h1 className="text-4xl font-black text-slate-900 mb-4">404</h1>
-                <p className="text-slate-500 mb-8">This portfolio hasn't been claimed yet or is private.</p>
-                <Link to="/" className="bg-slate-900 text-white px-8 py-3 rounded-2xl font-bold">Back to Allumnova</Link>
+    if (isPrivate) return (
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 text-center">
+            <div className="max-w-md space-y-6">
+                <div className="w-20 h-20 bg-white rounded-3xl shadow-xl shadow-slate-200 flex items-center justify-center mx-auto border border-slate-100">
+                    <Shield size={32} className="text-slate-400" />
+                </div>
+                <div className="space-y-2">
+                    <h1 className="text-2xl font-black text-slate-900 tracking-tight">Private Portfolio</h1>
+                    <p className="text-slate-500 text-sm font-medium leading-relaxed">
+                        This professional portfolio has been set to private by the user.
+                    </p>
+                </div>
+                <Link to="/" className="inline-flex items-center gap-2 bg-slate-900 text-white px-8 py-4 rounded-2xl font-bold text-sm shadow-xl transition-transform hover:scale-105">
+                    Back to Allumnova
+                </Link>
             </div>
-        );
-    }
+        </div>
+    );
+
+    if (error || !profile) return (
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 text-center">
+            <div className="max-w-md space-y-6">
+                <h1 className="text-6xl font-black text-slate-900">404</h1>
+                <p className="text-slate-500 font-medium">This portfolio hasn't been claimed yet or doesn't exist.</p>
+                <Link to="/" className="inline-flex items-center gap-2 bg-slate-900 text-white px-8 py-4 rounded-2xl font-bold text-sm shadow-xl transition-transform hover:scale-105">
+                    Back to Allumnova
+                </Link>
+            </div>
+        </div>
+    );
 
     // Default categorized skills if none provided
     const skills = profile.techSkills || {};
