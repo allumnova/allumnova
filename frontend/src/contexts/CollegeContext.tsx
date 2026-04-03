@@ -46,8 +46,8 @@ export const CollegeProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 .map(m => (m as any).college)
                 .filter(Boolean);
 
-            // Merged list for the switcher - ONLY Global + Approved Memberships
-            const merged = [GLOBAL_COLLEGE, ...membershipColleges];
+            // Merged list for the switcher - Priority: Member Colleges > Global
+            const merged = [...membershipColleges, GLOBAL_COLLEGE];
             
             // Deduplicate by ID
             const uniqueCollegesMap = new Map();
