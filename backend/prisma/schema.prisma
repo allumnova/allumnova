@@ -51,6 +51,11 @@ model User {
   pulseEmoji         String?
   pulseUpdatedAt     DateTime?
   portfolioSlug      String?              @unique
+  careerObjective    String?
+  techSkills         Json?
+  achievements       String[]             @default([])
+  hobbies            String[]             @default([])
+  resumeUrl          String?
   skills             String[]             @default([])
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt

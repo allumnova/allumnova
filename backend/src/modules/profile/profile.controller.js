@@ -35,8 +35,13 @@ const getPortfolioByUsername = async (req, res) => {
 const updateMyProfile = async (req, res) => {
     try {
         const updateData = { ...req.body };
-        if (req.file) {
-            updateData.avatar = `/uploads/avatars/${req.file.filename}`;
+        if (req.files) {
+            if (req.files.avatar) {
+                updateData.avatar = `/uploads/avatars/${req.files.avatar[0].filename}`;
+            }
+            if (req.files.resume) {
+                updateData.resumeUrl = `/uploads/resumes/${req.files.resume[0].filename}`;
+            }
         }
         const profile = await profileService.updateProfile(req.user.userId, updateData);
         res.status(200).json({ success: true, data: profile });

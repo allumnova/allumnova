@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api/axios';
 import { motion } from 'framer-motion';
@@ -12,13 +12,13 @@ import {
     Code, 
     Award, 
     ChevronRight, 
-    CheckCircle2, 
     User,
     Mail,
     Phone,
     MapPin,
     Layers,
-    Rocket
+    Rocket,
+    Printer
 } from 'lucide-react';
 
 const PublicPortfolioPage = () => {
@@ -51,255 +51,233 @@ const PublicPortfolioPage = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-                <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin" />
+            <div className="min-h-screen bg-white flex items-center justify-center">
+                <div className="w-12 h-12 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin" />
             </div>
         );
     }
 
     if (error || !profile) {
         return (
-            <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center">
-                <h1 className="text-4xl font-black text-white mb-4">404</h1>
-                <p className="text-slate-400 mb-8">This portfolio hasn't been claimed yet or is private.</p>
-                <Link to="/" className="bg-blue-600 text-white px-8 py-3 rounded-2xl font-bold">Back to Allumnova</Link>
+            <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
+                <h1 className="text-4xl font-black text-slate-900 mb-4">404</h1>
+                <p className="text-slate-500 mb-8">This portfolio hasn't been claimed yet or is private.</p>
+                <Link to="/" className="bg-slate-900 text-white px-8 py-3 rounded-2xl font-bold">Back to Allumnova</Link>
             </div>
         );
     }
 
-    // Get primary college color or default
-    const accentColor = profile.colleges?.[0]?.college?.primaryColor || '#3b82f6';
-
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: { 
-            opacity: 1,
-            transition: { staggerChildren: 0.1 }
-        }
-    };
-
-    const itemVariants = {
-        hidden: { y: 20, opacity: 0 },
-        visible: { y: 0, opacity: 1 }
-    };
+    // Default categorized skills if none provided
+    const skills = profile.techSkills || {};
+    const skillCategories = [
+        { key: 'Languages', label: 'Languages' },
+        { key: 'Frameworks', label: 'Frameworks' },
+        { key: 'Databases', label: 'Databases' },
+        { key: 'APIs', label: 'APIs/Tools' },
+        { key: 'AI_ML', label: 'AI/ML' },
+        { key: 'IoT', label: 'IoT/Embedded' }
+    ];
 
     return (
-        <div className="min-h-screen bg-slate-950 text-slate-200 selection:bg-blue-500/30">
-            {/* Minimal Header / Action Bar */}
-            <nav className="fixed top-0 inset-x-0 z-50 p-6 flex justify-between items-center pointer-events-none print:hidden">
-                <Link to="/" className="pointer-events-auto bg-slate-900/50 backdrop-blur-xl border border-white/5 p-3 rounded-2xl">
-                    <Rocket className="text-blue-500" size={24} />
+        <div className="min-h-screen bg-slate-50 text-slate-900 print:bg-white selection:bg-blue-100">
+            {/* Header / Action Bar */}
+            <nav className="fixed top-0 inset-x-0 z-50 p-6 flex justify-between items-center print:hidden bg-white/80 backdrop-blur-md border-b border-slate-200">
+                <Link to="/" className="flex items-center gap-2 font-black text-blue-600">
+                    <Rocket size={20} />
+                    <span>ALLUMNOVA</span>
                 </Link>
                 <button 
                     onClick={handleDownload}
-                    className="pointer-events-auto bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-xl shadow-blue-500/20 transition-all hover:scale-105 active:scale-95"
+                    className="bg-slate-900 hover:bg-black text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg transition-all hover:scale-105 active:scale-95"
                 >
-                    <Download size={18} />
-                    {downloading ? 'Preparing...' : 'Download CV'}
+                    <Printer size={18} />
+                    {downloading ? 'Preparing PDF...' : 'Download Resume'}
                 </button>
             </nav>
 
-            <main className="max-w-6xl mx-auto px-6 pt-32 pb-20">
-                <motion.div 
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="visible"
-                    className="grid grid-cols-1 md:grid-cols-12 gap-6"
-                >
-                    {/* Hero Section / Profile Card */}
-                    <motion.div 
-                        variants={itemVariants}
-                        className="md:col-span-8 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3rem] p-10 relative overflow-hidden group"
-                    >
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 blur-[100px] -mr-32 -mt-32 rounded-full" />
-                        
-                        <div className="flex flex-col md:flex-row gap-8 items-start relative z-10">
-                            <div className="w-32 h-32 rounded-[3.5rem] bg-gradient-to-tr from-blue-600 to-indigo-500 p-1 shadow-2xl">
-                                <div className="w-full h-full bg-slate-950 rounded-[3.2rem] overflow-hidden p-0.5">
-                                    <img 
-                                        src={profile.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.name}`} 
-                                        className="w-full h-full object-cover rounded-[3.1rem]" 
-                                        alt={profile.name} 
-                                    />
-                                </div>
-                            </div>
-                            <div className="flex-1 space-y-4">
-                                <div className="space-y-1">
-                                    <div className="flex items-center gap-3">
-                                        <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight">{profile.name}</h1>
-                                        {profile.is_verified && <CheckCircle2 size={24} className="text-blue-500" />}
-                                    </div>
-                                    <p className="text-xl text-slate-400 font-medium">{profile.department} • {profile.colleges?.[0]?.college?.name}</p>
-                                </div>
-                                <p className="text-lg text-slate-300 leading-relaxed max-w-2xl font-medium opacity-80">
-                                    {profile.bio || "Crafting the future through innovation and collaboration."}
-                                </p>
-                                <div className="flex flex-wrap gap-4 pt-4">
-                                    {profile.linkedIn && (
-                                        <a href={profile.linkedIn} target="_blank" rel="noreferrer" className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 px-5 py-2.5 rounded-2xl transition-all font-bold text-sm">
-                                            <Linkedin size={18} className="text-blue-400" /> LinkedIn
-                                        </a>
-                                    )}
-                                    <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-5 py-2.5 rounded-2xl text-sm font-bold opacity-60">
-                                        <MapPin size={18} /> {profile.location || 'Remote / India'}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </motion.div>
+            <main className="max-w-4xl mx-auto bg-white shadow-2xl my-20 md:my-32 p-8 md:p-16 rounded-none md:rounded-sm border border-slate-200 print:shadow-none print:border-none print:my-0 print:p-0">
+                
+                {/* 1. Profile Header */}
+                <header className="text-center space-y-4 mb-12">
+                    <h1 className="text-4xl md:text-5xl font-black tracking-tight text-slate-950 uppercase">{profile.name}</h1>
+                    <div className="flex flex-wrap justify-center items-center gap-1.5 text-sm font-bold text-slate-600">
+                        {profile.department && <span>{profile.department}</span>}
+                        {profile.department && profile.role && <span className="opacity-30">|</span>}
+                        <span className="capitalize">{profile.role}</span>
+                        <span className="opacity-30">|</span>
+                        <span>{profile.tierLevel} Innovator</span>
+                    </div>
+                    <div className="flex flex-wrap justify-center items-center gap-x-4 gap-y-2 text-xs md:text-sm font-medium text-slate-500 italic">
+                        {profile.location && <span className="flex items-center gap-1"><MapPin size={14} /> {profile.location}</span>}
+                        <span className="flex items-center gap-1"><Mail size={14} /> {profile.email}</span>
+                        {profile.linkedIn && (
+                            <a href={profile.linkedIn} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-blue-600 hover:underline">
+                                <Linkedin size={14} /> LinkedIn
+                            </a>
+                        )}
+                        {profile.username && (
+                            <span className="flex items-center gap-1"><Globe size={14} /> www.allumnova.cloud/u/{profile.username}</span>
+                        )}
+                    </div>
+                </header>
 
-                    {/* Stats / Quick Info */}
-                    <motion.div 
-                        variants={itemVariants}
-                        className="md:col-span-4 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[3rem] p-10 flex flex-col justify-between text-white shadow-2xl shadow-blue-500/20"
-                    >
+                <div className="space-y-12">
+                    
+                    {/* 2. Career Objective */}
+                    {profile.careerObjective && (
+                        <section className="space-y-3">
+                            <h2 className="text-lg font-black uppercase tracking-widest border-b-2 border-slate-900 pb-1">Career Objective</h2>
+                            <p className="text-sm leading-relaxed font-medium text-slate-700">
+                                {profile.careerObjective}
+                            </p>
+                        </section>
+                    )}
+
+                    {/* 3. Technical Skills */}
+                    <section className="space-y-4">
+                        <h2 className="text-lg font-black uppercase tracking-widest border-b-2 border-slate-900 pb-1">Technical Skills</h2>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-2">
+                            {skillCategories.map(cat => (
+                                skills[cat.key] ? (
+                                    <div key={cat.key} className="flex text-sm">
+                                        <span className="font-black w-24 flex-shrink-0">{cat.label}:</span>
+                                        <span className="text-slate-700 font-medium">{skills[cat.key]}</span>
+                                    </div>
+                                ) : null
+                            ))}
+                        </div>
+                    </section>
+
+                    {/* 4. Experience & Projects */}
+                    <section className="space-y-6">
+                        <h2 className="text-lg font-black uppercase tracking-widest border-b-2 border-slate-900 pb-1">Professional Experience</h2>
                         <div className="space-y-6">
-                            <Layers size={40} className="opacity-50" />
-                            <h3 className="text-2xl font-black leading-tight">Digital Reputation & Influence</h3>
-                        </div>
-                        <div className="pt-10">
-                            <p className="text-6xl font-black">{profile.reputationScore || 0}</p>
-                            <p className="text-sm font-black uppercase tracking-widest opacity-60 mt-2">Impact Points</p>
-                        </div>
-                    </motion.div>
-
-                    {/* Experience Grid Section */}
-                    <motion.div 
-                        variants={itemVariants}
-                        className="md:col-span-6 bg-slate-900/40 border border-white/5 rounded-[3rem] p-10"
-                    >
-                        <div className="flex items-center justify-between mb-8">
-                            <h2 className="text-2xl font-black text-white flex items-center gap-3">
-                                <Briefcase className="text-blue-500" />
-                                Experience
-                            </h2>
-                        </div>
-                        <div className="space-y-8">
                             {profile.experience?.length > 0 ? profile.experience.map((exp: any, i: number) => (
-                                <div key={i} className="relative pl-8 border-l border-white/10 last:border-0 pb-8 last:pb-0">
-                                    <div className="absolute top-0 left-0 w-3 h-3 bg-blue-500 rounded-full -translate-x-1.5 mt-1.5 shadow-lg shadow-blue-500/50" />
-                                    <h4 className="text-lg font-bold text-white leading-none">{exp.position}</h4>
-                                    <p className="text-blue-500 font-bold text-sm mt-1">{exp.company}</p>
-                                    <p className="text-slate-500 text-xs mt-2 font-bold uppercase tracking-widest">
-                                        {new Date(exp.startDate).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })} – {exp.isCurrent ? 'Present' : new Date(exp.endDate).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}
-                                    </p>
-                                    <p className="text-slate-400 text-sm mt-4 leading-relaxed line-clamp-3 italic">
+                                <div key={i} className="space-y-1">
+                                    <div className="flex justify-between items-baseline">
+                                        <h3 className="font-black text-slate-900">{exp.company}</h3>
+                                        <span className="text-xs font-bold text-slate-500 uppercase tracking-tighter">
+                                            {new Date(exp.startDate).getFullYear()} – {exp.isCurrent ? 'Present' : new Date(exp.endDate).getFullYear()}
+                                        </span>
+                                    </div>
+                                    <p className="text-sm font-bold text-blue-600">{exp.position}</p>
+                                    <p className="text-xs leading-relaxed text-slate-600 whitespace-pre-wrap">
                                         {exp.description}
                                     </p>
                                 </div>
                             )) : (
-                                <p className="text-slate-600 italic">Professional records pending authentication.</p>
+                                <p className="text-xs italic text-slate-400">Professional records summarized on digital platform.</p>
                             )}
                         </div>
-                    </motion.div>
+                    </section>
 
-                    {/* Skills Grid */}
-                    <motion.div 
-                        variants={itemVariants}
-                        className="md:col-span-6 bg-slate-900/40 border border-white/5 rounded-[3rem] p-10 flex flex-col"
-                    >
-                        <h2 className="text-2xl font-black text-white flex items-center gap-3 mb-8">
-                            <Code className="text-emerald-500" />
-                            Stacks & Skills
-                        </h2>
-                        <div className="flex flex-wrap gap-3">
-                            {(profile.skills?.length > 0 ? profile.skills : ['Innovation', 'Leadership', 'Communication']).map((skill: string) => (
-                                <span key={skill} className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-6 py-3 rounded-2xl text-sm font-black uppercase tracking-wider transition-colors hover:bg-emerald-500/20 cursor-default">
-                                    {skill}
-                                </span>
-                            ))}
-                        </div>
-                        <div className="mt-auto pt-10">
-                            <div className="bg-gradient-to-r from-emerald-500/10 to-transparent p-6 rounded-3xl border border-emerald-500/10">
-                                <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-500/60 mb-2">Top Recommendation</p>
-                                <p className="text-slate-300 font-medium">Endorsed for technical excellence and collaborative problem solving.</p>
-                            </div>
-                        </div>
-                    </motion.div>
-
-                    {/* Projects Showcase (Full Width Grid) */}
-                    <motion.div 
-                        variants={itemVariants}
-                        className="md:col-span-12"
-                    >
-                        <div className="flex items-center justify-between mb-8 px-4">
-                            <h2 className="text-3xl font-black text-white flex items-center gap-3">
-                                <Rocket className="text-purple-500" />
-                                Project Showcase
-                            </h2>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            {profile.projects?.length > 0 ? profile.projects.map((project: any) => (
-                                <div key={project.id} className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 group hover:bg-white/10 transition-all cursor-pointer">
-                                    <div className="flex justify-between items-start mb-6">
-                                        <div className="w-12 h-12 bg-purple-500/20 rounded-2xl flex items-center justify-center text-purple-500 group-hover:scale-110 transition-transform">
-                                            <Globe size={24} />
+                    {/* 5. Projects Showcase */}
+                    {profile.projects?.length > 0 && (
+                        <section className="space-y-4">
+                            <h2 className="text-lg font-black uppercase tracking-widest border-b-2 border-slate-900 pb-1">Key Projects</h2>
+                            <div className="space-y-4">
+                                {profile.projects.map((project: any) => (
+                                    <div key={project.id} className="space-y-1">
+                                        <div className="flex justify-between items-baseline">
+                                            <h3 className="font-black text-slate-900">{project.title}</h3>
+                                            {project.demoUrl && <span className="text-[10px] uppercase font-bold text-slate-400">View Live Demo ✓</span>}
                                         </div>
-                                        <ChevronRight size={20} className="text-slate-600 group-hover:text-white transition-colors" />
+                                        <p className="text-xs leading-relaxed text-slate-600">
+                                            {project.description}
+                                        </p>
                                     </div>
-                                    <h3 className="text-xl font-black text-white mb-3">{project.title}</h3>
-                                    <p className="text-slate-400 text-sm leading-relaxed line-clamp-3 mb-6 font-medium">
-                                        {project.description}
-                                    </p>
-                                    <div className="flex gap-4">
-                                        {project.repoUrl && (
-                                            <a href={project.repoUrl} target="_blank" rel="noreferrer" className="text-xs font-black uppercase tracking-widest text-blue-500 hover:text-blue-400 underline underline-offset-4">Repo</a>
-                                        )}
-                                        {project.demoUrl && (
-                                            <a href={project.demoUrl} target="_blank" rel="noreferrer" className="text-xs font-black uppercase tracking-widest text-emerald-500 hover:text-emerald-400 underline underline-offset-4">Live Demo</a>
-                                        )}
-                                    </div>
-                                </div>
-                            )) : (
-                                <div className="md:col-span-3 py-20 text-center bg-white/5 rounded-[3rem] border border-dashed border-white/10">
-                                    <p className="text-slate-500 font-bold uppercase tracking-widest text-sm">No collaborative works showcased yet.</p>
-                                </div>
-                            )}
-                        </div>
-                    </motion.div>
+                                ))}
+                            </div>
+                        </section>
+                    )}
 
-                    {/* Education Card */}
-                    <motion.div 
-                        variants={itemVariants}
-                        className="md:col-span-12 bg-slate-900 border border-white/5 rounded-[3rem] p-10 flex flex-col md:flex-row gap-10 items-center justify-between"
-                    >
-                        <div className="flex items-center gap-6">
-                            <div className="w-20 h-20 bg-amber-500/20 rounded-[2rem] flex items-center justify-center text-amber-500">
-                                <GraduationCap size={40} />
-                            </div>
-                            <div>
-                                <h3 className="text-2xl font-black text-white">Education History</h3>
-                                <p className="text-slate-400 font-medium">Academic foundation and verified certifications.</p>
-                            </div>
+                    {/* 6. Education (Table Format) */}
+                    <section className="space-y-4">
+                        <h2 className="text-lg font-black uppercase tracking-widest border-b-2 border-slate-900 pb-1">Education</h2>
+                        <div className="overflow-hidden border border-slate-300">
+                            <table className="w-full text-left text-sm">
+                                <thead className="bg-slate-50 border-b border-slate-300">
+                                    <tr>
+                                        <th className="px-4 py-2 font-black uppercase text-[10px] tracking-widest border-r border-slate-300">Degree/Board</th>
+                                        <th className="px-4 py-2 font-black uppercase text-[10px] tracking-widest border-r border-slate-300">Institute</th>
+                                        <th className="px-4 py-2 font-black uppercase text-[10px] tracking-widest border-r border-slate-300 text-center">Year</th>
+                                        <th className="px-4 py-2 font-black uppercase text-[10px] tracking-widest text-center">Score</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {profile.education?.length > 0 ? profile.education.map((edu: any, i: number) => (
+                                        <tr key={i} className="border-b border-slate-200 last:border-0 font-medium">
+                                            <td className="px-4 py-2 border-r border-slate-200">{edu.degree}</td>
+                                            <td className="px-4 py-2 border-r border-slate-200">{edu.school}</td>
+                                            <td className="px-4 py-2 border-r border-slate-200 text-center">{new Date(edu.endDate || edu.startDate).getFullYear()}</td>
+                                            <td className="px-4 py-2 text-center">{edu.field || 'N/A'}</td>
+                                        </tr>
+                                    )) : (
+                                        <tr>
+                                            <td colSpan={4} className="px-4 py-8 text-center text-xs italic text-slate-400 uppercase tracking-widest">Academic records pending authentication</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
                         </div>
-                        <div className="flex-1 max-w-xl">
-                            {profile.education?.length > 0 ? profile.education.map((edu: any, i: number) => (
-                                <div key={i} className="flex justify-between items-center bg-white/5 p-6 rounded-3xl border border-white/5 mb-4 last:mb-0">
-                                    <div>
-                                        <h4 className="font-bold text-white">{edu.school}</h4>
-                                        <p className="text-sm text-slate-400">{edu.degree} • {edu.field}</p>
-                                    </div>
-                                    <p className="text-xs font-black text-amber-500 uppercase tracking-widest">{new Date(edu.startDate).getFullYear()} - {edu.endDate ? new Date(edu.endDate).getFullYear() : 'Present'}</p>
-                                </div>
-                            )) : (
-                                <p className="text-slate-600 font-bold uppercase italic text-center">Academic records pending verification.</p>
-                            )}
-                        </div>
-                    </motion.div>
-                </motion.div>
+                    </section>
+
+                    {/* 7. Achievements & Hobbies */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                        {profile.achievements?.length > 0 && (
+                            <section className="space-y-3">
+                                <h2 className="text-lg font-black uppercase tracking-widest border-b-2 border-slate-900 pb-1">Achievements</h2>
+                                <ul className="list-disc list-inside text-xs space-y-1 text-slate-700 font-medium px-1">
+                                    {profile.achievements.map((item: string, i: number) => (
+                                        <li key={i}>{item}</li>
+                                    ))}
+                                </ul>
+                            </section>
+                        )}
+                        {profile.hobbies?.length > 0 && (
+                            <section className="space-y-3">
+                                <h2 className="text-lg font-black uppercase tracking-widest border-b-2 border-slate-900 pb-1">Hobbies & Interests</h2>
+                                <p className="text-xs text-slate-700 font-medium italic">
+                                    {profile.hobbies.join(', ')}
+                                </p>
+                            </section>
+                        )}
+                    </div>
+
+                </div>
+
+                {/* Footer Info */}
+                <footer className="mt-20 pt-8 border-t border-slate-100 text-center print:mt-10">
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300">
+                        Generated by Allumnova Portfolio Engine
+                    </p>
+                </footer>
             </main>
 
-            {/* Footer */}
-            <footer className="border-t border-white/5 py-12 text-center">
-                <p className="text-slate-500 font-bold text-sm tracking-widest uppercase">
-                    Generated via <span className="text-blue-500">Allumnova Professional</span> Platform
-                </p>
-                <div className="mt-4 flex justify-center gap-6">
-                    <Link to="/" className="text-xs font-bold text-slate-400 hover:text-white transition-colors">Platform</Link>
-                    <Link to="/discover" className="text-xs font-bold text-slate-400 hover:text-white transition-colors">Network</Link>
-                    <Link to="/login" className="text-xs font-bold text-slate-400 hover:text-white transition-colors">Join Hub</Link>
-                </div>
-            </footer>
+            <style dangerouslySetInnerHTML={{ __html: `
+                @media print {
+                    nav, footer:not(.print-footer) { display: none !important; }
+                    body { background: white !important; }
+                    main { 
+                        margin: 0 !important; 
+                        padding: 20mm !important; 
+                        width: 100% !important;
+                        max-width: none !important;
+                        position: absolute !important;
+                        top: 0 !important;
+                        left: 0 !important;
+                        box-shadow: none !important;
+                        border: none !important;
+                    }
+                    @page {
+                        size: A4;
+                        margin: 0;
+                    }
+                }
+                .profile-scrollbar::-webkit-scrollbar { width: 4px; }
+                .profile-scrollbar::-webkit-scrollbar-track { background: transparent; }
+                .profile-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+            `}} />
         </div>
     );
 };

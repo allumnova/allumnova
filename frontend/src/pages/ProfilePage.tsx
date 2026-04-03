@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useCollege } from '../contexts/CollegeContext';
 import api from '../api/axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Settings, Shield, Award, Grid, UserPlus, User as UserIcon, MessageCircle, Check, X, MapPin, Linkedin, Camera, Save, Sparkles, GraduationCap, CheckCircle2, Search, Rocket, Filter } from 'lucide-react';
+import { Settings, Shield, Award, Grid, UserPlus, User as UserIcon, MessageCircle, Check, X, MapPin, Linkedin, Camera, Save, Sparkles, GraduationCap, CheckCircle2, Search, Rocket, Filter, Globe, Download } from 'lucide-react';
 import PostCard from '../components/PostCard';
 import MentorshipRequestModal from '../components/profile/MentorshipRequestModal';
 import ProjectCard from '../components/project/ProjectCard';
@@ -21,6 +21,7 @@ const ProfilePage = () => {
     const [postType, setPostType] = useState<'all' | 'opportunity' | 'event' | 'achievement' | 'general'>('all');
     const [connectionLoading, setConnectionLoading] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
+    const [editTab, setEditTab] = useState<'basic' | 'professional'>('basic');
     const [isMentorshipModalOpen, setIsMentorshipModalOpen] = useState(false);
     const [editForm, setEditForm] = useState({
         name: '',
@@ -29,9 +30,15 @@ const ProfilePage = () => {
         avatar: '',
         department: '',
         role: '',
-        username: ''
+        username: '',
+        careerObjective: '',
+        techSkills: {} as any,
+        achievements: [] as string[],
+        hobbies: [] as string[],
+        resumeUrl: ''
     });
     const [avatarFile, setAvatarFile] = useState<File | null>(null);
+    const [resumeFile, setResumeFile] = useState<File | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const navigate = useNavigate();
 
@@ -52,7 +59,12 @@ const ProfilePage = () => {
                     avatar: data.avatar || '',
                     department: data.department || '',
                     role: data.role || 'student',
-                    username: data.username || ''
+                    username: data.username || '',
+                    careerObjective: data.careerObjective || '',
+                    techSkills: data.techSkills || {},
+                    achievements: data.achievements || [],
+                    hobbies: data.hobbies || [],
+                    resumeUrl: data.resumeUrl || ''
                 });
             }
         } catch (err) {
@@ -120,6 +132,20 @@ const ProfilePage = () => {
         }
     };
 
+    const handleResumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setResumeFile(file);
+        }
+    };
+
+    const updateSkill = (category: string, value: string) => {
+        setEditForm(prev => ({
+            ...prev,
+            techSkills: { ...prev.techSkills, [category]: value }
+        }));
+    };
+
     if (loading) return <div className="p-20 text-center animate-pulse">Loading Profile...</div>;
     if (!profile) return <div className="p-20 text-center">User not found.</div>;
 
@@ -158,11 +184,16 @@ const ProfilePage = () => {
                     </p>
                 </div>
 
-                <div className="flex items-center gap-3 mt-8 w-full">
+                <div className="flex flex-col sm:flex-row items-center gap-3 mt-8 w-full">
                     {isOwnProfile ? (
-                        <button onClick={() => setIsEditing(true)} className="flex-1 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-extrabold py-4 rounded-2xl shadow-xl flex items-center justify-center gap-2 transition-all hover:scale-[1.02]">
-                            <Settings size={18} /> Edit Profile
-                        </button>
+                        <>
+                            <button onClick={() => setIsEditing(true)} className="flex-1 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-extrabold py-4 rounded-2xl shadow-xl flex items-center justify-center gap-2 transition-all hover:scale-[1.02]">
+                                <Settings size={18} /> Edit Profile
+                            </button>
+                            <Link to={`/u/${profile.username || profile.id}`} className="flex-1 bg-blue-600/10 text-blue-600 dark:text-blue-400 font-extrabold py-4 rounded-2xl border border-blue-600/20 flex items-center justify-center gap-2 transition-all hover:bg-blue-600/20">
+                                <Globe size={18} /> Digital Portfolio
+                            </Link>
+                        </>
                     ) : (
                         <button 
                             onClick={handleConnect} 
@@ -185,6 +216,7 @@ const ProfilePage = () => {
                 </div>
             </header>
 
+            {/* ... stats and tabs ... */}
             <div className="grid grid-cols-3 gap-4">
                 {stats.map((stat) => (
                     <div key={stat.label} className="bg-white dark:bg-slate-900/50 backdrop-blur-3xl border border-slate-200 dark:border-white/5 rounded-[2rem] p-5 flex flex-col items-center gap-1 shadow-sm transition-transform hover:-translate-y-1">
@@ -217,12 +249,25 @@ const ProfilePage = () => {
                         ) : <div className="py-20 text-center opacity-40 uppercase tracking-widest text-xs font-bold">No projects showcased yet.</div>}
                     </motion.div>
                 ) : (
-                    <motion.div key="about" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-slate-900/40 rounded-[2.5rem] p-10 text-center border border-slate-200 dark:border-white/5">
-                        <UserIcon size={48} className="mx-auto text-slate-200 dark:text-slate-800 mb-4" />
-                        <h4 className="font-bold text-slate-900 dark:text-white mb-2">Member Details</h4>
-                        <p className="text-slate-500 text-sm max-w-sm mx-auto leading-relaxed">
-                            {profile.name} is a {profile.role} from the {profile.department || 'General'} branch.
-                        </p>
+                    <motion.div key="about" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+                        {profile.careerObjective && (
+                            <div className="bg-white dark:bg-slate-900/40 rounded-[2.5rem] p-8 border border-slate-200 dark:border-white/5">
+                                <h4 className="text-[10px] font-black uppercase tracking-widest text-blue-500 mb-4 opacity-60">Career Objective</h4>
+                                <p className="text-slate-700 dark:text-slate-300 text-sm leading-relaxed italic">"{profile.careerObjective}"</p>
+                            </div>
+                        )}
+                        <div className="bg-white dark:bg-slate-900/40 rounded-[2.5rem] p-10 text-center border border-slate-200 dark:border-white/5">
+                            <UserIcon size={48} className="mx-auto text-slate-200 dark:text-slate-800 mb-4" />
+                            <h4 className="font-bold text-slate-900 dark:text-white mb-2">Member Details</h4>
+                            <p className="text-slate-500 text-sm max-w-sm mx-auto leading-relaxed">
+                                {profile.name} is a <span className="text-blue-500 font-bold uppercase">{profile.role}</span> from the <span className="text-slate-900 dark:text-white font-bold">{profile.department || 'General'}</span> branch.
+                            </p>
+                            {profile.resumeUrl && (
+                                <a href={profile.resumeUrl} target="_blank" rel="noreferrer" className="mt-6 inline-flex items-center gap-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-6 py-3 rounded-xl font-bold text-sm shadow-xl transition-transform hover:scale-105">
+                                    <Download size={16} /> View Resume
+                                </a>
+                            )}
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -232,68 +277,132 @@ const ProfilePage = () => {
                     {isEditing && (
                         <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center sm:p-4">
                             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsEditing(false)} className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" />
-                            <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-t-[2.5rem] sm:rounded-[2.5rem] overflow-hidden relative shadow-2xl border border-slate-200 dark:border-white/5 max-h-[95vh] flex flex-col">
-                                <div className="p-8 overflow-y-auto flex-1">
-                                    <div className="flex items-center justify-between mb-8">
-                                        <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Edit Profile</h2>
-                                        <button onClick={() => setIsEditing(false)} className="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-500"><X size={20} /></button>
+                            <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-t-[2.5rem] sm:rounded-[2.5rem] overflow-hidden relative shadow-2xl border border-slate-200 dark:border-white/5 max-h-[90vh] flex flex-col">
+                                <div className="p-8 flex flex-col h-full overflow-hidden">
+                                    <div className="flex items-center justify-between mb-6">
+                                        <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight focus:outline-none">Edit Profile</h2>
+                                        <button onClick={() => setIsEditing(false)} className="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-500 transition-colors hover:text-red-500"><X size={20} /></button>
                                     </div>
-                                    <form onSubmit={handleUpdateProfile} className="space-y-6">
-                                        <div className="flex flex-col items-center mb-4">
-                                            <label className="cursor-pointer group relative">
-                                                <input type="file" onChange={handleAvatarChange} className="hidden" accept="image/*" />
-                                                <div className="w-24 h-24 rounded-[2.5rem] bg-slate-100 dark:bg-slate-800 overflow-hidden border-2 border-slate-200 p-0.5">
-                                                    <img src={editForm.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${editForm.name}`} className="w-full h-full object-cover rounded-[2.3rem]" alt="" />
+
+                                    {/* Edit Tabs */}
+                                    <div className="flex gap-2 p-1.5 bg-slate-100 dark:bg-slate-950 rounded-2xl mb-8">
+                                        <button onClick={() => setEditTab('basic')} className={`flex-1 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${editTab === 'basic' ? "bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-lg" : "text-slate-400"}`}>Basic Info</button>
+                                        <button onClick={() => setEditTab('professional')} className={`flex-1 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${editTab === 'professional' ? "bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-lg" : "text-slate-400"}`}>Professional Resume</button>
+                                    </div>
+
+                                    <form onSubmit={handleUpdateProfile} className="space-y-6 flex-1 overflow-y-auto px-1 profile-scrollbar">
+                                        {editTab === 'basic' ? (
+                                            <div className="space-y-6 pb-4">
+                                                <div className="flex flex-col items-center">
+                                                    <label className="cursor-pointer group relative">
+                                                        <input type="file" onChange={handleAvatarChange} className="hidden" accept="image/*" />
+                                                        <div className="w-32 h-32 rounded-[2.5rem] bg-slate-100 dark:bg-slate-800 overflow-hidden border-2 border-slate-100 p-0.5 shadow-xl transition-all group-hover:scale-105">
+                                                            <img src={editForm.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${editForm.name}`} className="w-full h-full object-cover rounded-[2.3rem]" alt="" />
+                                                            <div className="absolute inset-0 bg-blue-600/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                                                                <Camera size={24} className="text-white" />
+                                                            </div>
+                                                        </div>
+                                                        <div className="absolute -bottom-2 -right-2 p-3 bg-blue-600 text-white rounded-2xl shadow-xl"><Camera size={16} /></div>
+                                                    </label>
                                                 </div>
-                                                <div className="absolute bottom-0 right-0 p-2 bg-blue-600 text-white rounded-xl shadow-lg"><Camera size={14} /></div>
-                                            </label>
-                                        </div>
-                                        <div className="space-y-4">
-                                            <div className="space-y-1.5">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Display Name</label>
-                                                <input type="text" value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-2xl py-3 px-4 text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-900 dark:text-white" />
-                                            </div>
-                                            <div className="space-y-1.5">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Portfolio Tag (@username)</label>
-                                                <div className="relative">
-                                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">@</span>
-                                                    <input 
-                                                        type="text" 
-                                                        placeholder="unique-handle"
-                                                        value={editForm.username} 
-                                                        onChange={e => setEditForm({...editForm, username: e.target.value.toLowerCase().replace(/\s+/g, '-')})} 
-                                                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-2xl py-3 pl-9 pr-4 text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-900 dark:text-white" 
-                                                    />
+
+                                                <div className="space-y-4">
+                                                    <div className="space-y-1.5">
+                                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Full Name</label>
+                                                        <input type="text" value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-2xl py-4 px-5 text-sm font-bold outline-none focus:ring-4 focus:ring-blue-500/10 text-slate-900 dark:text-white transition-all" />
+                                                    </div>
+
+                                                    <div className="space-y-1.5">
+                                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Portfolio Tag (@username)</label>
+                                                        <div className="relative">
+                                                            <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">@</span>
+                                                            <input type="text" value={editForm.username} onChange={e => setEditForm({...editForm, username: e.target.value.toLowerCase().replace(/\s+/g, '-')})} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-2xl py-4 pl-10 pr-5 text-sm font-bold outline-none focus:ring-4 focus:ring-blue-500/10 text-slate-900 dark:text-white" />
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div className="space-y-1.5">
+                                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Member Type</label>
+                                                            <select value={editForm.role} onChange={e => setEditForm({...editForm, role: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-2xl py-4 px-5 text-sm font-bold outline-none focus:ring-4 focus:ring-blue-500/10 text-slate-900 dark:text-white appearance-none transition-all">
+                                                                <option value="student">Student</option>
+                                                                <option value="alumni">Alumni</option>
+                                                            </select>
+                                                        </div>
+                                                        <div className="space-y-1.5">
+                                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Branch / Dept</label>
+                                                            <input type="text" placeholder="e.g. CSE" value={editForm.department} onChange={e => setEditForm({...editForm, department: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-2xl py-4 px-5 text-sm font-bold outline-none focus:ring-4 focus:ring-blue-500/10 text-slate-900 dark:text-white" />
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="space-y-1.5">
+                                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Bio</label>
+                                                        <textarea rows={3} value={editForm.bio} onChange={e => setEditForm({...editForm, bio: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-2xl py-4 px-5 text-sm font-medium outline-none focus:ring-4 focus:ring-blue-500/10 text-slate-900 dark:text-white resize-none" />
+                                                    </div>
+
+                                                    <div className="space-y-1.5">
+                                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">LinkedIn Profile</label>
+                                                        <div className="relative">
+                                                            <Linkedin size={16} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" />
+                                                            <input type="text" placeholder="https://linkedin.com/in/..." value={editForm.linkedIn} onChange={e => setEditForm({...editForm, linkedIn: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-2xl py-4 pl-12 pr-5 text-sm font-medium outline-none focus:ring-4 focus:ring-blue-500/10 text-slate-900 dark:text-white" />
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <div className="grid grid-cols-2 gap-4">
+                                        ) : (
+                                            <div className="space-y-6 pb-6">
                                                 <div className="space-y-1.5">
-                                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Member Type</label>
-                                                    <select value={editForm.role} onChange={e => setEditForm({...editForm, role: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-2xl py-3.5 px-4 text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-900 dark:text-white appearance-none">
-                                                        <option value="student">Student</option>
-                                                        <option value="alumni">Alumni</option>
-                                                    </select>
+                                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Career Objective</label>
+                                                    <textarea rows={4} placeholder="Full-stack developer skilled in PHP, JS, and Python..." value={editForm.careerObjective} onChange={e => setEditForm({...editForm, careerObjective: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-2xl py-4 px-5 text-sm font-medium outline-none focus:ring-4 focus:ring-blue-500/10 text-slate-900 dark:text-white resize-none" />
                                                 </div>
-                                                <div className="space-y-1.5">
-                                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Branch / Dept</label>
-                                                    <input type="text" placeholder="e.g. CSE" value={editForm.department} onChange={e => setEditForm({...editForm, department: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-2xl py-3.5 px-4 text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-900 dark:text-white" />
+
+                                                <div className="space-y-4">
+                                                    <label className="text-[10px] font-black uppercase tracking-widest text-blue-500 ml-1">Technical Skills Categories</label>
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                        {[
+                                                            { key: 'Languages', label: 'Languages (PHP, JS, ...)' },
+                                                            { key: 'Frameworks', label: 'Frameworks (React, Next...)' },
+                                                            { key: 'Databases', label: 'Databases (SQL, NoSQL)' },
+                                                            { key: 'APIs', label: 'APIs / Tools (Git, AWS)' },
+                                                            { key: 'AI_ML', label: 'AI / ML (NLP, CNN)' },
+                                                            { key: 'IoT', label: 'IoT / Embedded' }
+                                                        ].map(cat => (
+                                                            <div key={cat.key} className="space-y-1.5">
+                                                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">{cat.label}</label>
+                                                                <input 
+                                                                    type="text" 
+                                                                    value={editForm.techSkills[cat.key] || ''} 
+                                                                    onChange={e => updateSkill(cat.key, e.target.value)}
+                                                                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-xl py-3 px-4 text-xs font-bold outline-none focus:border-blue-500/50 text-slate-900 dark:text-white"
+                                                                />
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                    <div className="space-y-1.5">
+                                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Achievements (Comma separated)</label>
+                                                        <input type="text" placeholder="GDG Finalist, Hackathon Winner..." value={editForm.achievements.join(', ')} onChange={e => setEditForm({...editForm, achievements: e.target.value.split(',').map(s => s.trim())})} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-2xl py-4 px-5 text-sm font-bold outline-none focus:ring-4 focus:ring-blue-500/10 text-slate-900 dark:text-white" />
+                                                    </div>
+                                                    <div className="space-y-1.5">
+                                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Hobbies (Comma separated)</label>
+                                                        <input type="text" placeholder="Robotics, Blogging, Fitness..." value={editForm.hobbies.join(', ')} onChange={e => setEditForm({...editForm, hobbies: e.target.value.split(',').map(s => s.trim())})} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-2xl py-4 px-5 text-sm font-bold outline-none focus:ring-4 focus:ring-blue-500/10 text-slate-900 dark:text-white" />
+                                                    </div>
+                                                </div>
+
+                                                <div className="space-y-3 bg-blue-600/5 p-6 rounded-3xl border border-blue-600/10">
+                                                    <label className="text-[10px] font-black uppercase tracking-widest text-blue-500">PDF Resume Upload</label>
+                                                    <input type="file" onChange={handleResumeChange} accept="application/pdf" className="text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-6 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:uppercase file:bg-blue-600 file:text-white hover:file:bg-blue-700 transition-all cursor-pointer" />
+                                                    {editForm.resumeUrl && <p className="text-[10px] text-emerald-500 font-bold italic">Current resume uploaded ✓</p>}
                                                 </div>
                                             </div>
-                                            <div className="space-y-1.5">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Bio</label>
-                                                <textarea rows={3} value={editForm.bio} onChange={e => setEditForm({...editForm, bio: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-2xl py-3 px-4 text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-900 dark:text-white resize-none" />
-                                            </div>
-                                            <div className="space-y-1.5">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">LinkedIn Profile</label>
-                                                <div className="relative">
-                                                    <Linkedin size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                                                    <input type="text" value={editForm.linkedIn} onChange={e => setEditForm({...editForm, linkedIn: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-2xl py-3 pl-11 pr-4 text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-900 dark:text-white" />
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="pt-6 pb-12 sm:pb-8 flex flex-col sm:flex-row gap-3">
-                                            <button type="submit" className="flex-1 bg-blue-600 text-white font-extrabold py-4 rounded-2xl shadow-xl flex items-center justify-center gap-2 hover:scale-[1.02] transition-all"><Save size={18} /> Save</button>
-                                            <button type="button" onClick={() => setIsEditing(false)} className="flex-1 bg-slate-100 dark:bg-white/5 text-slate-500 font-bold py-4 rounded-2xl hover:bg-slate-200 transition-all">Cancel</button>
+                                        )}
+
+                                        <div className="sticky bottom-0 pt-6 pb-2 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-white/5 flex flex-col sm:flex-row gap-3">
+                                            <button type="submit" className="flex-2 bg-blue-600 text-white font-extrabold py-5 rounded-2xl shadow-xl shadow-blue-500/20 flex items-center justify-center gap-2 hover:scale-[1.02] transition-all">
+                                                <Save size={20} /> Save Changes
+                                            </button>
+                                            <button type="button" onClick={() => setIsEditing(false)} className="flex-1 bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 font-bold py-5 rounded-2xl hover:bg-slate-200 transition-all">Cancel</button>
                                         </div>
                                     </form>
                                 </div>

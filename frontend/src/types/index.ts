@@ -27,6 +27,11 @@ export interface User {
         role: string;
         status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'VERIFIED';
     }[];
+    careerObjective?: string;
+    techSkills?: any;
+    achievements?: string[];
+    hobbies?: string[];
+    resumeUrl?: string;
 }
 
 export interface AuthState {
