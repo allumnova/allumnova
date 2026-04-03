@@ -57,7 +57,7 @@ const AdminRequestsPage = () => {
         }
     };
 
-    const handleUserReview = async (mappingId: string, status: 'VERIFIED' | 'REJECTED') => {
+    const handleUserReview = async (mappingId: string, status: 'APPROVED' | 'REJECTED') => {
         try {
             await api.post('/profile/admin/verify-user', { mappingId, status });
             alert(`User has been ${status} successfully!`);
@@ -189,7 +189,7 @@ const AdminRequestsPage = () => {
                             </div>
                             <div className="flex gap-2 self-end md:self-start pt-2">
                                 <button onClick={() => handleUserReview(req.id, 'REJECTED')} className="p-3 bg-red-100 dark:bg-red-500/10 hover:bg-red-200 text-red-600 rounded-xl transition-all"><X size={20} /></button>
-                                <button onClick={() => handleUserReview(req.id, 'VERIFIED')} className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-500/20 flex items-center gap-2">Verify</button>
+                                <button onClick={() => handleUserReview(req.id, 'APPROVED')} className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-500/20 flex items-center gap-2">Verify</button>
                             </div>
                         </motion.div>
                     ))}

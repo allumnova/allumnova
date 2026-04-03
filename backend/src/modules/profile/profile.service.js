@@ -237,7 +237,9 @@ const listPendingVerifications = async () => {
 };
 
 const verifyUser = async (mappingId, status) => {
-    const finalStatus = status.toUpperCase();
+    let finalStatus = status.toUpperCase();
+    if (finalStatus === 'VERIFIED') finalStatus = 'APPROVED'; // Normalize to standardized status
+
     const result = await prisma.$transaction(async (tx) => {
         const mapping = await tx.collegeMembership.update({
             where: { id: mappingId },
