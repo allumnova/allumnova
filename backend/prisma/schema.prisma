@@ -50,8 +50,12 @@ model User {
   pulse              String?
   pulseEmoji         String?
   pulseUpdatedAt     DateTime?
+  portfolioSlug      String?              @unique
+  skills             String[]             @default([])
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
+  experience         Experience[]
+  education          Education[]
   analytics          AnalyticsEvent[]
   colleges           CollegeMembership[]
   comments           Comment[]
@@ -390,4 +394,34 @@ model CollegeRequest {
   status       String   @default("PENDING") // PENDING, APPROVED, REJECTED
   createdAt    DateTime @default(now())
   requester    User     @relation(fields: [requesterId], references: [id])
+}
+model Experience {
+  id           String    @id @default(cuid())
+  userId       String
+  company      String
+  position     String
+  location     String?
+  startDate    DateTime
+  endDate      DateTime?
+  isCurrent    Boolean   @default(false)
+  description  String?
+  createdAt    DateTime  @default(now())
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Education {
+  id           String    @id @default(cuid())
+  userId       String
+  school       String
+  degree       String
+  field        String?
+  startDate    DateTime
+  endDate      DateTime?
+  description  String?
+  createdAt    DateTime  @default(now())
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

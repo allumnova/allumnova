@@ -21,6 +21,17 @@ const getPublicProfile = async (req, res) => {
     }
 };
 
+const getPortfolioByUsername = async (req, res) => {
+    try {
+        const { username } = req.params;
+        const profile = await profileService.getPortfolioByUsername(username);
+        res.status(200).json({ success: true, data: profile });
+    } catch (error) {
+        console.error('Get Portfolio By Username Error:', error);
+        res.status(404).json({ success: false, error: 'Portfolio not found' });
+    }
+};
+
 const updateMyProfile = async (req, res) => {
     try {
         const updateData = { ...req.body };
@@ -107,6 +118,7 @@ module.exports = {
     getMyProfile,
     getPublicProfile,
     updateMyProfile,
+    getPortfolioByUsername,
     completeOnboarding,
     getPendingVerifications,
     verifyUser,

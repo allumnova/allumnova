@@ -51,6 +51,7 @@ exports.listMessages = async (conversationId, userId) => {
 
 exports.createMessage = async (senderId, conversationId, receiverId, content, mediaUrl = null) => {
     let activeConversationId = conversationId;
+    if (activeConversationId === 'null') activeConversationId = null;
 
     if (!activeConversationId && receiverId) {
         // Find existing or create new conversation
@@ -78,6 +79,10 @@ exports.createMessage = async (senderId, conversationId, receiverId, content, me
             });
             activeConversationId = created.id;
         }
+    }
+
+    if (!activeConversationId) {
+        throw new Error('Conversation could not be identified or created');
     }
 
     const message = await prisma.message.create({

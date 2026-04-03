@@ -12,6 +12,7 @@ router.patch('', authenticate, upload.single('avatar'), profileController.update
 router.post('/onboarding', authenticate, upload.single('document'), profileController.completeOnboarding);
 router.get('/admin/pending-verifications', authenticate, profileController.getPendingVerifications);
 router.post('/admin/verify-user', authenticate, profileController.verifyUser);
+router.get('/u/:username', profileController.getPortfolioByUsername);
 router.get('/:userId', authenticate, profileController.getPublicProfile);
 router.put('/pulse', authenticate, profileController.updatePulse);
 

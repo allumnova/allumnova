@@ -134,6 +134,35 @@ const getUserProfile = async (targetUserId, currentUserId) => {
     return { ...user, connectionStatus, mutualConnections, mutualCount };
 };
 
+const getPortfolioByUsername = async (username) => {
+    const user = await prisma.user.findUnique({
+        where: { username },
+        include: {
+            experience: {
+                orderBy: { startDate: 'desc' }
+            },
+            education: {
+                orderBy: { startDate: 'desc' }
+            },
+            projects: {
+                orderBy: { createdAt: 'desc' },
+                include: {
+                    milestones: true,
+                    _count: { select: { hypes: true } }
+                }
+            },
+            colleges: {
+                include: {
+                    college: true
+                }
+            }
+        }
+    });
+
+    if (!user) throw new Error('Portfolio not found');
+    return user;
+};
+
 const updateProfile = async (userId, data) => {
     return await prisma.user.update({
         where: { id: userId },
