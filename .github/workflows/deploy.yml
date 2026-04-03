@@ -44,3 +44,7 @@ jobs:
             docker compose down --remove-orphans || true
             docker rm -f allumnova_nginx allumnova_frontend allumnova_backend allumnova_worker allumnova_db allumnova_redis || true
             docker compose up -d --build
+            
+            # Run Prisma Migrations on Production
+            echo "Running database migrations..."
+            docker exec allumnova_backend npx prisma migrate deploy

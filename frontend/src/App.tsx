@@ -14,6 +14,7 @@ import MainLayout from './components/MainLayout';
 import LaunchpadPage from './pages/LaunchpadPage';
 import MentorshipPage from './pages/MentorshipPage';
 import HubFeedPage from './pages/HubFeedPage';
+import PublicPortfolioPage from './pages/PublicPortfolioPage';
 import AdminLayout from './components/AdminLayout';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import AdminUsersPage from './pages/AdminUsersPage';
@@ -88,6 +89,8 @@ function App() {
                             (user?.verificationLevel?.toUpperCase() === 'PENDING' || !user?.is_verified) && user?.role !== 'admin' ? <PendingApprovalPage /> : <Navigate to="/" />
                         ) : <Navigate to="/login" />}
                     />
+
+                    <Route path="/u/:username" element={<PublicPortfolioPage />} />
 
                     <Route element={<MainLayout />}>
                         <Route path="/" element={<FeedPage />} />
