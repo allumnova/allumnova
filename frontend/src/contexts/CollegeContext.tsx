@@ -40,9 +40,9 @@ export const CollegeProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 }
             }
             
-            // Extract user-specific joined colleges (Filtered for APPROVED status)
+            // Extract user-specific joined colleges (Filtered for APPROVED or legacy VERIFIED status)
             const membershipColleges: College[] = (Array.isArray(user?.colleges) ? user.colleges : [])
-                .filter(m => m && (m.status === 'APPROVED' || user?.role === 'admin'))
+                .filter(m => m && (m.status === 'APPROVED' || m.status === 'VERIFIED' || user?.role === 'admin'))
                 .map(m => (m as any).college)
                 .filter(Boolean);
 
