@@ -107,13 +107,15 @@ const updatePostInFeedCache = async (collegeId, postId) => {
     }
 };
 
-const getPersonalizedFeed = async (collegeId, userId, limit = 20, cursor, type = null, hubId = null) => {
-    // Cache Key priority: Hub > Type > Main
+const getPersonalizedFeed = async (collegeId, userId, limit = 20, cursor, type = null, hubId = null, productive = false) => {
+    // Cache Key priority: Hub > Type > Productive > Main
     let cacheKey = `feed:college:${collegeId}`;
     if (hubId && hubId !== 'null') {
         cacheKey = `feed:hub:${hubId}`;
     } else if (type && type !== 'null') {
         cacheKey = `feed:college:${collegeId}:type:${type}`;
+    } else if (productive === 'true' || productive === true) {
+        cacheKey = `feed:college:${collegeId}:productive`;
     }
     
     console.log(`[DEBUG] Feed Request - College: ${collegeId}, User: ${userId}, Hub: ${hubId}, Type: ${type}, CacheKey: ${cacheKey}`);
@@ -154,7 +156,11 @@ const getPersonalizedFeed = async (collegeId, userId, limit = 20, cursor, type =
             }
             whereClause.environmentId = hubId;
         }
-        else if (type && type !== 'null') whereClause.post_type = type;
+        else if (type && type !== 'null') {
+            whereClause.post_type = type;
+        } else if (productive === 'true' || productive === true) {
+            whereClause.post_type = { in: ['opportunity', 'achievement', 'event'] };
+        }
 
         const posts = await prisma.post.findMany({
             where: whereClause,

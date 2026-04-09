@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import PostCard from '../components/PostCard';
 import { motion } from 'framer-motion';
-import { Star, RefreshCcw, Zap, Briefcase, Calendar, Trophy } from 'lucide-react';
+import { Star, RefreshCcw, Zap, Briefcase, Calendar, Trophy, Rocket } from 'lucide-react';
 
 const SkeletonCard = () => (
     <div className="bg-white dark:bg-slate-900/30 border border-slate-200 dark:border-white/5 rounded-[2rem] p-5 mb-4 animate-pulse">
@@ -28,6 +28,7 @@ const FeedPage = () => {
     const navigate = useNavigate();
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [activeType, setActiveType] = useState<string | null>(null);
+    const [isProductive, setIsProductive] = useState(false);
 
     const postTypes = [
         { id: null, label: 'All Feed', icon: <Zap size={16} /> },
@@ -44,14 +45,15 @@ const FeedPage = () => {
         status,
         refetch
     } = useInfiniteQuery({
-        queryKey: ['feed', activeCollege?.id, activeType],
+        queryKey: ['feed', activeCollege?.id, activeType, isProductive],
         queryFn: async ({ pageParam }) => {
             try {
                 const res = await api.get('/feed', {
                     params: {
                         cursor: pageParam,
                         limit: 10,
-                        type: activeType
+                        type: activeType,
+                        productive: isProductive
                     }
                 });
                 return res.data || [];
@@ -131,7 +133,29 @@ const FeedPage = () => {
     }
 
     return (
-        <div className="pb-24 pt-4">
+        <div className="pb-24 pt-4 px-1">
+            {/* Productive Mode Toggle */}
+            <div className="flex items-center justify-between mb-8 bg-blue-600/5 dark:bg-blue-500/10 p-5 rounded-[2.5rem] border border-blue-500/10">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-blue-600/10 flex items-center justify-center text-blue-600">
+                        <Rocket size={20} />
+                    </div>
+                    <div>
+                        <h3 className="text-sm font-black text-slate-900 dark:text-white tracking-tight">Growth Mode</h3>
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Only High-Signal Content</p>
+                    </div>
+                </div>
+                <button 
+                    onClick={() => setIsProductive(!isProductive)}
+                    className={`relative w-14 h-8 rounded-full transition-all duration-300 ${isProductive ? 'bg-blue-600' : 'bg-slate-200 dark:bg-white/10'}`}
+                >
+                    <motion.div 
+                        animate={{ x: isProductive ? 26 : 4 }}
+                        className="absolute top-1 w-6 h-6 bg-white rounded-full shadow-md"
+                    />
+                </button>
+            </div>
+
             {/* Type Navigation: "Four Ovals" */}
             <div className="flex gap-3 overflow-x-auto pb-6 px-1 no-scrollbar -mx-2 sm:mx-0">
                 {postTypes.map((type) => (

@@ -23,15 +23,19 @@ const DiscoverPage = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [roleFilter, setRoleFilter] = useState('');
+    const [targetRoleQuery, setTargetRoleQuery] = useState('');
     const [batchFilter, setBatchFilter] = useState('');
     
     const [showMentorshipModal, setShowMentorshipModal] = useState(false);
     const [selectedMentor, setSelectedMentor] = useState<{ id: string, name: string } | null>(null);
 
     useEffect(() => {
-        const timer = setTimeout(() => setDebouncedSearch(searchQuery), 500);
+        const timer = setTimeout(() => {
+            setDebouncedSearch(searchQuery);
+            setRoleFilter(targetRoleQuery);
+        }, 500);
         return () => clearTimeout(timer);
-    }, [searchQuery]);
+    }, [searchQuery, targetRoleQuery]);
 
     // 1. Suggested Peers (Top Section)
     const { data: suggestions } = useQuery({
@@ -51,10 +55,10 @@ const DiscoverPage = () => {
         isFetchingNextPage: isFetchingMoreAlumni,
         status: alumniStatus
     } = useInfiniteQuery({
-        queryKey: ['discover-alumni', activeCollege?.id, debouncedSearch],
+        queryKey: ['discover-alumni', activeCollege?.id, debouncedSearch, roleFilter],
         queryFn: async ({ pageParam }) => {
             const res = await api.get('/social/alumni', {
-                params: { cursor: pageParam, limit: 12, search: debouncedSearch }
+                params: { cursor: pageParam, limit: 12, search: debouncedSearch, targetRole: roleFilter }
             });
             return res.data;
         },
@@ -77,7 +81,7 @@ const DiscoverPage = () => {
                     cursor: pageParam, 
                     limit: 12, 
                     search: debouncedSearch,
-                    role: roleFilter,
+                    targetRole: roleFilter,
                     batch: batchFilter
                 }
             });
@@ -165,9 +169,12 @@ const DiscoverPage = () => {
                 )}
             </div>
             
-            <div className="mb-4 w-full">
-                <h3 className="text-sm md:text-base font-black text-slate-900 dark:text-white mb-1 truncate px-1 tracking-tight">{user.name}</h3>
-                <div className="flex flex-wrap items-center justify-center gap-1 md:gap-1.5">
+            <div className="mb-4 w-full text-left">
+                <div className="flex items-center justify-between mb-1">
+                    <h3 className="text-sm md:text-base font-black text-slate-900 dark:text-white truncate tracking-tight">{user.name}</h3>
+                </div>
+                <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-2 truncate">{user.targetRole || 'Building Future'}</p>
+                <div className="flex flex-wrap items-center gap-1 md:gap-1.5">
                     <span className="px-2 md:px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-white/5 text-[8px] md:text-[9px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
                         {user.colleges?.[0]?.role?.toLowerCase() === 'alumni' ? 'Alumni' : (user.colleges?.[0]?.role || 'Student')}
                     </span>
@@ -178,15 +185,15 @@ const DiscoverPage = () => {
             </div>
 
             {/* Stats / Reputation */}
-            <div className="flex items-center gap-4 mb-6">
-                <div className="text-center">
+            <div className="flex items-center gap-4 mb-6 w-full px-1">
+                <div className="flex-1 text-center">
                     <p className="text-[10px] font-black text-slate-900 dark:text-white leading-none mb-1">{user.reputationScore || 0}</p>
                     <p className="text-[8px] font-bold text-slate-400 uppercase tracking-tighter">Reputation</p>
                 </div>
                 <div className="w-px h-6 bg-slate-100 dark:bg-white/5" />
-                <div className="text-center">
-                    <p className="text-[10px] font-black text-blue-500 leading-none mb-1">{user.tierLevel || 'Echo'}</p>
-                    <p className="text-[8px] font-bold text-slate-400 uppercase tracking-tighter">Current Tier</p>
+                <div className="flex-1 text-center">
+                    <p className="text-[10px] font-black text-blue-500 leading-none mb-1">{user.completionRatio}%</p>
+                    <p className="text-[8px] font-bold text-slate-400 uppercase tracking-tighter">Portfolio</p>
                 </div>
             </div>
 
@@ -241,39 +248,40 @@ const DiscoverPage = () => {
                     </div>
                 </div>
 
-                <div className="flex flex-col gap-3">
-                    <div className="relative flex-1">
+                <div className="flex flex-col gap-3 md:flex-row">
+                    <div className="relative flex-[2]">
                         <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                         <input
                             type="text" 
                             value={searchQuery} 
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder={`Search for ${tab === 'people' ? 'peers & alumni' : tab}...`}
+                            placeholder={`Search by name...`}
                             className="w-full bg-slate-50/50 dark:bg-slate-950/50 border border-slate-200 dark:border-white/10 rounded-2xl md:rounded-[1.5rem] py-4 md:py-5 pl-14 pr-6 text-sm md:text-base text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20 transition-all font-medium"
                         />
                     </div>
                     {tab === 'people' && (
-                        <div className="flex gap-2 md:gap-3">
-                             <div className="relative flex-1">
-                                <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
-                                <select 
-                                    value={roleFilter} 
-                                    onChange={(e) => setRoleFilter(e.target.value)}
-                                    className="w-full appearance-none bg-slate-50/50 dark:bg-slate-950/50 border border-slate-200 dark:border-white/10 rounded-2xl md:rounded-[1.5rem] py-4 md:py-5 pl-11 pr-10 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
-                                >
-                                    <option value="">All Roles</option>
-                                    <option value="STUDENT">Student</option>
-                                    <option value="ALUMNI">Alumni</option>
-                                </select>
+                        <>
+                            <div className="relative flex-1">
+                                <Rocket className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                                <input 
+                                    type="text"
+                                    placeholder="By Target Role (e.g. SDE)"
+                                    value={targetRoleQuery}
+                                    onChange={(e) => setTargetRoleQuery(e.target.value)}
+                                    className="w-full bg-slate-50/50 dark:bg-slate-950/50 border border-slate-200 dark:border-white/10 rounded-2xl md:rounded-[1.5rem] py-4 md:py-5 pl-11 pr-5 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                                />
                             </div>
-                            <input 
-                                type="number"
-                                placeholder="Year"
-                                value={batchFilter}
-                                onChange={(e) => setBatchFilter(e.target.value)}
-                                className="w-24 md:w-28 bg-slate-50/50 dark:bg-slate-950/50 border border-slate-200 dark:border-white/10 rounded-2xl md:rounded-[1.5rem] py-4 md:py-5 px-5 md:px-6 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
-                            />
-                        </div>
+                            <div className="relative w-24 md:w-32">
+                                <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={12} />
+                                <input 
+                                    type="number"
+                                    placeholder="Batch"
+                                    value={batchFilter}
+                                    onChange={(e) => setBatchFilter(e.target.value)}
+                                    className="w-full bg-slate-50/50 dark:bg-slate-950/50 border border-slate-200 dark:border-white/10 rounded-2xl md:rounded-[1.5rem] py-4 md:py-5 pl-10 pr-4 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                                />
+                            </div>
+                        </>
                     )}
                 </div>
             </div>
