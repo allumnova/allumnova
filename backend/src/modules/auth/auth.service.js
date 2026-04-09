@@ -60,9 +60,32 @@ const login = async (email, password) => {
         throw new Error('Invalid credentials');
     }
 
+    // --- Multi-Device Session Management ---
+    // 1. Count active sessions
+    const activeSessions = await prisma.session.count({
+        where: { userId: user.id, isRevoked: false }
+    });
+
+    // 2. Limit to 3 devices - delete oldest if reached
+    if (activeSessions >= 3) {
+        const oldestSession = await prisma.session.findFirst({
+            where: { userId: user.id, isRevoked: false },
+            orderBy: { createdAt: 'asc' }
+        });
+        if (oldestSession) {
+            await prisma.session.delete({ where: { id: oldestSession.id } });
+        }
+    }
+
+    // 3. Create new session
+    const session = await prisma.session.create({
+        data: { userId: user.id }
+    });
+
     const token = jwt.sign(
         {
             userId: user.id,
+            sessionId: session.id,
             colleges: user.colleges
                 .filter(c => c.status === 'VERIFIED')
                 .map(c => ({
@@ -149,9 +172,29 @@ const verifyOtp = async (email, otp) => {
     // Delete OTP from Redis
     await redisClient.del(`otp:${email}`);
 
+    // --- Multi-Device Session Management ---
+    const activeSessions = await prisma.session.count({
+        where: { userId: user.id, isRevoked: false }
+    });
+
+    if (activeSessions >= 3) {
+        const oldestSession = await prisma.session.findFirst({
+            where: { userId: user.id, isRevoked: false },
+            orderBy: { createdAt: 'asc' }
+        });
+        if (oldestSession) {
+            await prisma.session.delete({ where: { id: oldestSession.id } });
+        }
+    }
+
+    const session = await prisma.session.create({
+        data: { userId: user.id }
+    });
+
     const token = jwt.sign(
         {
             userId: user.id,
+            sessionId: session.id,
             colleges: user.colleges
                 .filter(c => c.status === 'VERIFIED')
                 .map(c => ({

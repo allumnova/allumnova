@@ -87,6 +87,20 @@ model User {
   environments       EnvironmentMembership[]
   collegeRequests    CollegeRequest[]
   actorNotifications Notification[]       @relation("NotificationActor")
+  sessions           Session[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userAgent String?
+  ipAddress String?
+  isRevoked Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
 }
 
 model CollegeMembership {

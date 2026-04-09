@@ -163,41 +163,45 @@ const ProfilePage = () => {
 
     return (
         <div className="space-y-8 pb-20 max-w-2xl mx-auto px-4 md:px-0">
-            <header className="flex flex-col items-center text-center">
-                <div className="relative group mb-4">
-                    <div className="w-32 h-32 rounded-[3.5rem] bg-gradient-to-tr from-blue-600 via-indigo-500 to-emerald-400 p-1 shadow-xl shadow-blue-500/10">
-                        <div className="w-full h-full bg-white dark:bg-slate-950 rounded-[3.2rem] overflow-hidden p-0.5">
-                            <img src={profile.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.name}`} alt="" className="w-full h-full object-cover rounded-[3.1rem]" />
+            <header className="flex flex-col items-center text-center px-2">
+                <div className="relative group mb-3 md:mb-5">
+                    <div className="w-28 h-28 md:w-32 md:h-32 rounded-[2.5rem] md:rounded-[3.5rem] bg-gradient-to-tr from-blue-600 via-indigo-500 to-emerald-400 p-0.5 md:p-1 shadow-xl shadow-blue-500/10 transition-transform group-hover:scale-105 duration-500">
+                        <div className="w-full h-full bg-white dark:bg-slate-950 rounded-[2.3rem] md:rounded-[3.2rem] overflow-hidden p-0.5">
+                            <img src={profile.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.name}`} alt="" className="w-full h-full object-cover rounded-[2.2rem] md:rounded-[3.1rem]" />
                         </div>
                     </div>
                 </div>
 
-                <div className="space-y-1">
-                    <div className="flex items-center justify-center gap-2">
-                        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{profile.name}</h1>
-                        {profile.is_verified && <CheckCircle2 size={24} className="text-blue-500 fill-blue-500/10" />}
-                        <div className={`p-1 px-2.5 text-[10px] font-black uppercase tracking-widest rounded-full border flex items-center gap-1.5 shadow-sm ${getTierStyle(profile.tierLevel || 'Echo')}`}>
-                            <Sparkles size={12} /> {profile.tierLevel || 'Echo'}
+                <div className="space-y-2 w-full max-w-sm">
+                    <div className="flex flex-col items-center gap-2">
+                        <div className="flex items-center justify-center gap-1.5">
+                            <h1 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">{profile.name}</h1>
+                            {profile.is_verified && <CheckCircle2 size={18} className="text-blue-500 fill-blue-500/10 md:w-6 md:h-6" />}
                         </div>
-                        {profile.role === 'alumni' && (
-                            <div className="p-1 px-2.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px] font-black uppercase tracking-widest rounded-full border border-amber-500/20 shadow-sm flex items-center gap-1">
-                                <GraduationCap size={12} /> Alumni
+                        <div className="flex flex-wrap items-center justify-center gap-2">
+                            <div className={`p-1 px-2 md:px-2.5 text-[8px] md:text-[10px] font-black uppercase tracking-widest rounded-full border flex items-center gap-1 md:gap-1.5 shadow-sm ${getTierStyle(profile.tierLevel || 'Echo')}`}>
+                                <Sparkles size={10} className="md:w-3 md:h-3" /> {profile.tierLevel || 'Echo'}
                             </div>
-                        )}
+                            {profile.role === 'alumni' && (
+                                <div className="p-1 px-2 md:px-2.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[8px] md:text-[10px] font-black uppercase tracking-widest rounded-full border border-amber-500/20 shadow-sm flex items-center gap-1">
+                                    <GraduationCap size={10} className="md:w-3 md:h-3" /> Alumni
+                                </div>
+                            )}
+                        </div>
                     </div>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
+                    <p className="text-slate-500 dark:text-slate-400 text-[11px] md:text-sm font-medium uppercase tracking-wider">
                         {profile.department || 'Allumnova Member'} {profile.batch_year ? `'${profile.batch_year.toString().slice(-2)}` : ''}
                     </p>
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-center gap-3 mt-8 w-full">
+                <div className="flex flex-col sm:flex-row items-center gap-2.5 md:gap-3 mt-6 md:mt-8 w-full font-bold">
                     {isOwnProfile ? (
                         <>
-                            <button onClick={() => setIsEditing(true)} className="flex-1 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-extrabold py-4 rounded-2xl shadow-xl flex items-center justify-center gap-2 transition-all hover:scale-[1.02]">
+                            <button onClick={() => setIsEditing(true)} className="w-full sm:flex-1 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-extrabold py-3.5 md:py-4 rounded-xl md:rounded-2xl shadow-lg flex items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-95">
                                 <Settings size={18} /> Edit Profile
                             </button>
-                            <Link to={`/u/${profile.username || profile.id}`} className="flex-1 bg-blue-600/10 text-blue-600 dark:text-blue-400 font-extrabold py-4 rounded-2xl border border-blue-600/20 flex items-center justify-center gap-2 transition-all hover:bg-blue-600/20">
-                                <Globe size={18} /> Digital Portfolio
+                            <Link to={`/u/${profile.username || profile.id}`} className="w-full sm:flex-1 bg-blue-600/5 text-blue-600 dark:text-blue-400 font-extrabold py-3.5 md:py-4 rounded-xl md:rounded-2xl border border-blue-600/10 flex items-center justify-center gap-2 transition-all hover:bg-blue-600/10 active:scale-95">
+                                <Globe size={18} /> Public URL
                             </Link>
                         </>
                     ) : (
@@ -222,19 +226,19 @@ const ProfilePage = () => {
                 </div>
             </header>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-2.5 md:gap-4">
                 {stats.map((stat) => (
-                    <div key={stat.label} className="bg-white dark:bg-slate-900/50 backdrop-blur-3xl border border-slate-200 dark:border-white/5 rounded-[2rem] p-5 flex flex-col items-center gap-1 shadow-sm transition-transform hover:-translate-y-1">
-                        <stat.icon size={20} className={stat.color} />
-                        <span className="text-xl font-black text-slate-900 dark:text-white tracking-tight">{stat.value}</span>
-                        <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{stat.label}</span>
+                    <div key={stat.label} className="bg-white/60 dark:bg-slate-900/40 backdrop-blur-2xl border border-slate-200/50 dark:border-white/5 rounded-2xl md:rounded-[2rem] p-4 md:p-5 flex flex-col items-center gap-0.5 md:gap-1 shadow-sm transition-transform hover:-translate-y-1">
+                        <stat.icon size={18} className={`${stat.color} md:w-5 md:h-5`} />
+                        <span className="text-lg md:text-xl font-black text-slate-900 dark:text-white tracking-tight">{stat.value}</span>
+                        <span className="text-[8px] md:text-[10px] text-slate-500 font-bold uppercase tracking-wider md:tracking-widest">{stat.label}</span>
                     </div>
                 ))}
             </div>
 
-            <div className="flex items-center p-1.5 bg-slate-100 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-white/5 rounded-[1.5rem] shadow-inner font-bold">
+            <div className="flex items-center p-1 bg-slate-100/50 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/50 dark:border-white/5 rounded-2xl md:rounded-[1.5rem] shadow-inner font-bold">
                 {['posts', 'projects', 'about'].map((t) => (
-                    <button key={t} onClick={() => setActiveTab(t as any)} className={`flex-1 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] transition-all ${activeTab === t ? "bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-xl" : "text-slate-400"}`}>
+                    <button key={t} onClick={() => setActiveTab(t as any)} className={`flex-1 py-3 md:py-3.5 rounded-xl md:rounded-2xl text-[9px] md:text-[10px] font-black uppercase tracking-wider md:tracking-[0.15em] transition-all ${activeTab === t ? "bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-md md:shadow-xl" : "text-slate-400 hover:text-slate-500"}`}>
                         {t}
                     </button>
                 ))}

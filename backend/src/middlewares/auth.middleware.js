@@ -64,7 +64,23 @@ const authenticate = async (req, res, next) => {
         }
 
         try {
-            // Fetch latest user data to ensure verificationLevel and college associations are up to date
+            // --- Multi-Device Session Validation ---
+            if (decoded.sessionId) {
+                const activeSession = await prisma.session.findUnique({
+                    where: { id: decoded.sessionId, isRevoked: false }
+                });
+                
+                if (!activeSession) {
+                    console.log(`AUTH: Session ${decoded.sessionId} is revoked or expired.`);
+                    return res.status(401).json({ 
+                        success: false, 
+                        error: 'Unauthorized: Session ended or logged in from another device.',
+                        code: 'SESSION_REVOKED'
+                    });
+                }
+            }
+
+            // Fetch latest user data
             const user = await prisma.user.findUnique({
                 where: { id: decoded.userId },
                 select: {
