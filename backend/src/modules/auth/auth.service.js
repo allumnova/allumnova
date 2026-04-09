@@ -232,10 +232,33 @@ const resetPassword = async (email, otp, newPassword) => {
     return { message: 'Password reset successfully' };
 };
 
+const registerFcmToken = async (userId, token) => {
+    const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { fcmTokens: true }
+    });
+
+    if (!user) throw new Error('User not found');
+
+    if (!user.fcmTokens.includes(token)) {
+        await prisma.user.update({
+            where: { id: userId },
+            data: {
+                fcmTokens: {
+                    push: token
+                }
+            }
+        });
+    }
+
+    return { success: true };
+};
+
 module.exports = {
     register,
     login,
     sendOtp,
     verifyOtp,
-    resetPassword
+    resetPassword,
+    registerFcmToken
 };

@@ -49,10 +49,22 @@ const resetPassword = async (req, res) => {
     }
 };
 
+const registerFcmToken = async (req, res) => {
+    try {
+        const { token } = req.body;
+        const userId = req.user.userId;
+        const result = await authService.registerFcmToken(userId, token);
+        res.status(200).json({ success: true, data: result });
+    } catch (error) {
+        res.status(400).json({ success: false, error: error.message });
+    }
+};
+
 module.exports = {
     register,
     login,
     sendOtp,
     verifyOtp,
-    resetPassword
+    resetPassword,
+    registerFcmToken
 };

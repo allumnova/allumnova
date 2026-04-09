@@ -65,6 +65,7 @@ model User {
   twitterUrl         String?
   websiteUrl         String?
   interests          String[]             @default([])
+  fcmTokens          String[]             @default([])
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
   experience         Experience[]
