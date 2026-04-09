@@ -1,4 +1,4 @@
-const prisma = new PrismaClient();
+const prisma = require('../../models');
 const feedService = require('../feed/feed.service');
 
 const projectService = {
