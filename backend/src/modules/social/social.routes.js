@@ -1,8 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const socialController = require('./social.controller');
+const researchController = require('./research.controller');
 const { authenticate } = require('../../middlewares/auth.middleware');
 
+router.get('/discovery-brief', authenticate, researchController.getBrief);
 router.get('/connect/pending', authenticate, socialController.getPendingRequests);
 router.get('/discover', authenticate, socialController.getDiscover);
 router.get('/alumni', authenticate, socialController.getAlumni);

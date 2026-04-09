@@ -23,7 +23,8 @@ const sendProposal = async (req, res) => {
 const joinHub = async (req, res) => {
     try {
         const { hubId } = req.params;
-        const membership = await environmentService.requestToJoin(req.user.userId, hubId);
+        const { answers } = req.body;
+        const membership = await environmentService.requestToJoin(req.user.userId, hubId, answers);
         res.json(membership);
     } catch (error) {
         res.status(500).json({ message: error.message });

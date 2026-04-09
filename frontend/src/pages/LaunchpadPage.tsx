@@ -9,6 +9,7 @@ import { Project } from '../types';
 import ProjectCard from '../components/project/ProjectCard';
 import CreateProjectModal from '../components/project/CreateProjectModal';
 import CreatePostModal from '../components/CreatePostModal';
+import DiscoveryHub from '../components/social/DiscoveryHub';
 
 const LaunchpadPage = () => {
     const { user } = useAuth();
@@ -91,6 +92,10 @@ const LaunchpadPage = () => {
                         <span>Launch New Initiative</span>
                     </motion.button>
                 </div>
+            </div>
+
+            <div className="mb-16">
+                <DiscoveryHub />
             </div>
 
             {/* Premium Tab Navigation */}

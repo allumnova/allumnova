@@ -7,6 +7,7 @@ import { Search, Building2, Plus, Users, Sparkles, GraduationCap, UserPlus, Chec
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import MentorshipRequestModal from '../components/profile/MentorshipRequestModal';
 import ProposeHubModal from '../components/hub/ProposeHubModal';
+import JoinRequestModal from '../components/project/JoinRequestModal';
 import { useAuth } from '../contexts/AuthContext';
 
 const DiscoverPage = () => {
@@ -30,6 +31,8 @@ const DiscoverPage = () => {
     const [showMentorshipModal, setShowMentorshipModal] = useState(false);
     const [selectedMentor, setSelectedMentor] = useState<{ id: string, name: string } | null>(null);
     const [isProposeModalOpen, setIsProposeModalOpen] = useState(false);
+    const [showJoinModal, setShowJoinModal] = useState(false);
+    const [selectedHub, setSelectedHub] = useState<any>(null);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -123,9 +126,15 @@ const DiscoverPage = () => {
         }
     };
 
-    const handleJoinHub = async (hubId: string) => {
+    const handleJoinHub = async (hub: any) => {
+        if (hub.privacyLevel === 'SOCIETY') {
+            setSelectedHub(hub);
+            setShowJoinModal(true);
+            return;
+        }
+
         try {
-            await api.post(`/environments/${hubId}/join`);
+            await api.post(`/environments/join/${hub.id}`);
             refetchHubs();
         } catch (err) {
             console.error('Failed to join hub:', err);
@@ -531,10 +540,10 @@ const DiscoverPage = () => {
                                             </div>
                                         ) : (
                                             <button 
-                                                onClick={() => handleJoinHub(hub.id)}
+                                                onClick={() => handleJoinHub(hub)}
                                                 className="px-6 py-3 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-[1.2rem] hover:bg-blue-500 transition-all shadow-lg shadow-blue-600/20"
                                             >
-                                                Apply to Join
+                                                {hub.privacyLevel === 'SOCIETY' ? 'Apply to Join' : 'Join Hub'}
                                             </button>
                                         )}
                                     </div>
@@ -562,6 +571,20 @@ const DiscoverPage = () => {
                     refetchHubs();
                 }}
             />
+
+            {selectedHub && (
+                <JoinRequestModal 
+                    isOpen={showJoinModal}
+                    onClose={() => setShowJoinModal(false)}
+                    hubId={selectedHub.id}
+                    hubName={selectedHub.name}
+                    questions={selectedHub.joinQuestions || []}
+                    onSuccess={() => {
+                        setShowJoinModal(false);
+                        refetchHubs();
+                    }}
+                />
+            )}
         </div>
     );
 };

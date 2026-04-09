@@ -2,10 +2,28 @@ const prisma = require('../../models');
 const notificationService = require('../notification/notification.service');
 
 exports.requestMentorship = async (studentId, alumniId, message) => {
-    // Verify alumni role
+    // 1. Prevent self-requests
+    if (studentId === alumniId) {
+        throw new Error('You cannot request mentorship from yourself');
+    }
+
+    // 2. Verify alumni role
     const alumni = await prisma.user.findUnique({ where: { id: alumniId } });
     if (!alumni || alumni.role !== 'alumni') {
         throw new Error('Target user is not an alumni or does not exist');
+    }
+
+    // 3. Check for existing request
+    const existing = await prisma.mentorshipRequest.findFirst({
+        where: {
+            studentId,
+            alumniId,
+            status: { in: ['pending', 'accepted'] }
+        }
+    });
+
+    if (existing) {
+        throw new Error(existing.status === 'pending' ? 'Request already pending' : 'Already connected as mentor/mentee');
     }
 
     const request = await prisma.mentorshipRequest.create({

@@ -52,7 +52,7 @@ const proposeEnvironment = async (collegeId, userId, data) => {
     });
 };
 
-const requestToJoin = async (userId, environmentId) => {
+const requestToJoin = async (userId, environmentId, answers = {}) => {
     const hub = await prisma.environment.findUnique({ where: { id: environmentId } });
     if (!hub) throw new Error('Hub not found');
 
@@ -63,12 +63,14 @@ const requestToJoin = async (userId, environmentId) => {
             userId_environmentId: { userId, environmentId }
         },
         update: {
-            status: initialState
+            status: initialState,
+            answers
         },
         create: {
             userId,
             environmentId,
-            status: initialState
+            status: initialState,
+            answers
         }
     });
 };

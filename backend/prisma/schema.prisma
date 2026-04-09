@@ -421,6 +421,7 @@ model EnvironmentMembership {
   environmentId String
   status        String      @default("PENDING") // PENDING, APPROVED, REJECTED
   role          String      @default("MEMBER") // MEMBER, ADMIN, MODERATOR
+  answers       Json?       @default("{}")
   createdAt     DateTime    @default(now())
   user          User        @relation(fields: [userId], references: [id])
   environment   Environment @relation(fields: [environmentId], references: [id])
