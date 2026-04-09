@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
     Settings, Shield, Award, Grid, UserPlus, User as UserIcon, MessageCircle, 
     Check, X, MapPin, Linkedin, Camera, Save, Sparkles, GraduationCap, 
-    CheckCircle2, Search, Rocket, Filter, Globe, Download 
+    CheckCircle2, Search, Rocket, Filter, Globe, Download, Activity 
 } from 'lucide-react';
 import PostCard from '../components/PostCard';
 import MentorshipRequestModal from '../components/profile/MentorshipRequestModal';
@@ -208,7 +208,7 @@ const ProfilePage = () => {
                         <button 
                             onClick={handleConnect} 
                             disabled={connectionLoading || (profile.connectionStatus?.status === 'pending' && profile.connectionStatus?.isSender)}
-                            className={`flex-1 bg-blue-600 text-white font-extrabold py-4 rounded-2xl shadow-xl flex items-center justify-center gap-2 ${connectionLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            className={`flex-[2] bg-blue-600 text-white font-extrabold py-4 rounded-2xl shadow-xl flex items-center justify-center gap-2 ${connectionLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                             {profile.connectionStatus?.status === 'pending' && !profile.connectionStatus?.isSender ? (
                                 <Check size={18} />
@@ -216,6 +216,15 @@ const ProfilePage = () => {
                                 <UserPlus size={18} />
                             )}
                             {profile.connectionStatus?.status === 'pending' && !profile.connectionStatus?.isSender ? 'Accept Request' : 'Connect'}
+                        </button>
+                    )}
+                    {!isOwnProfile && profile.role === 'alumni' && (
+                        <button 
+                            onClick={() => navigate('/scout', { state: { modelId: profile.id } })}
+                            className="flex-1 bg-blue-500/10 text-blue-600 dark:text-blue-400 font-extrabold py-4 rounded-2xl border border-blue-500/20 flex items-center justify-center gap-2 hover:bg-blue-500/20 transition-all active:scale-95"
+                            title="Blueprint this path"
+                        >
+                            <Activity size={18} /> Model Path
                         </button>
                     )}
                     {!isOwnProfile && (

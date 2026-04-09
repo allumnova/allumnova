@@ -2,7 +2,17 @@ const prisma = require('../../models');
 
 const listEnvironments = async (collegeId, userId) => {
     const hubs = await prisma.environment.findMany({
-        where: { collegeId, status: 'VERIFIED' },
+        where: { 
+            collegeId, 
+            status: 'VERIFIED',
+            // Only show HIDDEN hubs if user is already a member
+            NOT: {
+                AND: [
+                    { privacyLevel: 'HIDDEN' },
+                    { NOT: { members: { some: { userId } } } }
+                ]
+            }
+        },
         include: { 
             _count: { select: { members: { where: { status: 'APPROVED' } } } },
             members: {
@@ -27,12 +37,15 @@ const proposeEnvironment = async (collegeId, userId, data) => {
             name: data.name,
             description: data.description,
             type: data.type || 'HUB',
+            privacyLevel: data.privacyLevel || 'PUBLIC',
+            joinQuestions: data.joinQuestions || [],
+            joinCriteria: data.joinCriteria || "",
             status: 'PENDING',
             members: {
                 create: {
                     userId,
                     role: 'ADMIN',
-                    status: 'APPROVED' // Creator is automatically approved admin
+                    status: 'APPROVED'
                 }
             }
         }
@@ -40,17 +53,22 @@ const proposeEnvironment = async (collegeId, userId, data) => {
 };
 
 const requestToJoin = async (userId, environmentId) => {
+    const hub = await prisma.environment.findUnique({ where: { id: environmentId } });
+    if (!hub) throw new Error('Hub not found');
+
+    const initialState = hub.privacyLevel === 'PUBLIC' ? 'APPROVED' : 'PENDING';
+
     return await prisma.environmentMembership.upsert({
         where: {
             userId_environmentId: { userId, environmentId }
         },
         update: {
-            status: 'PENDING'
+            status: initialState
         },
         create: {
             userId,
             environmentId,
-            status: 'PENDING'
+            status: initialState
         }
     });
 };

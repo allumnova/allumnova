@@ -3,9 +3,10 @@ import { useCollege } from '../contexts/CollegeContext';
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Building2, Plus, Users, Sparkles, GraduationCap, UserPlus, Check, X, Filter, Rocket, Info, ChevronRight, Loader2, Globe } from 'lucide-react';
+import { Search, Building2, Plus, Users, Sparkles, GraduationCap, UserPlus, Check, X, Filter, Rocket, Info, ChevronRight, Loader2, Globe, Shield, Lock } from 'lucide-react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import MentorshipRequestModal from '../components/profile/MentorshipRequestModal';
+import ProposeHubModal from '../components/hub/ProposeHubModal';
 import { useAuth } from '../contexts/AuthContext';
 
 const DiscoverPage = () => {
@@ -28,6 +29,7 @@ const DiscoverPage = () => {
     
     const [showMentorshipModal, setShowMentorshipModal] = useState(false);
     const [selectedMentor, setSelectedMentor] = useState<{ id: string, name: string } | null>(null);
+    const [isProposeModalOpen, setIsProposeModalOpen] = useState(false);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -481,10 +483,13 @@ const DiscoverPage = () => {
                                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em]">Communities that shape your experience</p>
                                 </div>
                             </div>
-                            <Link to="/launchpad" className="px-5 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-black uppercase tracking-widest rounded-2xl flex items-center gap-2 shadow-xl">
+                            <button 
+                                onClick={() => setIsProposeModalOpen(true)}
+                                className="px-5 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-black uppercase tracking-widest rounded-2xl flex items-center gap-2 shadow-xl hover:scale-105 active:scale-95 transition-all"
+                            >
                                 <Plus size={16} />
                                 Propose Hub
-                            </Link>
+                            </button>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -494,8 +499,14 @@ const DiscoverPage = () => {
                                         <div className="w-16 h-16 rounded-[1.5rem] bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-2xl shadow-inner">
                                             {hub.icon || '🏢'}
                                         </div>
-                                        <div className="px-3 py-1.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-black uppercase tracking-widest rounded-xl border border-blue-500/20">
-                                            {hub.type}
+                                        <div className="flex flex-col items-end gap-1.5">
+                                            <div className="px-3 py-1 bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[8px] font-black uppercase tracking-widest rounded-lg border border-blue-500/20">
+                                                {hub.type}
+                                            </div>
+                                            <div className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest text-slate-400">
+                                                {hub.privacyLevel === 'PUBLIC' ? <Globe size={10} /> : hub.privacyLevel === 'SOCIETY' ? <Shield size={10} /> : <Lock size={10} />}
+                                                {hub.privacyLevel === 'PUBLIC' ? 'Public' : hub.privacyLevel === 'SOCIETY' ? 'Vetted' : 'Private'}
+                                            </div>
                                         </div>
                                     </div>
                                     
@@ -542,6 +553,15 @@ const DiscoverPage = () => {
                     alumniName={selectedMentor.name}
                 />
             )}
+
+            <ProposeHubModal 
+                isOpen={isProposeModalOpen}
+                onClose={() => setIsProposeModalOpen(false)}
+                onSuccess={() => {
+                    setIsProposeModalOpen(false);
+                    refetchHubs();
+                }}
+            />
         </div>
     );
 };

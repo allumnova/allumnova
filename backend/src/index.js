@@ -56,6 +56,8 @@ app.use('/api/reputation', reputationRoutes);
 const mentorshipRoutes = require('./modules/mentorship/mentorship.routes');
 app.use('/api/mentorship', mentorshipRoutes);
 app.use('/api/projects', projectRoutes);
+const scoutRoutes = require('./modules/scout/scout.routes');
+app.use('/api/scout', scoutRoutes);
 
 app.get('/api/health', (req, res) => {
     res.json({ status: 'healthy', timestamp: new Date() });

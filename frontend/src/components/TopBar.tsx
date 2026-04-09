@@ -1,4 +1,4 @@
-import { Bell, ChevronDown, Sun, Moon, ShieldCheck, Sparkles, LogIn } from 'lucide-react';
+import { Bell, ChevronDown, Sun, Moon, ShieldCheck, Sparkles, LogIn, Activity } from 'lucide-react';
 import { useCollege } from '../contexts/CollegeContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -108,10 +108,15 @@ const TopBar = () => {
                     )}
 
                     {isAuthenticated && (
-                        <Link to="/notifications" className="relative p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
-                            <Bell size={22} />
-                            <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white dark:border-slate-950" />
-                        </Link>
+                        <div className="flex items-center gap-1">
+                            <Link to="/scout" className="p-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors" title="Nova Scout Lab">
+                                <Activity size={22} strokeWidth={3} />
+                            </Link>
+                            <Link to="/notifications" className="relative p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+                                <Bell size={22} />
+                                <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white dark:border-slate-950" />
+                            </Link>
+                        </div>
                     )}
                 </div>
             </div>
