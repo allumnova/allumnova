@@ -78,7 +78,7 @@ export interface PostMedia {
 export interface Post {
     id: string;
     content: string;
-    post_type: 'general' | 'opportunity' | 'event' | 'achievement';
+    post_type: 'general' | 'opportunity' | 'event' | 'achievement' | 'showcase';
     author: {
         id: string;
         name: string;

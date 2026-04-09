@@ -19,7 +19,8 @@ interface PostCardProps {
 const typeConfigs = {
     opportunity: { label: 'Opportunity', color: 'text-blue-500', icon: 'Briefcase', bgColor: 'bg-blue-500/10' },
     event: { label: 'Event', color: 'text-emerald-500', icon: 'Calendar', bgColor: 'bg-emerald-500/10' },
-    achievement: { label: 'Showcase', color: 'text-amber-500', icon: 'Trophy', bgColor: 'bg-amber-500/10' },
+    achievement: { label: 'Achievement', color: 'text-amber-500', icon: 'Trophy', bgColor: 'bg-amber-500/10' },
+    showcase: { label: 'Showcase', color: 'text-purple-500', icon: 'Rocket', bgColor: 'bg-purple-500/10' },
     general: { label: 'Thought', color: 'text-slate-500', icon: 'FileText', bgColor: 'bg-slate-500/10' }
 };
 
@@ -179,7 +180,8 @@ const PostCard: React.FC<PostCardProps> = ({ post: initialPost, onAppreciate, on
         Briefcase,
         Calendar,
         Trophy,
-        FileText
+        FileText,
+        Rocket
     };
     const IconComponent = icons[config.icon] || FileText;
 
@@ -190,7 +192,8 @@ const PostCard: React.FC<PostCardProps> = ({ post: initialPost, onAppreciate, on
             className={clsx(
                 "bg-white dark:bg-slate-900/50 backdrop-blur-xl border rounded-[2rem] p-5 mb-4 relative overflow-hidden group transition-all duration-300 shadow-sm dark:shadow-none",
                 post.post_type === 'opportunity' ? "border-blue-500/30 ring-1 ring-blue-500/10" : "border-slate-200 dark:border-white/5",
-                post.post_type === 'achievement' ? "border-amber-500/30 shadow-lg shadow-amber-500/5" : ""
+                post.post_type === 'achievement' ? "border-amber-500/30 shadow-lg shadow-amber-500/5" : "",
+                post.post_type === 'showcase' ? "border-purple-500/40 shadow-xl shadow-purple-500/10" : ""
             )}
         >
             {/* Type Ribbon/Badge */}
@@ -538,6 +541,30 @@ const renderMetadata = (post: Post) => {
                     <h4 className="text-xs font-black text-amber-600 dark:text-amber-400 uppercase tracking-wider">{data.title}</h4>
                     <p className="text-[10px] text-slate-500 font-medium">Issued by: {data.issuedBy}</p>
                 </div>
+            </div>
+        );
+    }
+
+    if (post.post_type === 'showcase') {
+        const showcaseData = post.metadata || {};
+        return (
+            <div className="mt-2 mb-4 p-5 rounded-3xl bg-purple-500/5 border border-purple-500/10 flex flex-col gap-4">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-600 to-blue-600 flex items-center justify-center shadow-lg shadow-purple-500/20">
+                        <Rocket size={20} className="text-white" />
+                    </div>
+                    <div className="flex-1">
+                        <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">{showcaseData.title || 'New Initiative'}</h4>
+                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{showcaseData.lookingFor ? `Seeking: ${showcaseData.lookingFor}` : 'Project Showcase'}</p>
+                    </div>
+                </div>
+                <Link 
+                    to={`/profile/${post.author?.id}?tab=projects&highlight=${showcaseData.projectId}`}
+                    className="flex items-center justify-center gap-2 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] transition-all active:scale-95"
+                >
+                    Explore Project Record
+                    <ChevronRight size={14} />
+                </Link>
             </div>
         );
     }

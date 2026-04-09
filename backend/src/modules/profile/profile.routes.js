@@ -4,6 +4,7 @@ const profileController = require('./profile.controller');
 const { authenticate } = require('../../middlewares/auth.middleware');
 const upload = require('../../utils/upload');
 
+router.get('/check-username', profileController.checkUsernameAvailability);
 router.get('/', authenticate, profileController.getMyProfile);
 router.get('/me', authenticate, profileController.getMyProfile);
 router.patch('/me', authenticate, upload.fields([{ name: 'avatar', maxCount: 1 }, { name: 'resume', maxCount: 1 }]), profileController.updateMyProfile);

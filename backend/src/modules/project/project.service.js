@@ -1,11 +1,11 @@
-const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const feedService = require('../feed/feed.service');
 
 const projectService = {
     createProject: async (userId, collegeId, projectData) => {
-        const { title, description, repoUrl, demoUrl, lookingFor, milestones } = projectData;
+        const { title, description, repoUrl, demoUrl, lookingFor, milestones, shareToFeed } = projectData;
         
-        return await prisma.project.create({
+        const project = await prisma.project.create({
             data: {
                 title,
                 description,
@@ -30,6 +30,25 @@ const projectService = {
                 }
             }
         });
+
+        // 🚀 Automated Social Signal: Share to Feed if requested
+        if (shareToFeed) {
+            try {
+                await feedService.createPost(userId, collegeId, {
+                    post_type: 'showcase',
+                    content: `Just launched a new initiative: **${title}**! 🚀\n\n${description.slice(0, 150)}...`,
+                    visibility: 'college',
+                    metadata: {
+                        projectId: project.id,
+                        isAutomated: true
+                    }
+                });
+            } catch (err) {
+                console.error('[SOCIAL_LOOP_ERROR] Failed to auto-share project:', err);
+            }
+        }
+
+        return project;
     },
 
     getCollegeProjects: async (collegeId, userId = null, searchTerm = null) => {

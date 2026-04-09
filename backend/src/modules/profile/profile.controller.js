@@ -213,6 +213,18 @@ const deleteCertification = async (req, res) => {
     }
 };
 
+const checkUsernameAvailability = async (req, res) => {
+    try {
+        const { username } = req.query;
+        if (!username) return res.status(400).json({ success: false, error: 'Username is required' });
+        const result = await profileService.checkUsernameAvailability(username);
+        res.status(200).json({ success: true, data: result });
+    } catch (error) {
+        console.error('Check Username Error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
 module.exports = {
     getMyProfile,
     getPublicProfile,
@@ -227,5 +239,6 @@ module.exports = {
     addEducation,
     deleteEducation,
     addCertification,
-    deleteCertification
+    deleteCertification,
+    checkUsernameAvailability
 };

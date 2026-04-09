@@ -8,6 +8,7 @@ import api from '../api/axios';
 import { Project } from '../types';
 import ProjectCard from '../components/project/ProjectCard';
 import CreateProjectModal from '../components/project/CreateProjectModal';
+import CreatePostModal from '../components/CreatePostModal';
 
 const LaunchpadPage = () => {
     const { user } = useAuth();
@@ -18,6 +19,8 @@ const LaunchpadPage = () => {
     const [editingProject, setEditingProject] = useState<Project | undefined>(undefined);
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTab, setActiveTab] = useState<'all' | 'trending' | 'workspace'>('all');
+    const [isPostModalOpen, setIsPostModalOpen] = useState(false);
+    const [showcaseProject, setShowcaseProject] = useState<any>(null);
 
     const fetchProjects = async (search?: string) => {
         if (!activeCollege) return;
@@ -145,6 +148,10 @@ const LaunchpadPage = () => {
                                 setEditingProject(p);
                                 setIsModalOpen(true);
                             }}
+                            onShare={(p) => {
+                                setShowcaseProject(p);
+                                setIsPostModalOpen(true);
+                            }}
                         />
                     ))}
                 </div>
@@ -171,6 +178,16 @@ const LaunchpadPage = () => {
                     setEditingProject(undefined);
                     fetchProjects(searchTerm);
                 }}
+            />
+
+            <CreatePostModal
+                isOpen={isPostModalOpen}
+                onClose={() => setIsPostModalOpen(false)}
+                onSuccess={() => {
+                    setIsPostModalOpen(false);
+                    fetchProjects(searchTerm);
+                }}
+                initialData={showcaseProject}
             />
         </div>
     );

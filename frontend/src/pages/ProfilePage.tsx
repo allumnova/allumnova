@@ -7,9 +7,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
     Settings, Shield, Award, Grid, UserPlus, User as UserIcon, MessageCircle, 
     Check, X, MapPin, Linkedin, Camera, Save, Sparkles, GraduationCap, 
-    CheckCircle2, Search, Rocket, Filter, Globe, Download, Activity 
+    CheckCircle2, Search, Rocket, Filter, Globe, Download, Activity, Info 
 } from 'lucide-react';
+import { clsx } from 'clsx';
 import PostCard from '../components/PostCard';
+import CreatePostModal from '../components/CreatePostModal';
 import MentorshipRequestModal from '../components/profile/MentorshipRequestModal';
 import ProjectCard from '../components/project/ProjectCard';
 import { Post, Project } from '../types';
@@ -43,6 +45,10 @@ const ProfilePage = () => {
     });
     const [avatarFile, setAvatarFile] = useState<File | null>(null);
     const [resumeFile, setResumeFile] = useState<File | null>(null);
+    const [isPostModalOpen, setIsPostModalOpen] = useState(false);
+    const [showcaseProject, setShowcaseProject] = useState<any>(null);
+    const [originalUsername, setOriginalUsername] = useState('');
+    const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle');
     const navigate = useNavigate();
 
     const isOwnProfile = !userId || userId === 'me' || userId === currentUser?.id;
@@ -70,6 +76,7 @@ const ProfilePage = () => {
                     hobbies: data.hobbies || [],
                     resumeUrl: data.resumeUrl || ''
                 });
+                setOriginalUsername(data.username || '');
             }
         } catch (err) {
             console.error('Failed to fetch profile:', err);
@@ -81,6 +88,40 @@ const ProfilePage = () => {
     useEffect(() => {
         fetchProfile();
     }, [userId, currentUser]);
+
+    // Username Availability Check
+    useEffect(() => {
+        const checkUsername = async () => {
+            if (!editForm.username || editForm.username.length < 3) {
+                setUsernameStatus('idle');
+                return;
+            }
+
+            // If it's the same as the original, it's available
+            if (editForm.username === originalUsername) {
+                setUsernameStatus('available');
+                return;
+            }
+
+            // Basic format check
+            if (!/^[a-zA-Z0-9_]+$/.test(editForm.username)) {
+                setUsernameStatus('invalid');
+                return;
+            }
+
+            setUsernameStatus('checking');
+            try {
+                const res = await api.get(`/profile/check-username?username=${editForm.username}`);
+                setUsernameStatus(res.data.data.available ? 'available' : 'taken');
+            } catch (err) {
+                console.error('Username check failed', err);
+                setUsernameStatus('idle');
+            }
+        };
+
+        const timeoutId = setTimeout(checkUsername, 500);
+        return () => clearTimeout(timeoutId);
+    }, [editForm.username, originalUsername]);
 
     const handleUpdateProfile = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -263,7 +304,19 @@ const ProfilePage = () => {
                 ) : activeTab === 'projects' ? (
                     <motion.div key="projects" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
                         {Array.isArray(profile.projects) && profile.projects.length > 0 ? (
-                            profile.projects.map((project: Project, idx: number) => <ProjectCard key={project.id} project={project} index={idx} onUpdate={() => fetchProfile()} onEdit={() => {}} />)
+                            profile.projects.map((project: Project, idx: number) => (
+                                <ProjectCard 
+                                    key={project.id} 
+                                    project={project} 
+                                    index={idx} 
+                                    onUpdate={() => fetchProfile()} 
+                                    onEdit={() => {}} 
+                                    onShare={(p) => {
+                                        setShowcaseProject(p);
+                                        setIsPostModalOpen(true);
+                                    }}
+                                />
+                            ))
                         ) : <div className="py-20 text-center opacity-40 uppercase tracking-widest text-xs font-bold">No projects showcased yet.</div>}
                     </motion.div>
                 ) : (
@@ -333,10 +386,35 @@ const ProfilePage = () => {
                                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Portfolio Tag (@username)</label>
                                                         <div className="relative">
                                                             <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">@</span>
-                                                            <input type="text" value={editForm.username} onChange={e => setEditForm({...editForm, username: e.target.value.toLowerCase().replace(/\s+/g, '-')})} className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-2xl py-4 pl-10 pr-5 text-sm font-bold outline-none focus:ring-4 focus:ring-blue-500/10 text-slate-900 dark:text-white" />
+                                                            <input 
+                                                                type="text" 
+                                                                value={editForm.username} 
+                                                                onChange={e => setEditForm({...editForm, username: e.target.value.toLowerCase().replace(/\s+/g, '-')})} 
+                                                                className={clsx(
+                                                                    "w-full bg-slate-50 dark:bg-slate-950 border rounded-2xl py-4 pl-10 pr-12 text-sm font-bold outline-none focus:ring-4 focus:ring-blue-500/10 text-slate-900 dark:text-white transition-all",
+                                                                    usernameStatus === 'available' ? "border-emerald-500/30" : 
+                                                                    usernameStatus === 'taken' ? "border-rose-500/30" : 
+                                                                    "border-slate-200 dark:border-white/10"
+                                                                )} 
+                                                            />
+                                                            <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                                                                {usernameStatus === 'checking' && <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />}
+                                                                {usernameStatus === 'available' && <CheckCircle2 size={16} className="text-emerald-500" />}
+                                                                {usernameStatus === 'taken' && <X size={16} className="text-rose-500" />}
+                                                                {usernameStatus === 'invalid' && <Info size={16} className="text-amber-500" />}
+                                                            </div>
                                                         </div>
-                                                        <p className="text-[9px] text-slate-400 font-bold mt-1.5 ml-1 flex items-center gap-1">
-                                                            <Globe size={10} /> Sets your public URL: allumnova.cloud/u/{editForm.username || 'username'}
+                                                        <p className="text-[9px] font-bold mt-1.5 ml-1 flex items-center gap-1">
+                                                            {usernameStatus === 'available' ? (
+                                                                <span className="text-emerald-500">Username available ✓</span>
+                                                            ) : usernameStatus === 'taken' ? (
+                                                                <span className="text-rose-500">Username is already taken.</span>
+                                                            ) : (
+                                                                <>
+                                                                    <Globe size={10} className="text-slate-400" /> 
+                                                                    <span className="text-slate-400">Sets your public URL: allumnova.cloud/u/{editForm.username || 'username'}</span>
+                                                                </>
+                                                            )}
                                                         </p>
                                                     </div>
 
@@ -433,7 +511,11 @@ const ProfilePage = () => {
                                         )}
 
                                         <div className="sticky bottom-0 pt-6 pb-2 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-white/5 flex flex-col sm:flex-row gap-3">
-                                            <button type="submit" className="flex-2 bg-blue-600 text-white font-extrabold py-5 rounded-2xl shadow-xl shadow-blue-500/20 flex items-center justify-center gap-2 hover:scale-[1.02] transition-all">
+                                            <button 
+                                                type="submit" 
+                                                disabled={usernameStatus === 'taken' || usernameStatus === 'checking' || usernameStatus === 'invalid'}
+                                                className="flex-2 bg-blue-600 disabled:opacity-50 text-white font-extrabold py-5 rounded-2xl shadow-xl shadow-blue-500/20 flex items-center justify-center gap-2 hover:scale-[1.02] transition-all"
+                                            >
                                                 <Save size={20} /> Save Changes
                                             </button>
                                             <button type="button" onClick={() => setIsEditing(false)} className="flex-1 bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 font-bold py-5 rounded-2xl hover:bg-slate-200 transition-all">Cancel</button>
@@ -446,6 +528,16 @@ const ProfilePage = () => {
                 </AnimatePresence>,
                 document.body
             )}
+
+            <CreatePostModal
+                isOpen={isPostModalOpen}
+                onClose={() => setIsPostModalOpen(false)}
+                onSuccess={() => {
+                    setIsPostModalOpen(false);
+                    fetchProfile();
+                }}
+                initialData={showcaseProject}
+            />
         </div>
     );
 };

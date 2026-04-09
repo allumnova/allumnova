@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface PostTypeFieldsProps {
-    type: 'general' | 'opportunity' | 'event' | 'achievement';
+    type: 'general' | 'opportunity' | 'event' | 'achievement' | 'showcase';
     metadata: any;
     setMetadata: (metadata: any) => void;
 }
@@ -65,6 +65,21 @@ const PostTypeFields: React.FC<PostTypeFieldsProps> = ({ type, metadata, setMeta
                 <div className="col-span-2">
                     <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1 block">Organization / Authority</label>
                     <input name="issuedBy" value={metadata.issuedBy || ''} onChange={handleChange} placeholder="Google / Microsoft / College" className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-xl py-3 px-4 text-sm dark:text-white outline-none focus:ring-2 focus:ring-amber-500/50 transition-all" />
+                </div>
+            </div>
+        );
+    }
+
+    if (type === 'showcase') {
+        return (
+            <div className="grid grid-cols-2 gap-3 mb-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="col-span-2">
+                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1 block">Project Title</label>
+                    <input name="title" value={metadata.title || ''} onChange={handleChange} placeholder="Allumnova Core" className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-xl py-3 px-4 text-sm dark:text-white outline-none focus:ring-2 focus:ring-purple-500/50 transition-all font-bold" />
+                </div>
+                <div className="col-span-2">
+                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1 block">Looking For / Seeking</label>
+                    <input name="lookingFor" value={metadata.lookingFor || ''} onChange={handleChange} placeholder="Designers, Beta Testers..." className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-xl py-3 px-4 text-sm dark:text-white outline-none focus:ring-2 focus:ring-purple-500/50 transition-all" />
                 </div>
             </div>
         );

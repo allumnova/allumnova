@@ -24,6 +24,7 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose
     const [milestones, setMilestones] = useState<string[]>(
         (Array.isArray(project?.milestones) ? project!.milestones : []).map(m => m.title) || ['Initial concept', 'MVP Development']
     );
+    const [shareToFeed, setShareToFeed] = useState(true);
 
     useEffect(() => {
         if (project) {
@@ -64,7 +65,8 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose
                 demoUrl,
                 lookingFor,
                 milestones: (Array.isArray(milestones) ? milestones : []).filter(m => m && m.trim()).map(m => ({ title: m, isCompleted: false })),
-                collegeId: activeCollege.id
+                collegeId: activeCollege.id,
+                shareToFeed: project ? false : shareToFeed // Only auto-share on new projects
             };
 
             if (project) {
@@ -192,6 +194,34 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose
                                             ))}
                                         </div>
                                     </div>
+
+                                    {/* Social Loop */}
+                                    {!project && (
+                                        <div className="flex items-center justify-between p-5 bg-blue-600/5 rounded-3xl border border-blue-600/10">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-10 h-10 bg-blue-600/10 rounded-2xl flex items-center justify-center text-blue-600">
+                                                    <Rocket size={18} />
+                                                </div>
+                                                <div>
+                                                    <h4 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tight">Signal Arrival</h4>
+                                                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">Automagically share this launch to the campus feed</p>
+                                                </div>
+                                            </div>
+                                            <button 
+                                                type="button"
+                                                onClick={() => setShareToFeed(!shareToFeed)}
+                                                className={clsx(
+                                                    "w-12 h-6 rounded-full transition-all relative outline-none",
+                                                    shareToFeed ? "bg-blue-600" : "bg-slate-200 dark:bg-white/10"
+                                                )}
+                                            >
+                                                <div className={clsx(
+                                                    "absolute top-1 w-4 h-4 bg-white rounded-full transition-all",
+                                                    shareToFeed ? "left-7" : "left-1"
+                                                )} />
+                                            </button>
+                                        </div>
+                                    )}
 
                                     <button
                                         type="submit"

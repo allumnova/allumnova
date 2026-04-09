@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Github, ExternalLink, Zap, Users, CheckCircle2, ChevronRight, Edit3, Trash2 } from 'lucide-react';
+import { Github, ExternalLink, Zap, Users, CheckCircle2, ChevronRight, Edit3, Trash2, Rocket } from 'lucide-react';
 import { Project } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../api/axios';
@@ -11,9 +11,10 @@ interface ProjectCardProps {
     index: number;
     onUpdate: () => void;
     onEdit: (project: Project) => void;
+    onShare?: (project: Project) => void;
 }
 
-const ProjectCard: React.FC<ProjectCardProps> = ({ project, index, onUpdate, onEdit }) => {
+const ProjectCard: React.FC<ProjectCardProps> = ({ project, index, onUpdate, onEdit, onShare }) => {
     const { user } = useAuth();
     const [hyping, setHyping] = useState(false);
     const isOwner = user?.id === project.ownerId;
@@ -69,9 +70,19 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, index, onUpdate, onE
                         <button 
                             onClick={(e) => { e.stopPropagation(); onEdit(project); }}
                             className="p-1.5 text-slate-400 hover:text-blue-500 transition-colors"
+                            title="Edit project"
                         >
                             <Edit3 size={14} />
                         </button>
+                        {onShare && (
+                            <button 
+                                onClick={(e) => { e.stopPropagation(); onShare(project); }}
+                                className="p-1.5 text-slate-400 hover:text-purple-500 transition-colors"
+                                title="Broadcast to Feed"
+                            >
+                                <Rocket size={14} />
+                            </button>
+                        )}
                         <button 
                             onClick={(e) => { e.stopPropagation(); handleDelete(); }}
                             className="p-1.5 text-slate-400 hover:text-rose-500 transition-colors"

@@ -37,6 +37,7 @@ const calculatePostScore = async (post, currentUserId = null) => {
     let relevanceScore = 0;
     const typeWeights = {
         opportunity: 10,
+        showcase: 10,
         achievement: 7,
         event: 7,
         general: 4

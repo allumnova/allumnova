@@ -415,6 +415,13 @@ const updatePulse = async (userId, { pulse, pulseEmoji }) => {
     return user;
 };
 
+const checkUsernameAvailability = async (username) => {
+    const user = await prisma.user.findUnique({
+        where: { username: username.toLowerCase() }
+    });
+    return { available: !user };
+};
+
 module.exports = {
     getProfile,
     getUserProfile,
@@ -432,5 +439,6 @@ module.exports = {
     updateEducation,
     deleteEducation,
     addCertification,
-    deleteCertification
+    deleteCertification,
+    checkUsernameAvailability
 };

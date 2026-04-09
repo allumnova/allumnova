@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Briefcase, Calendar, Trophy, MessageSquare, Send, Image as ImageIcon, Plus, Globe, Shield } from 'lucide-react';
+import { X, Briefcase, Calendar, Trophy, MessageSquare, Send, Image as ImageIcon, Plus, Globe, Shield, Rocket } from 'lucide-react';
 import { clsx } from 'clsx';
 import api from '../api/axios';
 import { useCollege } from '../contexts/CollegeContext';
@@ -10,9 +10,10 @@ interface CreatePostModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSuccess: () => void;
+    initialData?: any; // To support project broadcasts
 }
 
-const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose, onSuccess }) => {
+const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose, onSuccess, initialData }) => {
     const { activeCollege } = useCollege();
     const [type, setType] = useState<'general' | 'opportunity' | 'event' | 'achievement'>('general');
     const [visibility, setVisibility] = useState<'college' | 'public'>('college');
@@ -20,11 +21,25 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose, onSu
     const [metadata, setMetadata] = useState<any>({});
     const [loading, setLoading] = useState(false);
 
+    React.useEffect(() => {
+        if (initialData && isOpen) {
+            setType('achievement'); // Defaulting showcase to achievement metadata if needed, or handle specifically
+            setType('showcase' as any);
+            setContent(`Broadcasting: **${initialData.title}** 🚀\n\n${initialData.description}`);
+            setMetadata({ projectId: initialData.id, ...initialData });
+        } else if (isOpen) {
+            setType('general');
+            setContent('');
+            setMetadata({});
+        }
+    }, [initialData, isOpen]);
+
     const postTypes = [
         { id: 'general', label: 'Thought', icon: MessageSquare, color: 'text-slate-400', bg: 'bg-slate-500/10' },
         { id: 'opportunity', label: 'Opportunity', icon: Briefcase, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
         { id: 'event', label: 'Event', icon: Calendar, color: 'text-blue-400', bg: 'bg-blue-500/10' },
         { id: 'achievement', label: 'Achievement', icon: Trophy, color: 'text-amber-400', bg: 'bg-amber-500/10' },
+        { id: 'showcase', label: 'Showcase', icon: Rocket, color: 'text-purple-400', bg: 'bg-purple-500/10' },
     ];
 
     const [files, setFiles] = useState<File[]>([]);
@@ -110,7 +125,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose, onSu
                         </div>
 
                         {/* Type Selection */}
-                        <div className="grid grid-cols-4 gap-3 mb-8">
+                        <div className="grid grid-cols-5 gap-2 mb-8">
                             {postTypes.map((pt) => {
                                 const Icon = pt.icon;
                                 return (

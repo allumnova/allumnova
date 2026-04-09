@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import api from '../api/axios';
 import { User } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
+import { clsx } from 'clsx';
 import {
     User as UserIcon, Shield, GraduationCap, FileText, CheckCircle,
     ChevronRight, ChevronLeft, Upload, Search, Building2, X, Globe, MapPin, Info
@@ -27,7 +28,9 @@ const OnboardingPage = () => {
         collegeId: '',
         role: 'student',
         batch: '',
+        username: '',
     });
+    const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle');
 
     const [suggestData, setSuggestData] = useState({
         name: '',
@@ -39,6 +42,34 @@ const OnboardingPage = () => {
 
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [selectedCollegeName, setSelectedCollegeName] = useState('');
+
+    // Username Availability Check
+    useEffect(() => {
+        const checkUsername = async () => {
+            if (!formData.username || formData.username.length < 3) {
+                setUsernameStatus('idle');
+                return;
+            }
+
+            // Basic format check
+            if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
+                setUsernameStatus('invalid');
+                return;
+            }
+
+            setUsernameStatus('checking');
+            try {
+                const res = await api.get(`/profile/check-username?username=${formData.username}`);
+                setUsernameStatus(res.data.data.available ? 'available' : 'taken');
+            } catch (err) {
+                console.error('Username check failed', err);
+                setUsernameStatus('idle');
+            }
+        };
+
+        const timeoutId = setTimeout(checkUsername, 500);
+        return () => clearTimeout(timeoutId);
+    }, [formData.username]);
 
     useEffect(() => {
         const fetchColleges = async () => {
@@ -173,13 +204,48 @@ const OnboardingPage = () => {
                                     className={inputClass} placeholder="+91 98765 43210" />
                             </div>
                             <div>
+                                <label className={labelClass}>Allumnova Username (Unique Link)</label>
+                                <div className="relative">
+                                    <Globe size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                    <input 
+                                        name="username" 
+                                        value={formData.username} 
+                                        onChange={(e) => setFormData({ ...formData, username: e.target.value.toLowerCase().trim() })}
+                                        className={clsx(
+                                            inputClass,
+                                            "pl-10",
+                                            usernameStatus === 'available' && "border-emerald-500/50 focus:ring-emerald-500",
+                                            usernameStatus === 'taken' && "border-rose-500/50 focus:ring-rose-500"
+                                        )} 
+                                        placeholder="yourname" 
+                                    />
+                                    <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                                        {usernameStatus === 'checking' && <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />}
+                                        {usernameStatus === 'available' && <CheckCircle size={16} className="text-emerald-500" />}
+                                        {usernameStatus === 'taken' && <X size={16} className="text-rose-500" />}
+                                        {usernameStatus === 'invalid' && <Info size={16} className="text-amber-500" />}
+                                    </div>
+                                </div>
+                                <p className="mt-1.5 text-[10px] text-slate-500 flex items-center gap-1">
+                                    {usernameStatus === 'available' ? (
+                                        <span className="text-emerald-500 font-bold">This username is available!</span>
+                                    ) : usernameStatus === 'taken' ? (
+                                        <span className="text-rose-500 font-bold">Username is already taken.</span>
+                                    ) : usernameStatus === 'invalid' ? (
+                                        <span className="text-amber-500 font-bold">Use only letters, numbers, and underscores.</span>
+                                    ) : (
+                                        <span>Your profile link will be: allumnova.cloud/u/{formData.username || '...'}</span>
+                                    )}
+                                </p>
+                            </div>
+                            <div>
                                 <label className={labelClass}>LinkedIn Profile URL</label>
                                 <input name="linkedIn" value={formData.linkedIn} onChange={handleChange}
                                     className={inputClass} placeholder="https://linkedin.com/in/username" />
                             </div>
                         </div>
                         <button onClick={() => setStep(2)}
-                            disabled={!formData.name.trim()}
+                            disabled={!formData.name.trim() || !formData.username.trim() || usernameStatus !== 'available'}
                             className="w-full py-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2">
                             Next <ChevronRight size={20} />
                         </button>
