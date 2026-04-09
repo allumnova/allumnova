@@ -91,7 +91,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
 // Global Providers
 final apiClientProvider = Provider<ApiClient>((ref) {
-  return ApiClient(baseUrl: 'http://localhost:5000/api'); // Update for production
+  return ApiClient(baseUrl: 'https://allumnova.cloud/api');
 });
 
 final authServiceProvider = Provider<AuthService>((ref) {
