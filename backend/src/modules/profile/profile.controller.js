@@ -157,6 +157,62 @@ const updatePulse = async (req, res) => {
     }
 };
 
+// --- Career Section Handlers ---
+
+const addExperience = async (req, res) => {
+    try {
+        const result = await profileService.addExperience(req.user.userId, req.body);
+        res.status(201).json({ success: true, data: result });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+const deleteExperience = async (req, res) => {
+    try {
+        const result = await profileService.deleteExperience(req.user.userId, req.params.id);
+        res.status(200).json({ success: true, data: result });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+const addEducation = async (req, res) => {
+    try {
+        const result = await profileService.addEducation(req.user.userId, req.body);
+        res.status(201).json({ success: true, data: result });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+const deleteEducation = async (req, res) => {
+    try {
+        const result = await profileService.deleteEducation(req.user.userId, req.params.id);
+        res.status(200).json({ success: true, data: result });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+const addCertification = async (req, res) => {
+    try {
+        const result = await profileService.addCertification(req.user.userId, req.body);
+        res.status(201).json({ success: true, data: result });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+const deleteCertification = async (req, res) => {
+    try {
+        const result = await profileService.deleteCertification(req.user.userId, req.params.id);
+        res.status(200).json({ success: true, data: result });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
 module.exports = {
     getMyProfile,
     getPublicProfile,
@@ -165,5 +221,11 @@ module.exports = {
     completeOnboarding,
     getPendingVerifications,
     verifyUser,
-    updatePulse
+    updatePulse,
+    addExperience,
+    deleteExperience,
+    addEducation,
+    deleteEducation,
+    addCertification,
+    deleteCertification
 };

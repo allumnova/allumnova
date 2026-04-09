@@ -15,6 +15,7 @@ import LaunchpadPage from './pages/LaunchpadPage';
 import MentorshipPage from './pages/MentorshipPage';
 import HubFeedPage from './pages/HubFeedPage';
 import PublicPortfolioPage from './pages/PublicPortfolioPage';
+import CareerBuilderPage from './pages/CareerBuilderPage';
 import AdminLayout from './components/AdminLayout';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import AdminUsersPage from './pages/AdminUsersPage';
@@ -111,6 +112,7 @@ function App() {
                             <Route path="/notifications" element={<NotificationPage />} />
                             <Route path="/chat" element={<ChatPage />} />
                             <Route path="/launchpad" element={<LaunchpadPage />} />
+                            <Route path="/builder" element={<CareerBuilderPage />} />
                             <Route path="/mentorship" element={<MentorshipPage />} />
                             <Route path="/hubs/:hubId" element={<HubFeedPage />} />
                         </Route>

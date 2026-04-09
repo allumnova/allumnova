@@ -58,10 +58,17 @@ model User {
   resumeUrl          String?
   skills             String[]             @default([])
   isPublic           Boolean              @default(true)
+  targetRole         String?
+  careerStage        String               @default("STUDENT") // STUDENT, GRADUATE, WORKING
+  completionRatio    Int                  @default(0)
+  githubUrl          String?
+  twitterUrl         String?
+  websiteUrl         String?
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
   experience         Experience[]
   education          Education[]
+  certifications     Certification[]
   analytics          AnalyticsEvent[]
   colleges           CollegeMembership[]
   comments           Comment[]
@@ -88,6 +95,21 @@ model User {
   collegeRequests    CollegeRequest[]
   actorNotifications Notification[]       @relation("NotificationActor")
   sessions           Session[]
+}
+
+model Certification {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title        String
+  organization String
+  issueDate    DateTime?
+  credentialId String?
+  credentialUrl String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId])
 }
 
 model Session {
@@ -340,6 +362,7 @@ model Project {
   collegeId   String
   repoUrl     String?
   demoUrl     String?
+  mediaUrls   String[]           @default([])
   lookingFor  String?            // "Co-founders", "Designers", "Beta Testers"
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt

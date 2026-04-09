@@ -17,4 +17,14 @@ router.get('/u/:username', profileController.getPortfolioByUsername);
 router.get('/:userId', authenticate, profileController.getPublicProfile);
 router.put('/pulse', authenticate, profileController.updatePulse);
 
+// Career Sections
+router.post('/experience', authenticate, profileController.addExperience);
+router.delete('/experience/:id', authenticate, profileController.deleteExperience);
+
+router.post('/education', authenticate, profileController.addEducation);
+router.delete('/education/:id', authenticate, profileController.deleteEducation);
+
+router.post('/certification', authenticate, profileController.addCertification);
+router.delete('/certification/:id', authenticate, profileController.deleteCertification);
+
 module.exports = router;

@@ -169,9 +169,123 @@ const getPortfolioByUsername = async (username) => {
 };
 
 const updateProfile = async (userId, data) => {
-    return await prisma.user.update({
+    const updatedUser = await prisma.user.update({
         where: { id: userId },
         data
+    });
+    
+    // Recalculate strength after general update
+    const strength = await calculateProfileStrength(userId);
+    return await prisma.user.update({
+        where: { id: userId },
+        data: { completionRatio: strength }
+    });
+};
+
+const calculateProfileStrength = async (userId) => {
+    const user = await prisma.user.findUnique({
+        where: { id: userId },
+        include: {
+            experience: true,
+            education: true,
+            certifications: true,
+            projects: true
+        }
+    });
+
+    if (!user) return 0;
+
+    let score = 0;
+
+    // 1. Basic Info (20%)
+    if (user.avatar) score += 5;
+    if (user.bio && user.bio.length > 20) score += 10;
+    if (user.name) score += 5;
+
+    // 2. Target Strategy (10%)
+    if (user.targetRole) score += 5;
+    if (user.careerStage) score += 5;
+
+    // 3. Education (20%)
+    if (user.education.length > 0) score += 20;
+
+    // 4. Experience (20%)
+    if (user.experience.length > 0) score += 20;
+
+    // 5. Projects (20%)
+    if (user.projects.length > 0) score += 20;
+
+    // 6. Socials & Certs (10%)
+    if (user.githubUrl || user.linkedIn || user.websiteUrl) score += 5;
+    if (user.certifications.length > 0) score += 5;
+
+    return Math.min(score, 100);
+};
+
+// --- Experience CRUD ---
+const addExperience = async (userId, data) => {
+    const exp = await prisma.experience.create({
+        data: { ...data, userId }
+    });
+    await updateProfileStrength(userId);
+    return exp;
+};
+
+const updateExperience = async (userId, id, data) => {
+    return await prisma.experience.update({
+        where: { id, userId },
+        data
+    });
+};
+
+const deleteExperience = async (userId, id) => {
+    const result = await prisma.experience.delete({ where: { id, userId } });
+    await updateProfileStrength(userId);
+    return result;
+};
+
+// --- Education CRUD ---
+const addEducation = async (userId, data) => {
+    const edu = await prisma.education.create({
+        data: { ...data, userId }
+    });
+    await updateProfileStrength(userId);
+    return edu;
+};
+
+const updateEducation = async (userId, id, data) => {
+    return await prisma.education.update({
+        where: { id, userId },
+        data
+    });
+};
+
+const deleteEducation = async (userId, id) => {
+    const result = await prisma.education.delete({ where: { id, userId } });
+    await updateProfileStrength(userId);
+    return result;
+};
+
+// --- Certification CRUD ---
+const addCertification = async (userId, data) => {
+    const cert = await prisma.certification.create({
+        data: { ...data, userId }
+    });
+    await updateProfileStrength(userId);
+    return cert;
+};
+
+const deleteCertification = async (userId, id) => {
+    const result = await prisma.certification.delete({ where: { id, userId } });
+    await updateProfileStrength(userId);
+    return result;
+};
+
+const updateProfileStrength = async (userId) => {
+    const strength = await calculateProfileStrength(userId);
+    await prisma.user.update({
+        where: { id: userId },
+        data: { completionRatio: strength }
     });
 };
 
@@ -309,5 +423,14 @@ module.exports = {
     completeOnboarding,
     listPendingVerifications,
     verifyUser,
-    updatePulse
+    updatePulse,
+    calculateProfileStrength,
+    addExperience,
+    updateExperience,
+    deleteExperience,
+    addEducation,
+    updateEducation,
+    deleteEducation,
+    addCertification,
+    deleteCertification
 };
