@@ -81,6 +81,34 @@ export const CareerHubScreen = () => {
         </TouchableOpacity>
       </GlassContainer>
 
+      {/* 🔮 Discover Intelligence */}
+      <View className="mb-8">
+        <Text className="text-white font-black text-sm uppercase tracking-tighter mb-6 italic">Discovery Engine</Text>
+        <View className="gap-4">
+          <TouchableOpacity className="flex-row items-center gap-4 bg-primary/10 border border-primary/20 p-5 rounded-[2.5rem]">
+            <View className="p-3 bg-primary rounded-2xl">
+              <Icon name="Activity" size={20} color="white" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-white font-black text-sm uppercase tracking-tight">Nova Scout</Text>
+              <Text className="text-slate-400 text-[10px] font-bold">Parallel signal clustering analysis.</Text>
+            </View>
+            <Icon name="ChevronRight" size={16} color="#6366f1" />
+          </TouchableOpacity>
+
+          <TouchableOpacity className="flex-row items-center gap-4 bg-surface/40 border border-white/5 p-5 rounded-[2.5rem]">
+            <View className="p-3 bg-indigo-500 rounded-2xl">
+              <Icon name="Fingerprint" size={20} color="white" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-white font-black text-sm uppercase tracking-tight">Archetype Builder</Text>
+              <Text className="text-slate-400 text-[10px] font-bold">AI-driven career pathing signal.</Text>
+            </View>
+            <Icon name="ChevronRight" size={16} color="#475569" />
+          </TouchableOpacity>
+        </View>
+      </View>
+
       {/* 📋 Career Modular Blocks */}
       <View className="flex-row flex-wrap justify-between gap-y-4">
         {sections.map((section) => (

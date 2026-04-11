@@ -12,6 +12,7 @@ export interface User {
   targetRole?: string;
   careerStage?: string;
   completionRatio?: number;
+  interests?: string[];
 }
 
 export interface AuthState {

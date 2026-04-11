@@ -11,10 +11,14 @@ const api = axios.create({
     },
 });
 
+import { useAuthStore } from '../store/useAuthStore';
+
 // Request Interceptor: Add Auth Token and College ID
 api.interceptors.request.use((config) => {
-    // In Mobile, we will integrate this with our Zustand AuthStore
-    // For now, initializing the placeholder for token synchronization
+    const token = useAuthStore.getState().token;
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
 });
 

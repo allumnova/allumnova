@@ -6,12 +6,15 @@ import { Post } from '../types';
 import { FeedCard } from '../components/ui/FeedCard';
 import { GlassContainer } from '../components/ui/GlassContainer';
 
+import { CreatePostModal } from '../components/ui/CreatePostModal';
+
 export const SocialFeedScreen = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeType, setActiveType] = useState<string | null>(null);
   const [isGrowthMode, setIsGrowthMode] = useState(false);
   const [showPulseModal, setShowPulseModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [activePulse, setActivePulse] = useState('Focused');
 
   const postTypes = [
@@ -155,7 +158,21 @@ export const SocialFeedScreen = () => {
         <View className="h-24" />
       </ScrollView>
 
-      {/* 🧩 Centered Pulse Modal - REFINED */}
+      {/* ➕ Creation FAB */}
+      <TouchableOpacity 
+        onPress={() => setShowCreateModal(true)}
+        className="absolute bottom-32 right-6 w-16 h-16 bg-primary rounded-full items-center justify-center shadow-2xl shadow-primary/40 z-50"
+      >
+        <Icon name="Plus" size={24} color="white" strokeWidth={3} />
+      </TouchableOpacity>
+
+      {/* 🧩 Modals */}
+      <CreatePostModal 
+        visible={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onRefresh={fetchFeed}
+      />
+
       <Modal
         visible={showPulseModal}
         transparent
