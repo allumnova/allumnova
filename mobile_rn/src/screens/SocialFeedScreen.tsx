@@ -17,8 +17,7 @@ export const SocialFeedScreen = () => {
   const postTypes = [
     { id: null, label: 'All Feed', icon: 'Zap' },
     { id: 'opportunity', label: 'Opportunities', icon: 'Briefcase' },
-    { id: 'event', label: 'Events', icon: 'Calendar' },
-    { id: 'achievement', label: 'Achievements', icon: 'Trophy' }
+    { id: 'event', label: 'Events', icon: 'Calendar' }
   ] as const;
 
   const pulseOptions = [
