@@ -24,7 +24,6 @@ const LaunchpadPage = () => {
     const [isPostModalOpen, setIsPostModalOpen] = useState(false);
     const [showcaseProject, setShowcaseProject] = useState<any>(null);
     const location = useLocation();
-    const navigate = useNavigate();
 
     // Handle Elite Showcase gateway trigger from Profile
     useEffect(() => {
