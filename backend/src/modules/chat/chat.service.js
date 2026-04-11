@@ -1,5 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../../models');
 
 exports.listConversations = async (userId) => {
     const conversations = await prisma.conversation.findMany({
@@ -22,7 +21,6 @@ exports.listConversations = async (userId) => {
         orderBy: { updatedAt: 'desc' }
     });
 
-    // Flatten members into users array for frontend compatibility
     return conversations.map(conv => ({
         ...conv,
         users: conv.members.map(m => m.user)
@@ -30,16 +28,15 @@ exports.listConversations = async (userId) => {
 };
 
 exports.listMessages = async (conversationId, userId) => {
-    // Basic auth check: is user in conversation?
+    if (!conversationId || conversationId === 'null') return [];
+
     const conversation = await prisma.conversation.findUnique({
         where: { id: conversationId },
         include: { members: { select: { userId: true } } }
     });
 
-    if (!conversation) return [];
-
     if (!conversation || !conversation.members.some(m => m.userId === userId)) {
-        throw new Error('Unauthorized');
+        throw new Error('Unauthorized or conversation not found');
     }
 
     return await prisma.message.findMany({
@@ -50,11 +47,10 @@ exports.listMessages = async (conversationId, userId) => {
 };
 
 exports.createMessage = async (senderId, conversationId, receiverId, content, mediaUrl = null) => {
-    let activeConversationId = conversationId;
-    if (activeConversationId === 'null') activeConversationId = null;
+    let activeConversationId = (conversationId && conversationId !== 'null' && conversationId !== '') ? conversationId : null;
 
+    // If no active conversation, find existing 1-on-1 or create new
     if (!activeConversationId && receiverId) {
-        // Find existing or create new conversation
         const existing = await prisma.conversation.findFirst({
             where: {
                 AND: [
@@ -82,7 +78,7 @@ exports.createMessage = async (senderId, conversationId, receiverId, content, me
     }
 
     if (!activeConversationId) {
-        throw new Error('Conversation could not be identified or created');
+        throw new Error('Invalid conversation parameters: Need valid conversationId or receiverId');
     }
 
     const message = await prisma.message.create({

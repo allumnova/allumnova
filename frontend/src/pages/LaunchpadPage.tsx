@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Rocket, Plus, Search, Zap } from 'lucide-react';
 import { clsx } from 'clsx';
@@ -22,6 +23,17 @@ const LaunchpadPage = () => {
     const [activeTab, setActiveTab] = useState<'all' | 'trending' | 'workspace'>('all');
     const [isPostModalOpen, setIsPostModalOpen] = useState(false);
     const [showcaseProject, setShowcaseProject] = useState<any>(null);
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    // Handle Elite Showcase gateway trigger from Profile
+    useEffect(() => {
+        if (location.state?.openCreateModal) {
+            setIsModalOpen(true);
+            // Clear the state so it doesn't re-open on refresh
+            window.history.replaceState({}, document.title);
+        }
+    }, [location]);
 
     const fetchProjects = async (search?: string) => {
         if (!activeCollege) return;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { useCollege } from '../contexts/CollegeContext';
 import api from '../api/axios';
@@ -49,6 +49,7 @@ const ProfilePage = () => {
     const [showcaseProject, setShowcaseProject] = useState<any>(null);
     const [originalUsername, setOriginalUsername] = useState('');
     const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle');
+    const [searchParams] = useSearchParams();
     const navigate = useNavigate();
 
     const isOwnProfile = !userId || userId === 'me' || userId === currentUser?.id;
@@ -87,7 +88,13 @@ const ProfilePage = () => {
 
     useEffect(() => {
         fetchProfile();
-    }, [userId, currentUser]);
+        
+        // Sync tab from URL deep-links
+        const tab = searchParams.get('tab');
+        if (tab && ['posts', 'projects', 'about'].includes(tab)) {
+            setActiveTab(tab as any);
+        }
+    }, [userId, currentUser, searchParams]);
 
     // Username Availability Check
     useEffect(() => {
@@ -282,7 +289,7 @@ const ProfilePage = () => {
                     <motion.button 
                         whileHover={{ scale: 1.01 }}
                         whileTap={{ scale: 0.99 }}
-                        onClick={() => navigate('/launchpad/create')}
+                        onClick={() => navigate('/launchpad', { state: { openCreateModal: true } })}
                         className="w-full relative overflow-hidden rounded-[2.5rem] border border-blue-500/20 bg-gradient-to-br from-blue-600/10 via-indigo-600/5 to-transparent p-8 text-left group"
                     >
                         <div className="flex items-center justify-between">
