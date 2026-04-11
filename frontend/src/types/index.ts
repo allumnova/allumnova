@@ -32,6 +32,7 @@ export interface User {
     achievements?: string[];
     hobbies?: string[];
     resumeUrl?: string;
+    department?: string;
 }
 
 export interface AuthState {
@@ -90,6 +91,7 @@ export interface Post {
             status: 'pending' | 'accepted' | 'declined' | 'self';
             isSender?: boolean;
         } | null;
+        department?: string;
     };
     collegeId: string;
     metadata?: any;

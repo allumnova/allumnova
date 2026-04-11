@@ -183,7 +183,102 @@ const PostCard: React.FC<PostCardProps> = ({ post: initialPost, onAppreciate, on
         FileText,
         Rocket
     };
-    const IconComponent = icons[config.icon] || FileText;
+const getTierStyle = (tier: string) => {
+    switch (tier) {
+        case 'The Source': return 'bg-purple-500/10 text-purple-600 border-purple-500/20 dark:text-purple-400';
+        case 'Frequency': return 'bg-rose-500/10 text-rose-600 border-rose-500/20 dark:text-rose-400';
+        case 'Resonance': return 'bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400';
+        case 'Pulse': return 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400';
+        case 'Echo': 
+        default: return 'bg-slate-500/10 text-slate-600 border-slate-500/20 dark:text-slate-400';
+    }
+};
+
+const renderMetadata = (post: Post) => {
+    if (!post.metadata || post.post_type === 'general') return null;
+
+    const data = post.metadata as any;
+
+    if (post.post_type === 'opportunity') {
+        return (
+            <div className="grid grid-cols-2 gap-4 mt-2 mb-4 p-4 rounded-2xl bg-blue-500/5 border border-blue-500/10">
+                <div className="col-span-2 flex items-center gap-2">
+                    <Briefcase size={14} className="text-blue-500" />
+                    <span className="text-[11px] font-bold text-slate-700 dark:text-blue-100">{data.role} @ {data.company}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 capitalize">{data.location || 'Remote'}</span>
+                </div>
+                {data.applyLink && (
+                    <a href={data.applyLink} target="_blank" rel="noopener noreferrer" className="col-span-2 flex items-center justify-center gap-2 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-[11px] font-bold shadow-lg shadow-blue-500/20 transition-all">
+                        Apply Now
+                    </a>
+                )}
+            </div>
+        );
+    }
+
+    if (post.post_type === 'event') {
+        return (
+            <div className="flex flex-col gap-3 mt-2 mb-4 p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex flex-col items-center justify-center border border-emerald-500/10">
+                             <span className="text-[10px] font-bold text-emerald-500 uppercase">{new Date(data.eventDate).toLocaleString('default', { month: 'short' })}</span>
+                             <span className="text-sm font-black text-emerald-600 dark:text-emerald-400 leading-none">{new Date(data.eventDate || Date.now()).getDate()}</span>
+                        </div>
+                        <div>
+                            <h4 className="text-xs font-bold text-slate-800 dark:text-white leading-tight">{data.eventTitle}</h4>
+                            <p className="text-[10px] text-slate-500">{data.location}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (post.post_type === 'achievement') {
+        return (
+            <div className="mt-2 mb-4 p-4 rounded-2xl bg-amber-500/5 border border-amber-500/10 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center border-2 border-amber-500/20">
+                    <Trophy size={20} className="text-amber-500" />
+                </div>
+                <div className="flex-1">
+                    <h4 className="text-xs font-black text-amber-600 dark:text-amber-400 uppercase tracking-wider">{data.title}</h4>
+                    <p className="text-[10px] text-slate-500 font-medium">Issued by: {data.issuedBy}</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (post.post_type === 'showcase') {
+        const showcaseData = post.metadata || {};
+        return (
+            <div className="mt-2 mb-4 p-5 rounded-3xl bg-purple-500/5 border border-purple-500/10 flex flex-col gap-4">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-600 to-blue-600 flex items-center justify-center shadow-lg shadow-purple-500/20">
+                        <Rocket size={20} className="text-white" />
+                    </div>
+                    <div className="flex-1">
+                        <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">{showcaseData.title || 'New Initiative'}</h4>
+                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{showcaseData.lookingFor ? `Seeking: ${showcaseData.lookingFor}` : 'Project Showcase'}</p>
+                    </div>
+                </div>
+                <Link 
+                    to={`/profile/${post.author?.id}?tab=projects&highlight=${showcaseData.projectId}`}
+                    className="flex items-center justify-center gap-2 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] transition-all active:scale-95"
+                >
+                    Explore Project Record
+                    <ChevronRight size={14} />
+                </Link>
+            </div>
+        );
+    }
+
+    return null;
+};
+
+const IconComponent = icons[config.icon] || FileText;
 
     return (
         <motion.div
@@ -202,9 +297,9 @@ const PostCard: React.FC<PostCardProps> = ({ post: initialPost, onAppreciate, on
                 <span className="text-[10px] font-bold uppercase tracking-wider">{config.label}</span>
             </div>
 
-            <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                    <Link to={isAuthenticated && post.author ? `/profile/${post.author.id}` : '/login'} className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 p-[2px] hover:scale-105 transition-transform">
+            <div className="flex items-center justify-between mb-4 px-2">
+                <div className="flex items-center gap-4">
+                    <Link to={isAuthenticated && post.author ? `/profile/${post.author.id}` : '/login'} className="w-11 h-11 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 p-[2px] hover:scale-105 transition-transform">
                         <div className="w-full h-full rounded-full bg-slate-50 dark:bg-slate-950 flex items-center justify-center font-bold text-xs text-slate-900 dark:text-white transition-colors overflow-hidden">
                             {post.author?.avatar ? (
                                 <img src={post.author.avatar} alt="" className="w-full h-full object-cover" />
@@ -213,36 +308,28 @@ const PostCard: React.FC<PostCardProps> = ({ post: initialPost, onAppreciate, on
                     </Link>
                     <div>
                         <div className="flex items-center gap-2">
-                            <Link to={isAuthenticated && post.author ? `/profile/${post.author.id}` : '/login'} className="font-semibold text-slate-900 dark:text-white text-sm transition-colors hover:text-blue-500">{post.author?.name || 'Unknown'}</Link>
+                            <Link to={isAuthenticated && post.author ? `/profile/${post.author.id}` : '/login'} className="font-extrabold text-slate-900 dark:text-white text-[15px] transition-colors hover:text-blue-500">{post.author?.name || 'Unknown'}</Link>
                             {post.author?.is_verified && (
-                                <CheckCircle2 size={14} className="text-blue-500 fill-blue-500/10" />
+                                <CheckCircle2 size={13} className="text-blue-500 fill-blue-500/10" />
                             )}
-                            <div className={clsx(
-                                "flex items-center gap-1 px-2 py-0.5 rounded-full border text-[9px] font-bold uppercase tracking-wider",
-                                getTierStyle(post.author?.tierLevel || 'Echo')
-                            )}>
-                                {post.author?.tierLevel || 'Echo'} • {post.author?.reputationScore || 0}
-                            </div>
+                            <div className="w-1 h-1 rounded-full bg-slate-400/20" />
+                            <span className="text-blue-500 text-[9px] font-black uppercase tracking-widest">{post.author?.tierLevel || 'Echo'}</span>
                         </div>
-                        <p className="text-slate-400 text-[10px]">{new Date(post.createdAt).toLocaleDateString()}</p>
+                        <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-0.5 opacity-60">
+                            {post.author?.department || 'Institutional Member'}
+                        </p>
                     </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    <button 
-                        onClick={handleShare}
-                        className="text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
-                    >
+                
+                <div className="flex items-center gap-1">
+                    <button onClick={handleShare} className="p-2 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
                         <Share2 size={16} />
                     </button>
-                    
                     <div className="relative">
-                        <button 
-                            onClick={() => setShowMenu(!showMenu)}
-                            className="text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors p-1"
-                        >
+                        <button onClick={() => setShowMenu(!showMenu)} className="p-2 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
                             <MoreHorizontal size={18} />
                         </button>
-
+                        
                         <AnimatePresence>
                             {showMenu && (
                                 <>
@@ -251,29 +338,29 @@ const PostCard: React.FC<PostCardProps> = ({ post: initialPost, onAppreciate, on
                                         initial={{ opacity: 0, scale: 0.95, y: -10 }}
                                         animate={{ opacity: 1, scale: 1, y: 0 }}
                                         exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                                        className="absolute right-0 mt-2 w-40 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl z-20 overflow-hidden"
+                                        className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl z-20 overflow-hidden"
                                     >
                                         {isAuthor ? (
                                             <>
                                                 <button 
                                                     onClick={() => { setShowEditModal(true); setShowMenu(false); }}
-                                                    className="w-full flex items-center gap-2 px-4 py-3 text-[11px] font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors border-b border-slate-100 dark:border-white/5"
+                                                    className="w-full flex items-center gap-2 px-4 py-3 text-[11px] font-black uppercase tracking-widest text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors border-b border-slate-100 dark:border-white/5"
                                                 >
-                                                    <Edit2 size={14} /> Edit Post
+                                                    <Edit2 size={14} className="text-blue-500" /> Edit Update
                                                 </button>
                                                 <button 
                                                     onClick={handleDelete}
-                                                    className="w-full flex items-center gap-2 px-4 py-3 text-[11px] font-bold text-rose-500 hover:bg-rose-500/5 transition-colors"
+                                                    className="w-full flex items-center gap-2 px-4 py-3 text-[11px] font-black uppercase tracking-widest text-rose-500 hover:bg-rose-500/5 transition-colors"
                                                 >
-                                                    <Trash2 size={14} /> Delete Post
+                                                    <Trash2 size={14} /> Remove Record
                                                 </button>
                                             </>
                                         ) : (
                                             <button 
                                                 onClick={handleReport}
-                                                className="w-full flex items-center gap-2 px-4 py-3 text-[11px] font-bold text-amber-500 hover:bg-amber-500/5 transition-colors"
+                                                className="w-full flex items-center gap-2 px-4 py-3 text-[11px] font-black uppercase tracking-widest text-amber-500 hover:bg-amber-500/5 transition-colors"
                                             >
-                                                <AlertTriangle size={14} /> Report Post
+                                                <AlertTriangle size={14} /> Report Content
                                             </button>
                                         )}
                                     </motion.div>
@@ -286,41 +373,42 @@ const PostCard: React.FC<PostCardProps> = ({ post: initialPost, onAppreciate, on
 
             <div className="mb-4">
                 <p className={clsx(
-                    "text-slate-600 dark:text-slate-200 text-sm leading-relaxed whitespace-pre-wrap break-words overflow-hidden transition-colors mb-4",
-                    post.post_type === 'achievement' ? "text-base font-medium italic" : ""
+                    "text-slate-700 dark:text-slate-200 text-[15px] leading-relaxed whitespace-pre-wrap break-words px-2 mb-6",
+                    post.post_type === 'achievement' ? "italic font-medium" : ""
                 )}>
                     {post.content}
                 </p>
 
-                {/* Media Rendering */}
+                {/* Fluid Carousel - SWIPE BASED */}
                 {images.length > 0 && (
-                    <div className="relative rounded-2xl overflow-hidden mb-4 bg-slate-100 dark:bg-white/5 aspect-video">
-                        <AnimatePresence mode="wait">
-                            <motion.img
-                                key={images[activeImageIndex].url}
-                                src={images[activeImageIndex].url}
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                className="w-full h-full object-cover"
-                            />
-                        </AnimatePresence>
-
-                        {images.length > 1 && (
-                            <>
-                                <button onClick={prevImage} className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-all">
-                                    <ChevronLeft size={16} />
-                                </button>
-                                <button onClick={nextImage} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-all">
-                                    <ChevronRight size={16} />
-                                </button>
-                                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5">
-                                    {images.map((_, i) => (
-                                        <div key={i} className={clsx("w-1.5 h-1.5 rounded-full transition-all", i === activeImageIndex ? "bg-white w-4" : "bg-white/50")} />
-                                    ))}
+                    <div className="relative rounded-[2.5rem] overflow-hidden mb-4 bg-slate-100 dark:bg-white/5 aspect-video group">
+                        <motion.div 
+                            className="flex h-full"
+                            drag="x"
+                            onDragEnd={(e, { offset, velocity }) => {
+                                const swipe = offset.x;
+                                if (swipe < -100 && activeImageIndex < images.length - 1) setActiveImageIndex(i => i + 1);
+                                else if (swipe > 100 && activeImageIndex > 0) setActiveImageIndex(i => i - 1);
+                            }}
+                            animate={{ x: -activeImageIndex * 100 + "%" }}
+                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                        >
+                            {images.map((img) => (
+                                <div key={img.url} className="min-w-full h-full p-1">
+                                    <img
+                                        src={img.url}
+                                        className="w-full h-full object-cover rounded-[2.2rem]"
+                                        alt=""
+                                    />
                                 </div>
-                            </>
-                        )}
+                            ))}
+                        </motion.div>
+
+                        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
+                            {images.map((_, i) => (
+                                <div key={i} className={clsx("h-1 rounded-full transition-all duration-300", i === activeImageIndex ? "bg-white w-5" : "bg-white/30 w-1.5")} />
+                            ))}
+                        </div>
                     </div>
                 )}
 
@@ -488,99 +576,5 @@ const PostCard: React.FC<PostCardProps> = ({ post: initialPost, onAppreciate, on
     );
 };
 
-const renderMetadata = (post: Post) => {
-    if (!post.metadata || post.post_type === 'general') return null;
-
-    const data = post.metadata as any;
-
-    if (post.post_type === 'opportunity') {
-        return (
-            <div className="grid grid-cols-2 gap-4 mt-2 mb-4 p-4 rounded-2xl bg-blue-500/5 border border-blue-500/10">
-                <div className="col-span-2 flex items-center gap-2">
-                    <Briefcase size={14} className="text-blue-500" />
-                    <span className="text-[11px] font-bold text-slate-700 dark:text-blue-100">{data.role} @ {data.company}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <span className="text-[10px] text-slate-500 dark:text-slate-400 capitalize">{data.location || 'Remote'}</span>
-                </div>
-                {data.applyLink && (
-                    <a href={data.applyLink} target="_blank" rel="noopener noreferrer" className="col-span-2 flex items-center justify-center gap-2 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-[11px] font-bold shadow-lg shadow-blue-500/20 transition-all">
-                        Apply Now
-                    </a>
-                )}
-            </div>
-        );
-    }
-
-    if (post.post_type === 'event') {
-        return (
-            <div className="flex flex-col gap-3 mt-2 mb-4 p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex flex-col items-center justify-center border border-emerald-500/10">
-                             <span className="text-[10px] font-bold text-emerald-500 uppercase">{new Date(data.eventDate).toLocaleString('default', { month: 'short' })}</span>
-                             <span className="text-sm font-black text-emerald-600 dark:text-emerald-400 leading-none">{new Date(data.eventDate || Date.now()).getDate()}</span>
-                        </div>
-                        <div>
-                            <h4 className="text-xs font-bold text-slate-800 dark:text-white leading-tight">{data.eventTitle}</h4>
-                            <p className="text-[10px] text-slate-500">{data.location}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    if (post.post_type === 'achievement') {
-        return (
-            <div className="mt-2 mb-4 p-4 rounded-2xl bg-amber-500/5 border border-amber-500/10 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center border-2 border-amber-500/20">
-                    <Trophy size={20} className="text-amber-500" />
-                </div>
-                <div className="flex-1">
-                    <h4 className="text-xs font-black text-amber-600 dark:text-amber-400 uppercase tracking-wider">{data.title}</h4>
-                    <p className="text-[10px] text-slate-500 font-medium">Issued by: {data.issuedBy}</p>
-                </div>
-            </div>
-        );
-    }
-
-    if (post.post_type === 'showcase') {
-        const showcaseData = post.metadata || {};
-        return (
-            <div className="mt-2 mb-4 p-5 rounded-3xl bg-purple-500/5 border border-purple-500/10 flex flex-col gap-4">
-                <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-600 to-blue-600 flex items-center justify-center shadow-lg shadow-purple-500/20">
-                        <Rocket size={20} className="text-white" />
-                    </div>
-                    <div className="flex-1">
-                        <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">{showcaseData.title || 'New Initiative'}</h4>
-                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{showcaseData.lookingFor ? `Seeking: ${showcaseData.lookingFor}` : 'Project Showcase'}</p>
-                    </div>
-                </div>
-                <Link 
-                    to={`/profile/${post.author?.id}?tab=projects&highlight=${showcaseData.projectId}`}
-                    className="flex items-center justify-center gap-2 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] transition-all active:scale-95"
-                >
-                    Explore Project Record
-                    <ChevronRight size={14} />
-                </Link>
-            </div>
-        );
-    }
-
-    return null;
-};
-
-const getTierStyle = (tier: string) => {
-    switch (tier) {
-        case 'The Source': return 'bg-purple-500/10 text-purple-600 border-purple-500/20 dark:text-purple-400';
-        case 'Frequency': return 'bg-rose-500/10 text-rose-600 border-rose-500/20 dark:text-rose-400';
-        case 'Resonance': return 'bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400';
-        case 'Pulse': return 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400';
-        case 'Echo': 
-        default: return 'bg-slate-500/10 text-slate-600 border-slate-500/20 dark:text-slate-400';
-    }
-};
 
 export default PostCard;

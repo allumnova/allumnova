@@ -34,7 +34,7 @@ const FeedPage = () => {
         { id: null, label: 'All Feed', icon: <Zap size={16} /> },
         { id: 'opportunity', label: 'Opportunities', icon: <Briefcase size={16} /> },
         { id: 'event', label: 'Events', icon: <Calendar size={16} /> },
-        { id: 'achievement', label: 'Showcase', icon: <Trophy size={16} /> }
+        { id: 'achievement', label: 'Achievements', icon: <Trophy size={16} /> }
     ];
 
     const {

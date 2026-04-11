@@ -46,7 +46,7 @@ export const ProfileScreen = () => {
   ] as const;
 
   return (
-    <ScrollView className="flex-1 bg-background" contentContainerStyle={{ paddingBottom: 100 }}>
+    <ScrollView className="flex-1 bg-background" contentContainerStyle={{ paddingBottom: 120 }}>
       {/* 👤 Identity Header */}
       <View className="items-center pt-12 pb-8 px-6">
         <View className="w-32 h-32 rounded-[3.5rem] bg-primary p-1 shadow-2xl shadow-primary/20 mb-6">
@@ -77,11 +77,32 @@ export const ProfileScreen = () => {
         </Text>
 
         <View className="flex-row gap-4 mt-8 w-full">
-          <TouchableOpacity className="flex-1 bg-white py-4 rounded-2xl flex-row items-center justify-center gap-2">
+          <TouchableOpacity className="flex-1 bg-white py-4 rounded-2xl flex-row items-center justify-center gap-2 shadow-xl shadow-white/5">
             <Icon name="Settings" size={18} color="#0f172a" />
             <Text className="text-background font-black text-xs uppercase tracking-widest">Edit Profile</Text>
           </TouchableOpacity>
         </View>
+      </View>
+
+      {/* 🚀 Elite Showcase Gateway */}
+      <View className="px-5 mb-8">
+        <TouchableOpacity className="overflow-hidden rounded-[2.5rem]">
+          <GlassContainer className="p-8 border border-primary/20 bg-primary/10">
+            <View className="flex-row items-center justify-between">
+              <View className="flex-1 pr-4">
+                <Text className="text-white text-xl font-black tracking-tighter italic uppercase mb-2">Elite Showcase</Text>
+                <Text className="text-textSecondary text-[10px] font-medium leading-4">Launch your next institutional milestone. Get high-signal visibility.</Text>
+              </View>
+              <View className="w-16 h-16 bg-primary rounded-3xl items-center justify-center shadow-2xl shadow-primary/40">
+                <Icon name="Rocket" size={32} color="white" />
+              </View>
+            </View>
+            <View className="mt-6 flex-row items-center gap-2">
+              <Text className="text-primary text-[9px] font-black uppercase tracking-[0.2em]">Start your showcase journey</Text>
+              <Icon name="ArrowRight" size={10} color="#6366f1" />
+            </View>
+          </GlassContainer>
+        </TouchableOpacity>
       </View>
 
       {/* 📊 Professional Metrics */}

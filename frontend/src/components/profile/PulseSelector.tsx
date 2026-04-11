@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../api/axios';
@@ -73,56 +74,70 @@ const PulseSelector = () => {
                 {user?.pulse && <span className="text-[10px] font-bold uppercase tracking-tight hidden md:block">{user.pulse}</span>}
             </motion.button>
 
-            <AnimatePresence>
-                {isOpen && (
-                    <>
-                        <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                            className="absolute top-full right-0 mt-2 w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-[1.5rem] shadow-2xl p-4 z-50 overflow-hidden"
-                        >
-                            <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest">Set your Pulse</h3>
-                                {user?.pulse && (
-                                    <button onClick={clearPulse} className="p-1 hover:bg-slate-100 dark:hover:bg-white/5 rounded-md text-slate-400">
-                                        <X size={14} />
-                                    </button>
-                                )}
-                            </div>
+            {createPortal(
+                <AnimatePresence>
+                    {isOpen && (
+                        <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
+                            <motion.div 
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => setIsOpen(false)} 
+                                className="absolute inset-0 bg-slate-950/80 backdrop-blur-xl" 
+                            />
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                className="relative w-full max-w-sm bg-white dark:bg-slate-900 border border-white/10 rounded-[2.5rem] shadow-2xl p-8 overflow-hidden"
+                            >
+                                <div className="flex items-center justify-between mb-8">
+                                    <h3 className="text-xl font-black text-slate-900 dark:text-white italic uppercase tracking-tighter leading-none">Your Pulse</h3>
+                                    <div className="flex items-center gap-2">
+                                        {user?.pulse && (
+                                            <button onClick={clearPulse} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl text-slate-400 transition-colors">
+                                                <X size={16} />
+                                            </button>
+                                        )}
+                                        <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl text-slate-400 transition-colors">
+                                            <Zap size={16} />
+                                        </button>
+                                    </div>
+                                </div>
 
-                            <div className="grid grid-cols-2 gap-2">
-                                {PREDEFINED_PULSES.map((p) => (
-                                    <button
-                                        key={p.label}
-                                        disabled={loading}
-                                        onClick={() => handleUpdatePulse(p.label, p.emoji)}
-                                        className={clsx(
-                                            "flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-200 group relative",
-                                            user?.pulse === p.label
-                                                ? "bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400"
-                                                : "bg-slate-50 dark:bg-white/5 border-transparent hover:border-amber-500/20 text-slate-600 dark:text-slate-400"
-                                        )}
-                                    >
-                                        <span className="text-xl mb-1 group-hover:scale-125 transition-transform">{p.emoji}</span>
-                                        <span className="text-[9px] font-bold uppercase tracking-tighter">{p.label}</span>
-                                        {user?.pulse === p.label && (
-                                            <div className="absolute top-1 right-1">
-                                                <Check size={10} />
-                                            </div>
-                                        )}
-                                    </button>
-                                ))}
-                            </div>
-                            
-                            <div className="mt-4 pt-3 border-t border-slate-100 dark:border-white/5">
-                                <p className="text-[8px] text-slate-400 uppercase text-center font-bold tracking-widest">Broadcasts to your college instantly</p>
-                            </div>
-                        </motion.div>
-                    </>
-                )}
-            </AnimatePresence>
+                                <div className="grid grid-cols-2 gap-4">
+                                    {PREDEFINED_PULSES.map((p) => (
+                                        <button
+                                            key={p.label}
+                                            disabled={loading}
+                                            onClick={() => handleUpdatePulse(p.label, p.emoji)}
+                                            className={clsx(
+                                                "flex flex-col items-center justify-center p-6 rounded-[2rem] border transition-all duration-300 group relative",
+                                                user?.pulse === p.label
+                                                    ? "bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-500/20"
+                                                    : "bg-slate-50 dark:bg-white/5 border-transparent hover:border-blue-500/20 text-slate-600 dark:text-slate-400"
+                                            )}
+                                        >
+                                            <span className="text-3xl mb-3 group-hover:scale-110 transition-transform duration-500">{p.emoji}</span>
+                                            <span className="text-[10px] font-black uppercase tracking-widest">{p.label}</span>
+                                            {user?.pulse === p.label && (
+                                                <div className="absolute top-3 right-4">
+                                                    <Check size={14} className="text-white" />
+                                                </div>
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
+                                
+                                <div className="mt-8 pt-4 border-t border-slate-100 dark:border-white/5">
+                                    <p className="text-[8px] text-slate-400 uppercase text-center font-black tracking-[0.2em] opacity-60">Broadcasts to your institutional network instantly</p>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>,
+                document.body
+            )}
         </div>
     );
 };

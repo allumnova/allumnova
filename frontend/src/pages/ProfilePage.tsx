@@ -276,6 +276,36 @@ const ProfilePage = () => {
                 </div>
             </header>
 
+            {/* 🚀 Elite Showcase Gateway */}
+            {isOwnProfile && (
+                <div className="px-2">
+                    <motion.button 
+                        whileHover={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.99 }}
+                        onClick={() => navigate('/launchpad/create')}
+                        className="w-full relative overflow-hidden rounded-[2.5rem] border border-blue-500/20 bg-gradient-to-br from-blue-600/10 via-indigo-600/5 to-transparent p-8 text-left group"
+                    >
+                        <div className="flex items-center justify-between">
+                            <div className="flex-1 pr-6">
+                                <h3 className="text-xl font-black text-slate-900 dark:text-white italic uppercase tracking-tighter mb-2 group-hover:text-blue-500 transition-colors">Elite Showcase</h3>
+                                <p className="text-slate-500 dark:text-slate-400 text-xs font-medium leading-relaxed max-w-sm">
+                                    Launch your next institutional milestone. Secure high-signal visibility across the college ecosystem.
+                                </p>
+                            </div>
+                            <div className="w-16 h-16 bg-blue-600 rounded-[2rem] flex items-center justify-center shadow-2xl shadow-blue-600/40 group-hover:rotate-12 transition-transform duration-500">
+                                <Rocket size={32} className="text-white" />
+                            </div>
+                        </div>
+                        <div className="mt-6 flex items-center gap-2">
+                            <span className="text-blue-600 dark:text-blue-400 text-[10px] font-black uppercase tracking-[0.2em]">Start your showcase journey</span>
+                            <motion.div animate={{ x: [0, 5, 0] }} transition={{ repeat: Infinity, duration: 1.5 }}>
+                                <CheckCircle2 size={12} className="text-blue-500" />
+                            </motion.div>
+                        </div>
+                    </motion.button>
+                </div>
+            )}
+
             <div className="grid grid-cols-3 gap-2.5 md:gap-4">
                 {stats.map((stat) => (
                     <div key={stat.label} className="bg-white/60 dark:bg-slate-900/40 backdrop-blur-2xl border border-slate-200/50 dark:border-white/5 rounded-2xl md:rounded-[2rem] p-4 md:p-5 flex flex-col items-center gap-0.5 md:gap-1 shadow-sm transition-transform hover:-translate-y-1">
