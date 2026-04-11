@@ -95,12 +95,17 @@ export const FeedCard: React.FC<FeedCardProps> = ({
           ))}
         </ScrollView>
         
-        {/* Dot Indicators */}
-        <View className="flex-row justify-center gap-1.5 mt-3 mb-1">
+        {/* Dot Indicators - Morphing Nexus */}
+        <View className="flex-row justify-center gap-2 mt-4 mb-2">
           {images.map((_: any, idx: number) => (
             <View 
               key={idx} 
-              className={`h-1 rounded-full transition-all ${idx === activeIndex ? 'w-4 bg-primary' : 'w-1 bg-white/20'}`} 
+              style={{
+                width: idx === activeIndex ? 18 : 6,
+                backgroundColor: idx === activeIndex ? '#6366f1' : 'rgba(255,255,255,0.2)',
+                height: 4,
+                borderRadius: 2
+              }}
             />
           ))}
         </View>

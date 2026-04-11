@@ -51,13 +51,14 @@ export const CreatePostModal = ({ visible, onClose, onRefresh }: { visible: bool
               </TouchableOpacity>
             </View>
 
-            {/* 🎯 Type Nexus */}
-            <View className="flex-row justify-between gap-1.5 mb-8">
+            {/* 🎯 Type Nexus - 2x2 Grid for Symmetry */}
+            <View className="flex-row flex-wrap justify-between gap-y-4 mb-8">
               {postTypes.map((pt) => (
                 <TouchableOpacity 
                   key={pt.id}
                   onPress={() => setType(pt.id)}
-                  className={`flex-1 p-4 rounded-2xl items-center gap-2 ${type === pt.id ? 'bg-primary/20 border border-primary/40' : 'bg-white/5 border border-white/5'}`}
+                  style={{ width: '48%' }}
+                  className={`p-4 rounded-2xl items-center gap-2 ${type === pt.id ? 'bg-primary/20 border border-primary/40' : 'bg-white/5 border border-white/5'}`}
                 >
                   <Icon name={pt.icon as any} size={20} color={type === pt.id ? '#6366f1' : pt.color} />
                   <Text className={`text-[9px] font-black uppercase tracking-widest ${type === pt.id ? 'text-white' : 'text-slate-500'}`}>

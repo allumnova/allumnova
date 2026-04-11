@@ -404,9 +404,42 @@ const IconComponent = icons[config.icon] || FileText;
                             ))}
                         </motion.div>
 
-                        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
+                        {/* 🧭 Interaction Overlays - Arrow Navigators */}
+                        <div className="absolute inset-0 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                            <motion.button 
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.9 }}
+                                onClick={prevImage}
+                                className={clsx(
+                                    "w-10 h-10 rounded-full bg-white/20 backdrop-blur-md border border-white/20 flex items-center justify-center text-white pointer-events-auto",
+                                    activeImageIndex === 0 && "opacity-20 pointer-events-none"
+                                )}
+                            >
+                                <ChevronLeft size={20} />
+                            </motion.button>
+                            <motion.button 
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.9 }}
+                                onClick={nextImage}
+                                className={clsx(
+                                    "w-10 h-10 rounded-full bg-white/20 backdrop-blur-md border border-white/20 flex items-center justify-center text-white pointer-events-auto",
+                                    activeImageIndex === images.length - 1 && "opacity-20 pointer-events-none"
+                                )}
+                            >
+                                <ChevronRight size={20} />
+                            </motion.button>
+                        </div>
+
+                        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-1.5 px-3 py-1.5 bg-black/20 backdrop-blur-md rounded-full">
                             {images.map((_, i) => (
-                                <div key={i} className={clsx("h-1 rounded-full transition-all duration-300", i === activeImageIndex ? "bg-white w-5" : "bg-white/30 w-1.5")} />
+                                <motion.div 
+                                    key={i} 
+                                    animate={{ 
+                                        width: i === activeImageIndex ? 20 : 6,
+                                        backgroundColor: i === activeImageIndex ? "rgba(255, 255, 255, 1)" : "rgba(255, 255, 255, 0.4)"
+                                    }}
+                                    className="h-1.5 rounded-full" 
+                                />
                             ))}
                         </div>
                     </div>

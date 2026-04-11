@@ -124,7 +124,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose, onSu
                         </div>
 
                         {/* Type Selection */}
-                        <div className="grid grid-cols-4 gap-2 mb-8">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
                             {postTypes.map((pt) => {
                                 const Icon = pt.icon;
                                 return (

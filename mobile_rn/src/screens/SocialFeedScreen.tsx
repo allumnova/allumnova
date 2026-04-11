@@ -20,7 +20,8 @@ export const SocialFeedScreen = () => {
   const postTypes = [
     { id: null, label: 'All Feed', icon: 'Zap' },
     { id: 'opportunity', label: 'Opportunities', icon: 'Briefcase' },
-    { id: 'event', label: 'Events', icon: 'Calendar' }
+    { id: 'event', label: 'Events', icon: 'Calendar' },
+    { id: 'achievement', label: 'Achievements', icon: 'Award' }
   ] as const;
 
   const pulseOptions = [
@@ -115,20 +116,26 @@ export const SocialFeedScreen = () => {
           </View>
         </GlassContainer>
 
-        {/* 🧭 The Four Ovals */}
-        <View className="mb-8 flex-row flex-wrap gap-2">
-          {postTypes.map((type) => (
-            <TouchableOpacity 
-              key={type.label}
-              onPress={() => setActiveType(type.id)}
-              className={`flex-row items-center gap-2 px-6 py-3 rounded-full border ${activeType === type.id ? 'bg-primary border-primary shadow-xl shadow-primary/20' : 'bg-surface/50 border-white/5'}`}
-            >
-              <Icon name={type.icon as any} size={14} color={activeType === type.id ? 'white' : '#94a3b8'} />
-              <Text className={`text-[10px] font-black uppercase tracking-widest ${activeType === type.id ? 'text-white' : 'text-textSecondary'}`}>
-                {type.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
+        {/* 🧭 The Scrollable Nexus */}
+        <View className="mb-8">
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 12 }}
+          >
+            {postTypes.map((type) => (
+              <TouchableOpacity 
+                key={type.label}
+                onPress={() => setActiveType(type.id)}
+                className={`flex-row items-center gap-2 px-6 py-3 rounded-full border ${activeType === type.id ? 'bg-primary border-primary shadow-xl shadow-primary/20' : 'bg-surface/50 border-white/5'}`}
+              >
+                <Icon name={type.icon as any} size={14} color={activeType === type.id ? 'white' : '#94a3b8'} />
+                <Text className={`text-[10px] font-black uppercase tracking-widest ${activeType === type.id ? 'text-white' : 'text-textSecondary'}`}>
+                  {type.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
         </View>
 
         {/* ⚡ Social Feed */}
