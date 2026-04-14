@@ -1,5 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../../models');
 
 const getDashboardStats = async () => {
     const totalUsers = await prisma.user.count();
@@ -80,7 +79,6 @@ const getDashboardStats = async () => {
 };
 
 const getAllPosts = async (limit = 50, cursor) => {
-    const prisma = require('../../models');
     return await prisma.post.findMany({
         take: limit,
         orderBy: { createdAt: 'desc' },

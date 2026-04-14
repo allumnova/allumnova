@@ -1,6 +1,5 @@
 const adminService = require('./admin.service');
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../../models');
 
 const getDashboardStats = async (req, res) => {
     try {

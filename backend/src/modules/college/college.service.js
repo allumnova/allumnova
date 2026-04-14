@@ -38,6 +38,11 @@ const joinCollege = async (userId, collegeId, role = 'student') => {
     });
 };
 
+const respondToJoinRequest = async (mappingId, status) => {
+    const finalStatus = status.toUpperCase();
+    const membership = await prisma.collegeMembership.findUnique({ where: { id: mappingId } });
+    if (!membership) throw new Error('Membership request not found');
+
     if (finalStatus === 'APPROVED' || finalStatus === 'VERIFIED') {
         const approvedStatus = 'APPROVED';
         const membershipUpdate = await prisma.collegeMembership.update({
@@ -59,7 +64,11 @@ const joinCollege = async (userId, collegeId, role = 'student') => {
         return membershipUpdate;
     }
 
-    return membership;
+    return await prisma.collegeMembership.update({
+        where: { id: mappingId },
+        data: { status: finalStatus }
+    });
+};
 
 const getPendingRequests = async (collegeId) => {
     return await prisma.collegeMembership.findMany({
