@@ -3,9 +3,13 @@
   "compilerOptions": {
     "strict": true,
     "baseUrl": ".",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "typeRoots": ["./node_modules/@types"],
+    "types": ["nativewind/types"],
     "paths": {
       "@/*": ["./src/*"]
     },
-    "jsx": "react-native"
+    "jsx": "react-jsx"
   }
 }

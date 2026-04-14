@@ -107,10 +107,9 @@ const completeOnboarding = async (req, res) => {
 
 const getPendingVerifications = async (req, res) => {
     try {
-        if (req.user.role !== 'admin') {
-            return res.status(403).json({ success: false, error: 'Unauthorized' });
-        }
+        console.log(`[Admin] Fetching pending user verifications...`);
         const requests = await profileService.listPendingVerifications();
+        console.log(`[Admin] Retrieved ${requests.length} user verifications.`);
         res.status(200).json({ success: true, data: requests });
     } catch (error) {
         console.error('List Verifications Error:', error);
@@ -120,10 +119,8 @@ const getPendingVerifications = async (req, res) => {
 
 const verifyUser = async (req, res) => {
     try {
-        if (req.user.role !== 'admin') {
-            return res.status(403).json({ success: false, error: 'Unauthorized' });
-        }
         const { mappingId, status } = req.body;
+        console.log(`[Admin] Verifying user (Mapping: ${mappingId}) to Status: ${status}`);
         const result = await profileService.verifyUser(mappingId, status);
         res.status(200).json({ success: true, data: result });
     } catch (error) {

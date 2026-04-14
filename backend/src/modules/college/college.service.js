@@ -38,29 +38,28 @@ const joinCollege = async (userId, collegeId, role = 'student') => {
     });
 };
 
-const respondToJoinRequest = async (mappingId, status) => {
-    const finalStatus = status.toUpperCase();
-    const membership = await prisma.collegeMembership.update({
-        where: { id: mappingId },
-        data: { status: finalStatus },
-        include: { user: true, college: true }
-    });
+    if (finalStatus === 'APPROVED' || finalStatus === 'VERIFIED') {
+        const approvedStatus = 'APPROVED';
+        const membershipUpdate = await prisma.collegeMembership.update({
+            where: { id: mappingId },
+            data: { status: approvedStatus },
+            include: { user: true, college: true }
+        });
 
-    if (finalStatus === 'VERIFIED') {
         // Elevate user's global verification status
         await prisma.user.update({
-            where: { id: membership.userId },
+            where: { id: membershipUpdate.userId },
             data: { 
                 is_verified: true,
                 verificationLevel: 'VERIFIED'
             }
         });
-        await emailService.sendUserApproval(membership.user.email, membership.college.name);
-        await emailService.sendWelcomeEmail(membership.user.email, membership.user.name);
+        await emailService.sendUserApproval(membershipUpdate.user.email, membershipUpdate.college.name);
+        await emailService.sendWelcomeEmail(membershipUpdate.user.email, membershipUpdate.user.name);
+        return membershipUpdate;
     }
 
     return membership;
-};
 
 const getPendingRequests = async (collegeId) => {
     return await prisma.collegeMembership.findMany({

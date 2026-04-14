@@ -1,34 +1,66 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Image, TextInput } from 'react-native';
 import { Icon } from '../components/ui/Icon';
 import api from '../api/axios';
 import { useAuthStore } from '../store/useAuthStore';
 import { GlassContainer } from '../components/ui/GlassContainer';
+import { MentorshipRequestModal } from '../components/ui/MentorshipRequestModal';
+import { User } from '../types';
+
+interface MentorshipRequest {
+  id: string;
+  status: 'pending' | 'accepted' | 'declined';
+  message: string;
+  createdAt: string;
+  student?: User;
+  alumni?: User;
+}
+
+interface Mentor {
+  id: string;
+  name: string;
+  avatar?: string;
+  department?: string;
+  tierLevel?: string;
+  reputationScore: number;
+  bio?: string;
+}
+
+type MentorshipTab = 'explore' | 'active';
 
 export const MentorshipScreen = () => {
   const { user } = useAuthStore();
-  const [requests, setRequests] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<MentorshipTab>(user?.role === 'ALUMNI' ? 'active' : 'explore');
+  const [items, setItems] = useState<(Mentor | MentorshipRequest)[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedAlumni, setSelectedAlumni] = useState<{ id: string, name: string } | null>(null);
 
-  const fetchRequests = async () => {
+  const fetchData = async () => {
+    setLoading(true);
     try {
-      const res = await api.get('/mentorship/requests');
-      setRequests(res.data || []);
+      if (activeTab === 'explore') {
+        const res = await api.get<Mentor[]>('/mentorship/mentors');
+        setItems(res.data || []);
+      } else {
+        const res = await api.get<MentorshipRequest[]>('/mentorship/requests');
+        setItems(res.data || []);
+      }
     } catch (error) {
-      console.error('[Mentorship] Fetch Error:', error);
+      console.error('[Mentorship] Sync Error:', error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchRequests();
-  }, []);
+    fetchData();
+  }, [activeTab]);
 
   const handleStatusUpdate = async (requestId: string, status: 'accepted' | 'declined') => {
     try {
       await api.patch('/mentorship/status', { requestId, status });
-      fetchRequests();
+      fetchData();
     } catch (error) {
       console.error('[Mentorship] Update Error:', error);
     }
@@ -36,95 +68,156 @@ export const MentorshipScreen = () => {
 
   const isAlumni = user?.role === 'ALUMNI';
 
-  return (
-    <ScrollView className="flex-1 bg-background" contentContainerStyle={{ padding: 20 }}>
-      <View className="flex-row items-center gap-4 mb-8">
-        <View className="p-3 bg-primary/20 rounded-2xl">
-          <Icon name="Award" size={24} color="#6366f1" />
+  const renderMentorCard = (mentor: Mentor) => (
+    <GlassContainer key={mentor.id} className="p-6 mb-4">
+      <View className="flex-row items-center gap-4 mb-4">
+        <View className="w-16 h-16 rounded-2xl bg-surface overflow-hidden border border-white/10">
+          <Image 
+            source={{ uri: mentor.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${mentor.name}` }}
+            className="w-full h-full"
+          />
         </View>
-        <Text className="text-3xl font-black text-white italic uppercase tracking-tighter">
-          Mentorship
-        </Text>
+        <View className="flex-1">
+          <Text className="text-white font-black text-sm uppercase tracking-tight">{mentor.name}</Text>
+          <Text className="text-primary text-[10px] font-black uppercase tracking-widest mt-1">
+            {mentor.department || 'Institutional Member'} • {mentor.tierLevel || 'Elite'}
+          </Text>
+        </View>
+        <View className="items-center px-3 py-1 bg-white/5 rounded-xl border border-white/5">
+            <Text className="text-white text-[10px] font-black">{mentor.reputationScore}</Text>
+            <Text className="text-slate-500 text-[8px] uppercase">Score</Text>
+        </View>
       </View>
 
-      <Text className="text-textSecondary font-medium leading-5 mb-8">
-        {isAlumni 
-          ? "Guide the next generation of innovators in your department." 
-          : "Connect with industry-tested alumni to accelerate your path."}
+      <Text className="text-slate-400 text-xs leading-5 mb-6" numberOfLines={2}>
+        {mentor.bio || "Available for institutional guidance and career trajectory optimization."}
       </Text>
 
-      {loading ? (
-        <ActivityIndicator color="#6366f1" size="large" className="mt-20" />
-      ) : requests.length > 0 ? (
-        <View className="gap-6">
-          {requests.map((req) => (
-            <GlassContainer key={req.id} className="p-6">
-              <View className="flex-row items-center gap-4 mb-6">
-                <View className="w-14 h-14 rounded-2xl bg-surface overflow-hidden border border-white/10">
-                  <Image 
-                    source={{ uri: (isAlumni ? req.student?.avatar : req.alumni?.avatar) || `https://api.dicebear.com/7.x/avataaars/svg?seed=${isAlumni ? req.student?.name : req.alumni?.name}` }}
-                    className="w-full h-full"
-                  />
-                </View>
-                <View>
-                  <Text className="text-white font-black text-sm uppercase tracking-tight">
-                    {isAlumni ? req.student?.name : req.alumni?.name}
-                  </Text>
-                  <Text className="text-primary text-[10px] font-black uppercase tracking-widest mt-1">
-                    {isAlumni ? req.student?.department : req.alumni?.department}
-                  </Text>
-                </View>
-              </View>
+      <TouchableOpacity 
+        onPress={() => setSelectedAlumni({ id: mentor.id, name: mentor.name })}
+        className="bg-white py-4 rounded-xl items-center flex-row justify-center gap-2"
+      >
+        <Text className="text-background font-black text-[10px] uppercase tracking-widest">Request Mentorship</Text>
+        <Icon name="ArrowRight" size={14} color="#0f172a" />
+      </TouchableOpacity>
+    </GlassContainer>
+  );
 
-              <View className="bg-background/40 p-4 rounded-2xl border border-white/5 mb-6">
-                <Text className="text-slate-400 text-xs font-semibold italic">
-                  "{req.message}"
-                </Text>
-              </View>
-
-              <View className="flex-row items-center justify-between">
-                <View className={`px-3 py-1.5 rounded-full border ${
-                  req.status === 'pending' ? 'bg-amber-500/10 border-amber-500/20' :
-                  req.status === 'accepted' ? 'bg-emerald-500/10 border-emerald-500/20' :
-                  'bg-rose-500/10 border-rose-500/20'
-                }`}>
-                  <Text className={`text-[9px] font-black uppercase tracking-widest ${
-                    req.status === 'pending' ? 'text-amber-500' :
-                    req.status === 'accepted' ? 'text-emerald-500' :
-                    'text-rose-500'
-                  }`}>
-                    {req.status}
-                  </Text>
-                </View>
-
-                {req.status === 'pending' && isAlumni && (
-                  <View className="flex-row gap-2">
-                    <TouchableOpacity 
-                      onPress={() => handleStatusUpdate(req.id, 'accepted')}
-                      className="bg-primary px-4 py-2 rounded-xl"
-                    >
-                      <Text className="text-white text-[10px] font-black uppercase">Accept</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity 
-                      onPress={() => handleStatusUpdate(req.id, 'declined')}
-                      className="bg-surface px-4 py-2 rounded-xl"
-                    >
-                      <Text className="text-slate-400 text-[10px] font-black uppercase">Decline</Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
-              </View>
-            </GlassContainer>
-          ))}
+  const renderRequestCard = (req: MentorshipRequest) => (
+    <GlassContainer key={req.id} className="p-6 mb-4">
+      <View className="flex-row items-center gap-4 mb-4">
+        <View className="w-12 h-12 rounded-xl bg-surface overflow-hidden border border-white/10">
+          <Image 
+            source={{ uri: (isAlumni ? req.student?.avatar : req.alumni?.avatar) || `https://api.dicebear.com/7.x/avataaars/svg?seed=${isAlumni ? req.student?.name : req.alumni?.name}` }}
+            className="w-full h-full"
+          />
         </View>
-      ) : (
-        <View className="py-20 items-center opacity-30">
-          <Icon name="Target" size={64} color="#94a3b8" strokeWidth={1} />
-          <Text className="text-white font-bold mt-4 text-center">No active tracks found</Text>
+        <View className="flex-1">
+          <Text className="text-white font-black text-sm uppercase tracking-tight">
+            {isAlumni ? req.student?.name : req.alumni?.name}
+          </Text>
+          <Text className="text-slate-500 text-[9px] font-black uppercase tracking-widest mt-0.5">
+            {req.status} • {new Date(req.createdAt).toLocaleDateString()}
+          </Text>
+        </View>
+      </View>
+
+      <View className="bg-background/40 p-4 rounded-xl border border-white/5 mb-4">
+        <Text className="text-slate-400 text-xs italic font-medium">"{req.message}"</Text>
+      </View>
+
+      {req.status === 'pending' && isAlumni && (
+        <View className="flex-row gap-2">
+          <TouchableOpacity 
+            onPress={() => handleStatusUpdate(req.id, 'accepted')}
+            className="flex-1 bg-emerald-500/10 border border-emerald-500/20 py-3 rounded-xl items-center"
+          >
+            <Text className="text-emerald-500 text-[10px] font-black uppercase">Accept</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            onPress={() => handleStatusUpdate(req.id, 'declined')}
+            className="flex-1 bg-rose-500/10 border border-rose-500/20 py-3 rounded-xl items-center"
+          >
+            <Text className="text-rose-500 text-[10px] font-black uppercase">Decline</Text>
+          </TouchableOpacity>
         </View>
       )}
+    </GlassContainer>
+  );
 
-      <View className="h-20" />
-    </ScrollView>
+  return (
+    <View className="flex-1 bg-background">
+      <ScrollView className="flex-1 px-8 pt-12" contentContainerStyle={{ paddingBottom: 150 }}>
+        {/* 🧭 Stage Navigator */}
+        <View className="flex-row items-center justify-between mb-8">
+            <View>
+                <Text className="text-3xl font-black text-white italic uppercase tracking-tighter">Mentorship</Text>
+                <Text className="text-slate-500 text-[10px] font-black uppercase tracking-widest mt-1">Growth Protocol</Text>
+            </View>
+            <View className="w-12 h-12 bg-primary/10 rounded-2xl items-center justify-center">
+                <Icon name="Award" size={24} color="#6366f1" />
+            </View>
+        </View>
+
+        <View className="flex-row bg-white/5 rounded-2xl p-1 mb-8">
+            {(!isAlumni) && (
+                <TouchableOpacity 
+                    onPress={() => setActiveTab('explore')}
+                    className={`flex-1 py-3.5 items-center rounded-xl ${activeTab === 'explore' ? 'bg-white' : ''}`}
+                >
+                    <Text className={`text-[10px] font-black uppercase tracking-widest ${activeTab === 'explore' ? 'text-background' : 'text-slate-500'}`}>Explore</Text>
+                </TouchableOpacity>
+            )}
+            <TouchableOpacity 
+                onPress={() => setActiveTab('active')}
+                className={`flex-1 py-3.5 items-center rounded-xl ${activeTab === 'active' ? 'bg-white' : ''}`}
+            >
+                <Text className={`text-[10px] font-black uppercase tracking-widest ${activeTab === 'active' ? 'text-background' : 'text-slate-500'}`}>
+                    {isAlumni ? 'Incoming' : 'My Requests'}
+                </Text>
+            </TouchableOpacity>
+        </View>
+
+        {activeTab === 'explore' && (
+            <View className="mb-8 relative">
+                <View className="absolute left-4 top-4 z-10">
+                    <Icon name="Search" size={16} color="#475569" />
+                </View>
+                <TextInput 
+                    placeholder="Search industry mentors..."
+                    placeholderTextColor="#475569"
+                    className="bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-6 text-white font-bold text-sm"
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                />
+            </View>
+        )}
+
+        {loading ? (
+          <ActivityIndicator color="#6366f1" size="large" className="mt-20" />
+        ) : items.length > 0 ? (
+          <View>
+            {activeTab === 'explore' 
+                ? items.filter(m => m.name.toLowerCase().includes(searchQuery.toLowerCase())).map(renderMentorCard) 
+                : items.map(renderRequestCard)}
+          </View>
+        ) : (
+          <View className="py-20 items-center opacity-30">
+            <Icon name="Target" size={64} color="#94a3b8" strokeWidth={1} />
+            <Text className="text-white font-bold mt-4 text-center">No active tracks found</Text>
+          </View>
+        )}
+      </ScrollView>
+
+      {selectedAlumni && (
+        <MentorshipRequestModal 
+            visible={!!selectedAlumni}
+            onClose={() => setSelectedAlumni(null)}
+            alumniId={selectedAlumni.id}
+            alumniName={selectedAlumni.name}
+            onSuccess={fetchData}
+        />
+      )}
+    </View>
   );
 };

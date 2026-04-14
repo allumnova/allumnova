@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Switch, Modal } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Switch, Modal, Image } from 'react-native';
 import { Icon } from '../components/ui/Icon';
 import api from '../api/axios';
 import { Post } from '../types';
@@ -7,6 +7,7 @@ import { FeedCard } from '../components/ui/FeedCard';
 import { GlassContainer } from '../components/ui/GlassContainer';
 
 import { CreatePostModal } from '../components/ui/CreatePostModal';
+import { CommentsModal } from '../components/ui/CommentsModal';
 
 export const SocialFeedScreen = () => {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -15,6 +16,8 @@ export const SocialFeedScreen = () => {
   const [isGrowthMode, setIsGrowthMode] = useState(false);
   const [showPulseModal, setShowPulseModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showCommentsModal, setShowCommentsModal] = useState(false);
+  const [activePostId, setActivePostId] = useState<string | null>(null);
   const [activePulse, setActivePulse] = useState('Focused');
 
   const postTypes = [
@@ -56,7 +59,7 @@ export const SocialFeedScreen = () => {
   }, [activeType, isGrowthMode]);
 
   const handleInteraction = async (postId: string, type: 'appreciate' | 'boost') => {
-    setPosts(current => current.map(p => {
+    setPosts((current: Post[]) => current.map((p: Post) => {
       if (p.id === postId) {
         if (type === 'appreciate') {
           return {
@@ -116,6 +119,30 @@ export const SocialFeedScreen = () => {
           </View>
         </GlassContainer>
 
+        {/* 🔮 Campus Pulse Banner */}
+        <View className="mb-8">
+            <View className="flex-row items-center justify-between mb-4 px-2">
+                <Text className="text-[10px] font-black tracking-[0.3em] uppercase text-slate-500">Institutional Pulse</Text>
+                <View className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
+                {pulseOptions.map((pulse, idx) => (
+                    <TouchableOpacity key={idx} className="bg-white/5 border border-white/5 px-6 py-4 rounded-[2rem] mr-3 flex-row items-center gap-3">
+                        <View className="w-8 h-8 rounded-full bg-surface items-center justify-center overflow-hidden border border-white/10">
+                            <Image 
+                                source={{ uri: `https://api.dicebear.com/7.x/avataaars/svg?seed=${pulse.name}` }}
+                                className="w-full h-full"
+                            />
+                        </View>
+                        <View>
+                            <Text className="text-white text-[10px] font-bold">Vipranshu is {pulse.name}</Text>
+                            <Text className="text-slate-500 text-[8px] uppercase font-black tracking-widest mt-0.5">2m ago</Text>
+                        </View>
+                    </TouchableOpacity>
+                ))}
+            </ScrollView>
+        </View>
+
         {/* 🧭 The Scrollable Nexus */}
         <View className="mb-8">
           <ScrollView 
@@ -145,13 +172,16 @@ export const SocialFeedScreen = () => {
           </View>
         ) : posts.length > 0 ? (
           <View>
-            {posts.map(post => (
+            {posts.map((post: Post) => (
               <FeedCard 
                 key={post.id} 
                 post={post}
-                onAppreciate={(id) => handleInteraction(id, 'appreciate')}
-                onBoost={(id) => handleInteraction(id, 'boost')}
-                onDiscuss={() => {}}
+                onAppreciate={(id: string) => handleInteraction(id, 'appreciate')}
+                onBoost={(id: string) => handleInteraction(id, 'boost')}
+                onDiscuss={(id: string) => {
+                   setActivePostId(id);
+                   setShowCommentsModal(true);
+                }}
               />
             ))}
           </View>
@@ -178,6 +208,12 @@ export const SocialFeedScreen = () => {
         visible={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onRefresh={fetchFeed}
+      />
+
+      <CommentsModal 
+        visible={showCommentsModal}
+        onClose={() => setShowCommentsModal(false)}
+        postId={activePostId || ''}
       />
 
       <Modal

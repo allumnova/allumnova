@@ -4,10 +4,7 @@ const prisma = new PrismaClient();
 
 const getDashboardStats = async (req, res) => {
     try {
-        if (req.user.role !== 'admin') {
-            return res.status(403).json({ success: false, error: 'Unauthorized: Admin access required.' });
-        }
-
+        console.log(`[Admin] Fetching dashboard stats for user: ${req.user.email}`);
         const data = await adminService.getDashboardStats();
         res.status(200).json({ success: true, data });
     } catch (error) {
@@ -18,9 +15,7 @@ const getDashboardStats = async (req, res) => {
 
 const getUsersList = async (req, res) => {
     try {
-        if (req.user.role !== 'admin') {
-            return res.status(403).json({ success: false, error: 'Unauthorized' });
-        }
+        console.log(`[Admin] Fetching user list...`);
 
         const { search = '', page = 1, limit = 10, role } = req.query;
         const skip = (parseInt(page) - 1) * parseInt(limit);

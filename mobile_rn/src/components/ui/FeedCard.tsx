@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Image, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
+import { View, Text, Image, TouchableOpacity, ScrollView, Dimensions, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import { Icon } from './Icon';
 import { GlassContainer } from './GlassContainer';
 import { Post } from '../../types';
@@ -13,34 +13,97 @@ interface FeedCardProps {
   onDiscuss: (id: string) => void;
 }
 
-export const FeedCard: React.FC<FeedCardProps> = ({ 
+const typeConfigs: Record<string, any> = {
+  opportunity: { label: 'Opportunity', color: '#60a5fa', icon: 'Briefcase', bgColor: 'bg-blue-500/10', border: 'border-blue-500/20' },
+  event: { label: 'Event', color: '#10b981', icon: 'Calendar', bgColor: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
+  achievement: { label: 'Achievement', color: '#f59e0b', icon: 'Trophy', bgColor: 'bg-amber-500/10', border: 'border-amber-500/20' },
+  showcase: { label: 'Showcase', color: '#c084fc', icon: 'Rocket', bgColor: 'bg-purple-500/10', border: 'border-purple-500/20' },
+  general: { label: 'Thought', color: '#94a3b8', icon: 'Zap', bgColor: 'bg-slate-500/10', border: 'border-slate-500/20' }
+};
+
+export const FeedCard = ({ 
   post, 
   onAppreciate, 
   onBoost, 
   onDiscuss 
-}) => {
+}: FeedCardProps) => {
   const [activeIndex, setActiveIndex] = useState(0);
+  const config = typeConfigs[post.type] || typeConfigs.general;
 
-  const typeIcons: any = {
-    general: { name: 'Zap', color: '#6366f1' },
-    opportunity: { name: 'Briefcase', color: '#10b981' },
-    event: { name: 'Calendar', color: '#f59e0b' },
-    achievement: { name: 'Trophy', color: '#8b5cf6' },
+  const renderMetadata = () => {
+    const data = post.metadata;
+    if (!data || post.type === 'general') return null;
+
+    if (post.type === 'opportunity') {
+      return (
+        <View className="mt-4 p-5 rounded-3xl bg-blue-500/5 border border-blue-500/10">
+          <View className="flex-row items-center gap-3 mb-4">
+            <View className="w-10 h-10 rounded-2xl bg-blue-500/20 items-center justify-center">
+              <Icon name="Briefcase" size={18} color="#60a5fa" />
+            </View>
+            <View>
+              <Text className="text-white text-xs font-black uppercase tracking-tight">{data.role}</Text>
+              <Text className="text-blue-400 text-[10px] font-bold">@ {data.company}</Text>
+            </View>
+          </View>
+          <TouchableOpacity className="w-full bg-blue-600 py-3 rounded-2xl items-center shadow-lg shadow-blue-500/20">
+            <Text className="text-white font-black text-[10px] uppercase tracking-widest">Apply Now</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    if (post.type === 'event') {
+      return (
+        <View className="mt-4 p-5 rounded-3xl bg-emerald-500/5 border border-emerald-500/10 flex-row items-center gap-4">
+          <View className="w-12 h-14 rounded-2xl bg-emerald-500/20 items-center justify-center border border-emerald-500/10">
+             <Text className="text-[10px] font-black text-emerald-500 uppercase">
+               {new Date(data.eventDate || Date.now()).toLocaleString('default', { month: 'short' })}
+             </Text>
+             <Text className="text-xl font-black text-emerald-400 leading-none">
+               {new Date(data.eventDate || Date.now()).getDate()}
+             </Text>
+          </View>
+          <View className="flex-1">
+            <Text className="text-white text-xs font-black uppercase tracking-tight">{data.eventTitle}</Text>
+            <View className="flex-row items-center gap-1.5 mt-1">
+              <Icon name="MapPin" size={10} color="#94a3b8" />
+              <Text className="text-textSecondary text-[10px] font-bold">{data.location || 'Institutional Hub'}</Text>
+            </View>
+          </View>
+        </View>
+      );
+    }
+
+    if (post.type === 'achievement') {
+      return (
+        <View className="mt-4 p-5 rounded-3xl bg-amber-500/5 border border-amber-500/10 flex-row items-center gap-4">
+          <View className="w-12 h-12 rounded-full bg-amber-500/20 items-center justify-center border-2 border-amber-500/20">
+            <Icon name="Trophy" size={20} color="#f59e0b" />
+          </View>
+          <View className="flex-1">
+            <Text className="text-amber-500 text-xs font-black uppercase tracking-wider">{data.title}</Text>
+            <Text className="text-textSecondary text-[10px] font-bold opacity-60">Issued by: {data.issuedBy}</Text>
+          </View>
+        </View>
+      );
+    }
+
+    return null;
   };
 
-  const activeIcon = typeIcons[post.type] || typeIcons.general;
-
-  // Simulated Elite Images for Fluid Carousel
-  const images = post.metadata?.images || [
-    `https://picsum.photos/seed/${post.id}1/800/600`,
-    `https://picsum.photos/seed/${post.id}2/800/600`,
-    `https://picsum.photos/seed/${post.id}3/800/600`
-  ];
+  const images = post.metadata?.media?.filter((m: any) => m.type === 'image') || [];
 
   return (
-    <GlassContainer className="p-0 mb-6 overflow-hidden">
-      {/* 👤 Elite Header - DE-CLUTTERED */}
-      <View className="px-6 py-5 flex-row items-center justify-between">
+    <GlassContainer className={`p-0 mb-6 overflow-hidden border ${config.border}`}>
+      {/* 🎖️ Type Ribbon */}
+      <View className={`absolute top-0 right-8 px-4 py-1 rounded-b-xl ${config.bgColor} flex-row items-center gap-1.5 border-x border-b ${config.border} z-20`}>
+        <Icon name={config.icon} size={10} color={config.color} />
+        <Text className="text-[9px] font-black uppercase tracking-wider" style={{ color: config.color }}>{config.label}</Text>
+      </View>
+
+      {/* 👤 Elite Header */}
+      <View className="px-6 pt-7 pb-5 flex-row items-center justify-between">
         <View className="flex-row items-center gap-3">
           <View className="w-11 h-11 rounded-full bg-primary/20 p-0.5 shadow-sm shadow-primary/20">
             <Image 
@@ -70,46 +133,48 @@ export const FeedCard: React.FC<FeedCardProps> = ({
         <Text className="text-white/90 text-[15px] leading-6 font-medium">
           {post.content}
         </Text>
+        {renderMetadata()}
       </View>
 
       {/* 🖼️ Fluid Carousel Nexus */}
-      <View className="relative">
-        <ScrollView 
-          horizontal 
-          pagingEnabled 
-          showsHorizontalScrollIndicator={false}
-          onScroll={(e) => {
-            const x = e.nativeEvent.contentOffset.x;
-            setActiveIndex(Math.round(x / (SCREEN_WIDTH - 40))); // Approx width
-          }}
-          scrollEventThrottle={16}
-        >
-          {images.map((img: string, idx: number) => (
-            <View key={idx} style={{ width: SCREEN_WIDTH - 50 }} className="h-64 px-1">
-              <Image 
-                source={{ uri: img }} 
-                className="w-full h-full rounded-[2rem] bg-surface"
-                resizeMode="cover"
+      {images.length > 0 && (
+        <View className="relative mt-2">
+          <ScrollView 
+            horizontal 
+            pagingEnabled 
+            showsHorizontalScrollIndicator={false}
+            onScroll={(e: NativeSyntheticEvent<NativeScrollEvent>) => {
+              const x = e.nativeEvent.contentOffset.x;
+              setActiveIndex(Math.round(x / (SCREEN_WIDTH - 40)));
+            }}
+            scrollEventThrottle={16}
+          >
+            {images.map((img: any, idx: number) => (
+              <View key={idx} style={{ width: SCREEN_WIDTH - 50 }} className="h-64 px-1">
+                <Image 
+                  source={{ uri: img.url }} 
+                  className="w-full h-full rounded-[2.5rem] bg-surface"
+                  resizeMode="cover"
+                />
+              </View>
+            ))}
+          </ScrollView>
+          
+          <View className="flex-row justify-center gap-2 mt-4 mb-4">
+            {images.map((_: any, idx: number) => (
+              <View 
+                key={idx} 
+                style={{
+                  width: idx === activeIndex ? 18 : 6,
+                  backgroundColor: idx === activeIndex ? '#6366f1' : 'rgba(255,255,255,0.2)',
+                  height: 4,
+                  borderRadius: 2
+                }}
               />
-            </View>
-          ))}
-        </ScrollView>
-        
-        {/* Dot Indicators - Morphing Nexus */}
-        <View className="flex-row justify-center gap-2 mt-4 mb-2">
-          {images.map((_: any, idx: number) => (
-            <View 
-              key={idx} 
-              style={{
-                width: idx === activeIndex ? 18 : 6,
-                backgroundColor: idx === activeIndex ? '#6366f1' : 'rgba(255,255,255,0.2)',
-                height: 4,
-                borderRadius: 2
-              }}
-            />
-          ))}
+            ))}
+          </View>
         </View>
-      </View>
+      )}
 
       {/* 🌓 Interaction Hub */}
       <View className="px-6 py-6 border-t border-white/5 flex-row items-center justify-between">

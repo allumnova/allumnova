@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const profileController = require('./profile.controller');
-const { authenticate } = require('../../middlewares/auth.middleware');
+const { authenticate, isAdmin } = require('../../middlewares/auth.middleware');
 const upload = require('../../utils/upload');
 
 router.get('/check-username', profileController.checkUsernameAvailability);
@@ -11,8 +11,8 @@ router.patch('/me', authenticate, upload.fields([{ name: 'avatar', maxCount: 1 }
 router.patch('/', authenticate, upload.fields([{ name: 'avatar', maxCount: 1 }, { name: 'resume', maxCount: 1 }]), profileController.updateMyProfile);
 router.patch('', authenticate, upload.fields([{ name: 'avatar', maxCount: 1 }, { name: 'resume', maxCount: 1 }]), profileController.updateMyProfile);
 router.post('/onboarding', authenticate, upload.single('document'), profileController.completeOnboarding);
-router.get('/admin/pending-verifications', authenticate, profileController.getPendingVerifications);
-router.post('/admin/verify-user', authenticate, profileController.verifyUser);
+router.get('/admin/pending-verifications', authenticate, isAdmin, profileController.getPendingVerifications);
+router.post('/admin/verify-user', authenticate, isAdmin, profileController.verifyUser);
 router.get('/portfolio/:username', profileController.getPortfolioByUsername);
 router.get('/u/:username', profileController.getPortfolioByUsername);
 router.get('/:userId', authenticate, profileController.getPublicProfile);

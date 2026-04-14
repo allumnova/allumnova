@@ -44,8 +44,9 @@ api.interceptors.response.use(
             // Safety bypass for users on the /pending or /onboarding pages
             const isPendingRoute = window.location.pathname.startsWith('/pending') || window.location.pathname.startsWith('/onboarding');
             
-            // Don't auto-logout if on a pending route, using demo token, or if user is an admin
-            if (token && token !== 'demo_token' && user?.role !== 'admin' && !isPendingRoute) {
+            // Don't auto-logout if on a pending route or using demo token
+            // For 401 (Unauthorized), everyone should re-login to fix stale tokens
+            if (token && token !== 'demo_token' && (error.response.status === 401 || !isPendingRoute)) {
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
                 sessionStorage.removeItem('token');

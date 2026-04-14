@@ -41,7 +41,8 @@ const AdminDashboardPage = () => {
     const stats = [
         { title: 'Total Users', value: apiStats.totalUsers.toString(), icon: Users, color: 'text-blue-500', bg: 'bg-blue-500/10' },
         { title: 'Registered Colleges', value: apiStats.registeredColleges.toString(), icon: Building, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-        { title: 'Pending Verification', value: apiStats.pendingVerifications.toString(), icon: Clock, color: 'text-amber-500', bg: 'bg-amber-500/10' },
+        { title: 'User Verifications', value: apiStats.pendingVerifications.toString(), icon: UserCheck, color: 'text-amber-500', bg: 'bg-amber-500/10' },
+        { title: 'Hub Requests', value: apiStats.pendingColleges.toString(), icon: Building, color: 'text-indigo-500', bg: 'bg-indigo-500/10' },
         { title: 'Reported Content', value: apiStats.reportedContent.toString(), icon: AlertCircle, color: 'text-rose-500', bg: 'bg-rose-500/10' },
     ];
 
@@ -62,7 +63,7 @@ const AdminDashboardPage = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
                 {stats.map((stat, idx) => (
                     <motion.div
                         key={stat.title}

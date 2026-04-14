@@ -129,11 +129,23 @@ const authenticateOptional = async (req, res, next) => {
     // (In a real app, I'd refactor the verification logic into a helper)
     jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
         if (err) {
-            req.user = null; // Token present but invalid -> Still guest
+            console.log(`AUTH: Optional token found but invalid (${err.message})`);
+            req.user = null;
             return next();
         }
 
         try {
+            // Fetch session if provided
+            if (decoded.sessionId) {
+                const activeSession = await prisma.session.findUnique({
+                    where: { id: decoded.sessionId, isRevoked: false }
+                });
+                if (!activeSession) {
+                    req.user = null;
+                    return next();
+                }
+            }
+
             const user = await prisma.user.findUnique({
                 where: { id: decoded.userId },
                 select: {
@@ -161,10 +173,18 @@ const authenticateOptional = async (req, res, next) => {
             }
             next();
         } catch (error) {
+            console.error('Auth optional error:', error);
             req.user = null;
             next();
         }
     });
+};
+
+const isAdmin = (req, res, next) => {
+    if (!req.user || req.user.role !== 'admin') {
+        return res.status(403).json({ success: false, error: 'Access denied: Admin role required' });
+    }
+    next();
 };
 
 const checkVerified = (req, res, next) => {
@@ -224,5 +244,6 @@ module.exports = {
     authenticate,
     authenticateOptional,
     checkVerified,
-    checkCollegeAccess
+    checkCollegeAccess,
+    isAdmin
 };

@@ -14,12 +14,12 @@ interface IconProps {
   strokeWidth?: number;
 }
 
-export const Icon: React.FC<IconProps> = ({ 
+export const Icon = ({ 
   name, 
   size = 24, 
   color = '#6366f1',
   strokeWidth = 2 
-}) => {
+}: IconProps) => {
   const IconComponent = Icons[name] as any;
   
   if (!IconComponent) return null;

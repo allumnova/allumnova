@@ -13,6 +13,10 @@ export interface User {
   careerStage?: string;
   completionRatio?: number;
   interests?: string[];
+  phone?: string;
+  linkedIn?: string;
+  isOnboarded: boolean;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'NOT_STARTED';
 }
 
 export interface AuthState {
@@ -71,4 +75,30 @@ export interface Certification {
   title: string;
   organization: string;
   credentialUrl?: string;
+}
+
+export interface Message {
+  id: string;
+  content: string;
+  senderId: string;
+  conversationId: string;
+  createdAt: string;
+  mediaUrl?: string; // Parity with web's media_url
+}
+
+export interface Conversation {
+  id: string;
+  users: User[];
+  lastMessage?: Message;
+  messages: Message[];
+  updatedAt: string;
+}
+
+export interface ConnectionRequest {
+  id: string;
+  senderId: string;
+  receiverId: string;
+  status: 'PENDING' | 'ACCEPTED' | 'REJECTED';
+  user: User;
+  createdAt: string;
 }

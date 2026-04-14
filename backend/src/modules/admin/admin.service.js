@@ -8,6 +8,10 @@ const getDashboardStats = async () => {
         where: { status: 'PENDING' }
     });
 
+    const pendingColleges = await prisma.collegeRequest.count({
+        where: { status: 'PENDING' }
+    });
+
     const reportedContent = await prisma.report.count();
 
     // Fetch recent activity loosely
@@ -68,6 +72,7 @@ const getDashboardStats = async () => {
             totalUsers,
             registeredColleges,
             pendingVerifications,
+            pendingColleges,
             reportedContent
         },
         recentActivity: recentActivity.map(act => ({ ...act, time: formatTimeAgo(act.time) }))

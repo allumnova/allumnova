@@ -11,12 +11,14 @@ export default defineConfig({
         },
         proxy: {
             '/api': {
-                target: 'http://backend:5000',
-                changeOrigin: true
+                target: 'https://allumnova.cloud',
+                changeOrigin: true,
+                secure: false
             },
             '/uploads': {
-                target: 'http://backend:5000',
-                changeOrigin: true
+                target: 'https://allumnova.cloud',
+                changeOrigin: true,
+                secure: false
             }
         }
     },

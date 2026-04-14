@@ -56,12 +56,20 @@ export const CareerHubScreen = () => {
           </View>
           
           <View className="items-center justify-center">
-            <View className="w-20 h-20 rounded-full border-4 border-primary/20 items-center justify-center relative">
-               {/* Simplified Pulsar for Mobile UI Stability */}
-               <Text className="text-white text-xl font-black">{profile?.completionRatio || 0}%</Text>
-               <View className="absolute -bottom-2 bg-primary px-2 py-0.5 rounded-md">
-                 <Text className="text-[8px] font-black text-white uppercase tracking-widest">Strength</Text>
-               </View>
+            <View className="w-24 h-24 items-center justify-center">
+              <View className="absolute inset-0 border-[6px] border-white/5 rounded-full" />
+              <View 
+                className="absolute inset-0 border-[6px] border-primary rounded-full" 
+                style={{ 
+                   transform: [{ rotate: '-90deg' }],
+                   borderRightColor: 'transparent',
+                   borderBottomColor: 'transparent'
+                }}
+              />
+              <View className="items-center">
+                <Text className="text-white text-2xl font-black italic">{profile?.completionRatio || 0}%</Text>
+                <Text className="text-slate-500 text-[8px] font-black uppercase tracking-widest">Strength</Text>
+              </View>
             </View>
           </View>
         </View>

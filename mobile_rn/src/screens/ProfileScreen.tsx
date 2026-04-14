@@ -1,15 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, Image, TouchableOpacity, ActivityIndicator, Share } from 'react-native';
 import { Icon } from '../components/ui/Icon';
 import api from '../api/axios';
 import { useAuthStore } from '../store/useAuthStore';
 import { GlassContainer } from '../components/ui/GlassContainer';
+import { PortfolioSection } from '../components/ui/PortfolioSection';
+import { EditSectionModal } from '../components/ui/EditSectionModal';
+
+type ProfileTab = 'overview' | 'history' | 'academic' | 'showcase';
 
 export const ProfileScreen = () => {
-  const { user } = useAuthStore();
+  const { user, logout } = useAuthStore();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'posts' | 'projects' | 'about'>('posts');
+  const [activeTab, setActiveTab] = useState<ProfileTab>('overview');
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editType, setEditType] = useState<'experience' | 'education' | 'project'>('experience');
 
   const fetchProfile = async () => {
     setLoading(true);
@@ -19,7 +25,7 @@ export const ProfileScreen = () => {
         setProfile(res.data.data);
       }
     } catch (error) {
-      console.error('[Identity Hub] Sync Error:', error);
+      console.error('[Portfolio] Sync Error:', error);
     } finally {
       setLoading(false);
     }
@@ -28,6 +34,18 @@ export const ProfileScreen = () => {
   useEffect(() => {
     fetchProfile();
   }, []);
+
+  const handleShare = async () => {
+    if (!profile?.username) return;
+    try {
+      await Share.share({
+        message: `Check out my Allumnova professional portfolio: https://allumnova.cloud/u/${profile.username}`,
+        url: `https://allumnova.cloud/u/${profile.username}`,
+      });
+    } catch (error) {
+      console.error('[Portfolio] Share Error:', error);
+    }
+  };
 
   if (loading) {
     return (
@@ -40,131 +58,171 @@ export const ProfileScreen = () => {
   if (!profile) return null;
 
   const stats = [
-    { label: 'Impact', value: profile.reputationScore || 0, icon: 'Shield', color: '#60a5fa' },
-    { label: 'Posts', value: profile.posts?.length || 0, icon: 'Grid', color: '#94a3b8' },
-    { label: 'Showcase', value: profile.projects?.length || 0, icon: 'Rocket', color: '#c084fc' },
+    { label: 'Reputation', value: profile.reputationScore || 0, icon: 'Shield', color: '#60a5fa' },
+    { label: 'Connections', value: profile._count?.connections || 0, icon: 'Users', color: '#10b981' },
+    { label: 'Hype', value: profile._count?.projects || 0, icon: 'Rocket', color: '#c084fc' },
+  ] as const;
+
+  const renderOverview = () => (
+    <View className="gap-6">
+      <GlassContainer className="p-8">
+        <Text className="text-primary text-[10px] font-black uppercase tracking-[0.2em] mb-4">Institutional Presence</Text>
+        <Text className="text-white/80 text-sm leading-6 font-medium">
+          {profile.careerObjective || "Passionate institutional member focused on growth and collaborative documentation."}
+        </Text>
+      </GlassContainer>
+
+      <View className="flex-row gap-4">
+        <GlassContainer className="flex-1 p-6 items-center">
+            <Icon name="Globe" size={20} color="#6366f1" />
+            <Text className="text-white font-bold text-xs mt-3">Public Hub</Text>
+            <Text className="text-slate-500 text-[9px] mt-1">/u/{profile.username}</Text>
+        </GlassContainer>
+        <GlassContainer className="flex-1 p-6 items-center">
+            <Icon name="Target" size={20} color="#10b981" />
+            <Text className="text-white font-bold text-xs mt-3">Archetype</Text>
+            <Text className="text-slate-500 text-[9px] mt-1">{profile.careerStage || 'Innovator'}</Text>
+        </GlassContainer>
+      </View>
+    </View>
+  );
+
+  const renderHistory = () => (
+    <PortfolioSection 
+      title="Professional History" 
+      icon="Briefcase"
+      items={profile.experience?.map((exp: any) => ({
+        id: exp.id,
+        title: exp.position,
+        subtitle: exp.company,
+        dateRange: `${new Date(exp.startDate).getFullYear()} - ${exp.isCurrent ? 'Present' : new Date(exp.endDate).getFullYear()}`,
+        description: exp.description
+      })) || []}
+      onAdd={() => { setEditType('experience'); setShowEditModal(true); }}
+      emptyMessage="No professional milestones documented yet."
+    />
+  );
+
+  const renderAcademic = () => (
+    <PortfolioSection 
+      title="Academic Records" 
+      icon="GraduationCap"
+      items={profile.education?.map((edu: any) => ({
+        id: edu.id,
+        title: edu.degree,
+        subtitle: edu.school,
+        dateRange: `${new Date(edu.startDate).getFullYear()} - ${new Date(edu.endDate).getFullYear()}`,
+        metadata: `Score: ${edu.field || 'Verified'}`
+      })) || []}
+      onAdd={() => { setEditType('education'); setShowEditModal(true); }}
+    />
+  );
+
+  const renderShowcase = () => (
+    <PortfolioSection 
+      title="Project Showcase" 
+      icon="Rocket"
+      items={profile.projects?.map((prj: any) => ({
+        id: prj.id,
+        title: prj.title,
+        subtitle: "Key Initiative",
+        dateRange: "V.1.0",
+        description: prj.description
+      })) || []}
+      onAdd={() => { setEditType('project'); setShowEditModal(true); }}
+    />
+  );
+
+  const tabs = [
+    { id: 'overview', label: 'Identity', icon: 'User' },
+    { id: 'history', label: 'History', icon: 'Briefcase' },
+    { id: 'academic', label: 'Academic', icon: 'GraduationCap' },
+    { id: 'showcase', label: 'Showcase', icon: 'Layout' }
   ] as const;
 
   return (
-    <ScrollView className="flex-1 bg-background" contentContainerStyle={{ paddingBottom: 120 }}>
-      {/* 👤 Identity Header */}
-      <View className="items-center pt-12 pb-8 px-6">
-        <View className="w-32 h-32 rounded-[3.5rem] bg-primary p-1 shadow-2xl shadow-primary/20 mb-6">
-          <View className="w-full h-full bg-background rounded-[3.2rem] overflow-hidden p-0.5">
-            <Image 
-              source={{ uri: profile.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.name}` }} 
-              className="w-full h-full rounded-[3rem]"
-            />
-          </View>
-        </View>
-
-        <View className="items-center gap-2 mb-4">
-          <View className="flex-row items-center gap-2">
-            <Text className="text-3xl font-black text-white tracking-tight">{profile.name}</Text>
-          </View>
-          <View className="flex-row gap-2">
-            <View className="bg-primary/10 px-3 py-1.5 rounded-full border border-primary/20 flex-row items-center gap-1.5">
-              <Icon name="Sparkles" size={10} color="#6366f1" />
-              <Text className="text-primary text-[10px] font-black uppercase tracking-widest">
-                {profile.tierLevel || 'Echo'}
-              </Text>
+    <View className="flex-1 bg-background">
+      <ScrollView className="flex-1 bg-background" contentContainerStyle={{ paddingBottom: 150 }}>
+        {/* 👤 Portfolio Header */}
+        <View className="items-center pt-20 pb-12 px-8">
+          <View className="w-40 h-40 rounded-[4rem] bg-primary p-1 shadow-2xl shadow-primary/20 mb-8">
+            <View className="w-full h-full bg-background rounded-[3.8rem] overflow-hidden p-0.5">
+              <Image 
+                source={{ uri: profile.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.name}` }} 
+                className="w-full h-full rounded-[3.5rem]"
+              />
             </View>
           </View>
-        </View>
 
-        <Text className="text-textSecondary text-sm font-black uppercase tracking-widest text-center">
-          {profile.department || 'Institutional Member'}
-        </Text>
-
-        <View className="flex-row gap-4 mt-8 w-full">
-          <TouchableOpacity className="flex-1 bg-white py-4 rounded-2xl flex-row items-center justify-center gap-2 shadow-xl shadow-white/5">
-            <Icon name="Settings" size={18} color="#0f172a" />
-            <Text className="text-background font-black text-xs uppercase tracking-widest">Edit Profile</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* 🚀 Elite Showcase Gateway */}
-      <View className="px-5 mb-8">
-        <TouchableOpacity className="overflow-hidden rounded-[2.5rem]">
-          <GlassContainer className="p-8 border border-primary/20 bg-primary/10">
-            <View className="flex-row items-center justify-between">
-              <View className="flex-1 pr-4">
-                <Text className="text-white text-xl font-black tracking-tighter italic uppercase mb-2">Elite Showcase</Text>
-                <Text className="text-textSecondary text-[10px] font-medium leading-4">Launch your next institutional milestone. Get high-signal visibility.</Text>
+          <View className="items-center gap-2 mb-6 text-center">
+              <Text className="text-4xl font-black text-white tracking-tighter uppercase italic">{profile.name}</Text>
+              <View className="flex-row items-center gap-2">
+                  <Icon name="MapPin" size={12} color="#94a3b8" />
+                  <Text className="text-slate-500 text-xs font-bold">{profile.department || 'Institutional Presence'}</Text>
               </View>
-              <View className="w-16 h-16 bg-primary rounded-3xl items-center justify-center shadow-2xl shadow-primary/40">
-                <Icon name="Rocket" size={32} color="white" />
-              </View>
-            </View>
-            <View className="mt-6 flex-row items-center gap-2">
-              <Text className="text-primary text-[9px] font-black uppercase tracking-[0.2em]">Start your showcase journey</Text>
-              <Icon name="ArrowRight" size={10} color="#6366f1" />
-            </View>
-          </GlassContainer>
-        </TouchableOpacity>
-      </View>
+          </View>
 
-      {/* 📊 Professional Metrics */}
-      <View className="flex-row px-5 gap-3 mb-8">
-        {stats.map((stat) => (
-          <GlassContainer key={stat.label} className="flex-1 p-5 items-center gap-1">
-            <Icon name={stat.icon} size={18} color={stat.color} />
-            <Text className="text-white text-xl font-black tracking-tight">{stat.value}</Text>
-            <Text className="text-textSecondary text-[8px] font-black uppercase tracking-widest">{stat.label}</Text>
-          </GlassContainer>
-        ))}
-      </View>
+          <View className="flex-row gap-4 w-full">
+              <TouchableOpacity 
+                  onPress={handleShare}
+                  className="flex-[2] bg-white py-5 rounded-3xl flex-row items-center justify-center gap-3 shadow-2xl shadow-white/5"
+              >
+                  <Icon name="Share2" size={20} color="#0f172a" />
+                  <Text className="text-background font-black text-xs uppercase tracking-widest">Share Hub</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                  onPress={() => logout()}
+                  className="flex-1 bg-rose-500/10 border border-rose-500/20 rounded-3xl items-center justify-center"
+              >
+                  <Icon name="LogOut" size={20} color="#f43f5e" />
+              </TouchableOpacity>
+          </View>
+        </View>
 
-      {/* 📑 Hub Navigation */}
-      <View className="px-5 mb-6">
-        <GlassContainer className="p-1.5 flex-row">
-          {['posts', 'projects', 'about'].map((t) => (
-            <TouchableOpacity 
-              key={t} 
-              onPress={() => setActiveTab(t as any)} 
-              className={`flex-1 py-3.5 items-center rounded-2xl ${activeTab === t ? 'bg-white shadow-xl' : ''}`}
-            >
-              <Text className={`text-[10px] font-black uppercase tracking-widest ${activeTab === t ? 'text-background' : 'text-textSecondary'}`}>
-                {t}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </GlassContainer>
-      </View>
-
-      {/* 🖼️ Hub Feed */}
-      <View className="px-5">
-        {activeTab === 'about' ? (
-          <View className="gap-6">
-            {profile.careerObjective && (
-              <GlassContainer className="p-8">
-                <Text className="text-primary text-[10px] font-black uppercase tracking-widest mb-4 opacity-60">
-                  Career Objective
-                </Text>
-                <Text className="text-white/80 text-sm leading-6 italic">
-                  "{profile.careerObjective}"
-                </Text>
-              </GlassContainer>
-            )}
-            
-            <GlassContainer className="p-8 items-center text-center">
-              <Icon name="MapPin" size={32} color="#475569" />
-              <Text className="text-white font-black text-lg mb-2 mt-4">Member Details</Text>
-              <Text className="text-textSecondary text-sm text-center leading-5">
-                {profile.name} is a student from the {profile.department || 'General'} branch.
-              </Text>
+        {/* 📊 High-Signal Metrics */}
+        <View className="flex-row px-8 gap-4 mb-10">
+          {stats.map((stat) => (
+            <GlassContainer key={stat.label} className="flex-1 p-6 items-center gap-2">
+              <Icon name={stat.icon} size={20} color={stat.color} />
+              <Text className="text-white text-2xl font-black tracking-tighter">{stat.value}</Text>
+              <Text className="text-slate-500 text-[8px] font-black uppercase tracking-[0.2em]">{stat.label}</Text>
             </GlassContainer>
-          </View>
-        ) : (
-          <View className="py-20 items-center justify-center opacity-40">
-            <Icon name="Grid" size={48} color="#94a3b8" strokeWidth={1} />
-            <Text className="text-white font-bold mt-4 uppercase tracking-widest text-[10px]">
-              No {activeTab} Activity Yet
-            </Text>
-          </View>
-        )}
-      </View>
-    </ScrollView>
+          ))}
+        </View>
+
+        {/* 📑 Hub Navigator */}
+        <View className="px-5 mb-10">
+          <GlassContainer className="p-1.5 flex-row border border-white/5">
+            {tabs.map((t) => (
+              <TouchableOpacity 
+                key={t.id} 
+                onPress={() => setActiveTab(t.id)} 
+                className={`flex-1 py-4 items-center rounded-2xl ${activeTab === t.id ? 'bg-primary shadow-xl shadow-primary/20' : ''}`}
+              >
+                <Icon name={t.icon as any} size={16} color={activeTab === t.id ? 'white' : '#94a3b8'} />
+              </TouchableOpacity>
+            ))}
+          </GlassContainer>
+          <Text className="text-center text-slate-500 text-[10px] font-black uppercase tracking-[0.4em] mt-4">
+              {activeTab} Domain
+          </Text>
+        </View>
+
+        {/* 🎪 Dynamic Portfolio Hubs */}
+        <View className="px-8">
+          {activeTab === 'overview' && renderOverview()}
+          {activeTab === 'history' && renderHistory()}
+          {activeTab === 'academic' && renderAcademic()}
+          {activeTab === 'showcase' && renderShowcase()}
+        </View>
+      </ScrollView>
+
+      <EditSectionModal 
+        visible={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        type={editType}
+        onUpdate={fetchProfile}
+      />
+    </View>
   );
 };
