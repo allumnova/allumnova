@@ -52,10 +52,31 @@ const getPendingHubRequests = async (req, res) => {
     }
 };
 
+const getAllPendingProposals = async (req, res) => {
+    try {
+        const result = await environmentService.listAllGlobalPendingProposals();
+        res.json({ success: true, data: result });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+const adminReviewProposal = async (req, res) => {
+    try {
+        const { environmentId, status } = req.body;
+        const result = await environmentService.reviewGlobalProposal(environmentId, status);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
 module.exports = {
     listHubs,
     sendProposal,
     joinHub,
     updateMembership,
-    getPendingHubRequests
+    getPendingHubRequests,
+    getAllPendingProposals,
+    adminReviewProposal
 };

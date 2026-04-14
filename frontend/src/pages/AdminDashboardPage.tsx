@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Users, Building, AlertCircle, TrendingUp, CheckCircle, Clock, UserCheck, ShieldCheck } from 'lucide-react';
+import { Users, Building, AlertCircle, TrendingUp, CheckCircle, Clock, UserCheck, ShieldCheck, Globe } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -43,6 +43,7 @@ const AdminDashboardPage = () => {
         { title: 'Registered Colleges', value: apiStats.registeredColleges.toString(), icon: Building, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
         { title: 'User Verifications', value: apiStats.pendingVerifications.toString(), icon: UserCheck, color: 'text-amber-500', bg: 'bg-amber-500/10' },
         { title: 'Hub Requests', value: apiStats.pendingColleges.toString(), icon: Building, color: 'text-indigo-500', bg: 'bg-indigo-500/10' },
+        { title: 'Hub Proposals', value: apiStats.pendingEnvironments.toString(), icon: Globe, color: 'text-purple-500', bg: 'bg-purple-500/10' },
         { title: 'Reported Content', value: apiStats.reportedContent.toString(), icon: AlertCircle, color: 'text-rose-500', bg: 'bg-rose-500/10' },
     ];
 

@@ -115,10 +115,34 @@ const listPendingMembers = async (environmentId, adminId) => {
     });
 };
 
+const listAllGlobalPendingProposals = async () => {
+    return await prisma.environment.findMany({
+        where: { status: 'PENDING' },
+        include: { 
+            college: { select: { name: true } },
+            members: {
+                where: { role: 'ADMIN' },
+                include: { user: { select: { name: true, email: true } } }
+            }
+        },
+        orderBy: { createdAt: 'desc' }
+    });
+};
+
+const reviewGlobalProposal = async (environmentId, status) => {
+    const finalStatus = status.toUpperCase() === 'APPROVED' ? 'VERIFIED' : 'REJECTED';
+    return await prisma.environment.update({
+        where: { id: environmentId },
+        data: { status: finalStatus }
+    });
+};
+
 module.exports = {
     listEnvironments,
     proposeEnvironment,
     requestToJoin,
     manageMembership,
-    listPendingMembers
+    listPendingMembers,
+    listAllGlobalPendingProposals,
+    reviewGlobalProposal
 };

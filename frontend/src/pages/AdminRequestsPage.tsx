@@ -4,9 +4,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Check, X, Shield, Building2, Globe, MapPin, ExternalLink, User, Phone, Linkedin, FileText } from 'lucide-react';
 
 const AdminRequestsPage = () => {
-    const [tab, setTab] = useState<'colleges' | 'users'>('colleges');
+    const [tab, setTab] = useState<'colleges' | 'users' | 'hubs'>('colleges');
     const [collegeRequests, setCollegeRequests] = useState<any[]>([]);
     const [userRequests, setUserRequests] = useState<any[]>([]);
+    const [hubRequests, setHubRequests] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     const fetchData = async () => {
@@ -15,9 +16,12 @@ const AdminRequestsPage = () => {
             if (tab === 'colleges') {
                 const res = await api.get('/colleges/all-requests');
                 setCollegeRequests(res.data.data);
-            } else {
+            } else if (tab === 'users') {
                 const res = await api.get('/profile/admin/pending-verifications');
                 setUserRequests(res.data.data);
+            } else {
+                const res = await api.get('/environments/admin/all-pending');
+                setHubRequests(res.data.data);
             }
         } catch (err) {
             console.error(err);
@@ -65,6 +69,17 @@ const AdminRequestsPage = () => {
         } catch (err) {
             console.error(err);
             alert('Failed to verify user.');
+        }
+    };
+
+    const handleHubReview = async (environmentId: string, status: 'approved' | 'rejected') => {
+        try {
+            await api.post('/environments/admin/review', { environmentId, status });
+            alert(`Hub proposal ${status} successfully!`);
+            fetchData();
+        } catch (err) {
+            console.error(err);
+            alert('Failed to review hub proposal.');
         }
     };
 
@@ -198,16 +213,63 @@ const AdminRequestsPage = () => {
         </AnimatePresence>
     );
 
+    const renderHubRequests = () => (
+        <AnimatePresence mode="wait">
+            {hubRequests.length === 0 ? (
+                <div className="text-center py-20 bg-white/50 dark:bg-slate-900/20 rounded-[2.5rem] border border-dashed border-slate-200 dark:border-white/5">
+                    <p className="text-slate-500 font-medium">No pending hub proposals.</p>
+                </div>
+            ) : (
+                <div className="space-y-4">
+                    {Array.isArray(hubRequests) && hubRequests.map((req) => (
+                        <motion.div
+                            key={req.id}
+                            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}
+                            className="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-white/5 rounded-[2rem] p-6 shadow-sm flex flex-col md:flex-row md:items-start justify-between gap-6"
+                        >
+                            <div className="flex gap-5 flex-1 items-start">
+                                <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-purple-500 overflow-hidden shrink-0 shadow-inner">
+                                    <Globe size={32} />
+                                </div>
+                                <div className="space-y-2 flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <h3 className="font-bold text-slate-900 dark:text-white truncate">{req.name}</h3>
+                                        <span className="text-[10px] uppercase font-black tracking-widest px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-500">
+                                            {req.type}
+                                        </span>
+                                    </div>
+                                    <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 italic">"{req.description}"</p>
+                                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500 items-center mt-2">
+                                        <span className="flex items-center gap-1"><Building2 size={12} /> {req.college?.name}</span>
+                                        <span className={`flex items-center gap-1 ${req.privacyLevel === 'PUBLIC' ? 'text-emerald-500' : 'text-amber-500'}`}>
+                                            <Shield size={12} /> {req.privacyLevel}
+                                        </span>
+                                        <span className="flex items-center gap-1"><User size={12} /> {req.members?.[0]?.user?.name} ({req.members?.[0]?.user?.email})</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex gap-2 self-end md:self-start pt-2">
+                                <button onClick={() => handleHubReview(req.id, 'rejected')} className="p-3 bg-red-100 dark:bg-red-500/10 hover:bg-red-200 text-red-600 rounded-xl transition-all"><X size={20} /></button>
+                                <button onClick={() => handleHubReview(req.id, 'approved')} className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-500/20 flex items-center gap-2">Approve</button>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+            )}
+        </AnimatePresence>
+    );
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Review Requests</h2>
-                    <p className="text-sm text-slate-500 font-medium">Manage pending users and college applications.</p>
+                    <p className="text-sm text-slate-500 font-medium">Manage pending users, colleges, and hub communities.</p>
                 </div>
                 <div className="flex bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200 dark:border-white/5 shadow-inner">
-                    <button onClick={() => setTab('colleges')} className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${tab === 'colleges' ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500'}`}>Colleges</button>
-                    <button onClick={() => setTab('users')} className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${tab === 'users' ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500'}`}>Users</button>
+                    <button onClick={() => setTab('colleges')} className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${tab === 'colleges' ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500'}`}>Colleges</button>
+                    <button onClick={() => setTab('users')} className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${tab === 'users' ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500'}`}>Users</button>
+                    <button onClick={() => setTab('hubs')} className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${tab === 'hubs' ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500'}`}>Hub Props</button>
                 </div>
             </div>
 
@@ -217,7 +279,7 @@ const AdminRequestsPage = () => {
                         {[1, 2, 3].map(i => <div key={i} className="bg-white dark:bg-slate-900/30 h-32 rounded-[2.5rem] animate-pulse border border-slate-200 dark:border-white/5 shadow-sm" />)}
                     </div>
                 ) : (
-                    tab === 'colleges' ? renderCollegeRequests() : renderUserRequests()
+                    tab === 'colleges' ? renderCollegeRequests() : tab === 'users' ? renderUserRequests() : renderHubRequests()
                 )}
             </div>
         </div>
