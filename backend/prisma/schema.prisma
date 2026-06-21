@@ -83,8 +83,6 @@ model User {
   followers          Follow[]             @relation("Following")
   jobs               Job[]
   jobApplications    JobApplication[]
-  mentorshipReceived MentorshipRequest[]  @relation("AlumniMentorship")
-  mentorshipSent     MentorshipRequest[]  @relation("StudentMentorship")
   messages           Message[]
   notifications      Notification[]       @relation("NotificationRecipient")
   posts              Post[]
@@ -93,10 +91,12 @@ model User {
   savedPosts         SavedPost[]
   projects           Project[]            @relation("ProjectOwner")
   projectHypes       ProjectHype[]
-  environments       EnvironmentMembership[]
-  collegeRequests    CollegeRequest[]
-  actorNotifications Notification[]       @relation("NotificationActor")
-  sessions           Session[]
+  environments        EnvironmentMembership[]
+  collegeRequests     CollegeRequest[]
+  actorNotifications  Notification[]       @relation("NotificationActor")
+  sessions            Session[]
+  environmentProfiles EnvironmentProfile[]
+  circles             CircleMembership[]
 }
 
 model Certification {
@@ -151,14 +151,14 @@ model Post {
   post_type  String      @default("general")
   visibility String      @default("college")
   authorId   String
-  collegeId     String
+  collegeId     String?
   environmentId String?
   metadata      Json?
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
   comments      Comment[]
   author        User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  college       College     @relation(fields: [collegeId], references: [id])
+  college       College?    @relation(fields: [collegeId], references: [id])
   environment   Environment? @relation(fields: [environmentId], references: [id])
   likes         PostLike[]
   media      PostMedia[]
@@ -210,6 +210,8 @@ model Connection {
   senderId   String
   receiverId String
   status     String   @default("pending")
+  intent     String?
+  note       String?
   createdAt  DateTime @default(now())
   receiver   User     @relation("ReceivedConnections", fields: [receiverId], references: [id])
   sender     User     @relation("SentConnections", fields: [senderId], references: [id])
@@ -284,28 +286,21 @@ model JobApplication {
   user       User     @relation(fields: [userId], references: [id])
 }
 
-model MentorshipRequest {
-  id        String   @id @default(cuid())
-  studentId String
-  alumniId  String
-  message   String
-  status    String   @default("pending")
-  createdAt DateTime @default(now())
-  alumni    User     @relation("AlumniMentorship", fields: [alumniId], references: [id])
-  student   User     @relation("StudentMentorship", fields: [studentId], references: [id])
-}
+
 
 model Event {
-  id          String          @id @default(cuid())
-  collegeId   String
-  title       String
-  description String
-  location    String?
-  event_date  DateTime
-  createdById String
-  college     College         @relation(fields: [collegeId], references: [id])
-  createdBy   User            @relation(fields: [createdById], references: [id])
-  attendees   EventAttendee[]
+  id            String          @id @default(cuid())
+  collegeId     String?
+  environmentId String?
+  title         String
+  description   String
+  location      String?
+  event_date    DateTime
+  createdById   String
+  college       College?        @relation(fields: [collegeId], references: [id])
+  environment   Environment?    @relation(fields: [environmentId], references: [id], onDelete: Cascade)
+  createdBy     User            @relation(fields: [createdById], references: [id])
+  attendees     EventAttendee[]
 }
 
 model EventAttendee {
@@ -400,20 +395,71 @@ model ProjectHype {
 }
 
 model Environment {
-  id           String                  @id @default(cuid())
-  collegeId    String
-  name         String
-  description  String?
-  icon         String?
-  type         String                  @default("HUB") // HUB, CLUB, STUDY_GROUP
-  privacyLevel String                  @default("PUBLIC") // PUBLIC, SOCIETY, HIDDEN
-  status       String                  @default("VERIFIED") // PENDING, VERIFIED, REJECTED
-  joinQuestions String[]               @default([])
+  id            String                  @id @default(cuid())
+  collegeId     String?
+  slug          String                  @unique @default("")
+  coverImage    String?
+  name          String
+  description   String?
+  icon          String?
+  type          String                  @default("HUB") // HUB, CLUB, STUDY_GROUP
+  category      String                  @default("COLLEGE")
+  config        Json?
+  location      String?
+  tags          String[]                @default([])
+  privacyType   String                  @default("PUBLIC") // PUBLIC, PRIVATE, INVITE_ONLY
+  joinRules     String[]                @default([])
+  privacyLevel  String                  @default("PUBLIC") // PUBLIC, SOCIETY, HIDDEN
+  status        String                  @default("VERIFIED") // PENDING, VERIFIED, REJECTED
+  joinQuestions String[]                @default([])
   joinCriteria  String?                 @default("")
-  createdAt    DateTime                @default(now())
-  college      College                 @relation(fields: [collegeId], references: [id])
-  members      EnvironmentMembership[]
-  posts        Post[]
+  createdAt     DateTime                @default(now())
+  college       College?                @relation(fields: [collegeId], references: [id])
+  members       EnvironmentMembership[]
+  posts         Post[]
+  profiles      EnvironmentProfile[]
+  circles       Circle[]
+  events        Event[]
+}
+
+model EnvironmentProfile {
+  id            String      @id @default(cuid())
+  userId        String
+  environmentId String
+  bio           String?
+  roleTag       String?
+  interests     String[]    @default([])
+  visibility    Boolean     @default(true)
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  environment   Environment @relation(fields: [environmentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, environmentId])
+}
+
+model Circle {
+  id            String             @id @default(cuid())
+  name          String
+  description   String?
+  environmentId String
+  coverImage    String?
+  privacy       String             @default("PUBLIC") // PUBLIC, PRIVATE, INVITE_ONLY
+  rules         String[]           @default([])
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  environment   Environment        @relation(fields: [environmentId], references: [id], onDelete: Cascade)
+  members       CircleMembership[]
+}
+
+model CircleMembership {
+  id        String   @id @default(cuid())
+  userId    String
+  circleId  String
+  role      String   @default("MEMBER") // ADMIN, MEMBER, MODERATOR
+  joinedAt  DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  circle    Circle   @relation(fields: [circleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, circleId])
 }
 
 model EnvironmentMembership {

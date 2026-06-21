@@ -62,10 +62,11 @@ export default function App() {
   }
 
   // 🌍 Stage 3: Onboarded -> Verified
-  if (user.status !== 'APPROVED') {
+  const isVerified = user?.is_verified || user?.verificationLevel?.toUpperCase() === 'VERIFIED' || user?.status === 'APPROVED' || user?.role === 'admin';
+  if (!isVerified) {
     return (
       <View className="flex-1 bg-background">
-        <StatusBar style="light" />
+        <StatusBar style="dark" />
         <VerificationStatusScreen />
       </View>
     );

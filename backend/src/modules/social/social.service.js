@@ -2,7 +2,34 @@ const prisma = require('../../models');
 const notificationService = require('../notification/notification.service');
 const socketUtil = require('../../utils/socket');
 
-exports.getRecommendedPeers = async (userId, collegeId) => {
+exports.getRecommendedPeers = async (userId, collegeId, environmentId = null) => {
+    if (environmentId) {
+        return await prisma.user.findMany({
+            where: {
+                id: { not: userId },
+                environments: {
+                    some: { 
+                        environmentId: environmentId,
+                        status: 'APPROVED'
+                    }
+                },
+                sentRequests: { none: { receiverId: userId } },
+                receivedRequests: { none: { senderId: userId } }
+            },
+            select: {
+                id: true,
+                name: true,
+                avatar: true,
+                reputationScore: true,
+                department: true,
+                pulse: true,
+                pulseEmoji: true
+            },
+            orderBy: { reputationScore: 'desc' },
+            take: 10
+        });
+    }
+
     // 1. Get current user's department and batch
     const user = await prisma.user.findUnique({
         where: { id: userId },
@@ -39,7 +66,7 @@ exports.getRecommendedPeers = async (userId, collegeId) => {
             }
         },
         orderBy: [
-            { department: user.department ? 'desc' : 'asc' }, // Simple way to match department
+            { department: user?.department ? 'desc' : 'asc' }, // Simple way to match department
             { reputationScore: 'desc' }
         ],
         take: 10
@@ -84,23 +111,42 @@ exports.listAlumni = async (collegeId, userId, cursor, limit = 20, search) => {
     });
 };
 
-exports.discoverUsers = async (userId, collegeId, cursor, limit = 20, search, role, batchYear) => {
-    const where = {
-        id: { not: userId },
-        colleges: {
-            some: { 
-                collegeId: collegeId,
-                ...(role && { role }),
-                ...(batchYear && { batch: parseInt(batchYear) })
-            }
-        },
-        ...(search && {
-            OR: [
-                { name: { contains: search, mode: 'insensitive' } },
-                { department: { contains: search, mode: 'insensitive' } }
-            ]
-        })
-    };
+exports.discoverUsers = async (userId, collegeId, cursor, limit = 20, search, role, batchYear, environmentId = null) => {
+    let where;
+    if (environmentId) {
+        where = {
+            id: { not: userId },
+            environments: {
+                some: { 
+                    environmentId: environmentId,
+                    status: 'APPROVED'
+                }
+            },
+            ...(search && {
+                OR: [
+                    { name: { contains: search, mode: 'insensitive' } },
+                    { department: { contains: search, mode: 'insensitive' } }
+                ]
+            })
+        };
+    } else {
+        where = {
+            id: { not: userId },
+            colleges: {
+                some: { 
+                    collegeId: collegeId,
+                    ...(role && { role }),
+                    ...(batchYear && { batch: parseInt(batchYear) })
+                }
+            },
+            ...(search && {
+                OR: [
+                    { name: { contains: search, mode: 'insensitive' } },
+                    { department: { contains: search, mode: 'insensitive' } }
+                ]
+            })
+        };
+    }
 
     return await prisma.user.findMany({
         where,
@@ -113,10 +159,10 @@ exports.discoverUsers = async (userId, collegeId, cursor, limit = 20, search, ro
             batch_year: true,
             pulse: true,
             pulseEmoji: true,
-            colleges: {
+            colleges: collegeId ? {
                 where: { collegeId: collegeId },
                 select: { role: true, batch: true }
-            }
+            } : undefined
         },
         take: limit,
         skip: cursor ? 1 : 0,
@@ -125,7 +171,7 @@ exports.discoverUsers = async (userId, collegeId, cursor, limit = 20, search, ro
     });
 };
 
-exports.sendConnectionRequest = async (senderId, receiverId) => {
+exports.sendConnectionRequest = async (senderId, receiverId, intent, note) => {
     const existing = await prisma.connection.findFirst({
         where: {
             OR: [
@@ -141,7 +187,7 @@ exports.sendConnectionRequest = async (senderId, receiverId) => {
     }
 
     const connection = await prisma.connection.create({
-        data: { senderId, receiverId, status: 'pending' },
+        data: { senderId, receiverId, status: 'pending', intent, note },
         include: { sender: { select: { id: true, name: true } } }
     });
 
@@ -253,7 +299,7 @@ exports.listPendingRequests = async (userId) => {
         include: { receiver: { select: { id: true, name: true, avatar: true, department: true, batch_year: true } } }
     });
     return {
-        incoming: incoming.map(r => ({ id: r.id, user: r.sender, createdAt: r.createdAt })),
-        outgoing: outgoing.map(r => ({ id: r.id, user: r.receiver, createdAt: r.createdAt }))
+        incoming: incoming.map(r => ({ id: r.id, user: r.sender, intent: r.intent, note: r.note, createdAt: r.createdAt })),
+        outgoing: outgoing.map(r => ({ id: r.id, user: r.receiver, intent: r.intent, note: r.note, createdAt: r.createdAt }))
     };
 };

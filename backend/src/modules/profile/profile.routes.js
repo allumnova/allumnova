@@ -28,4 +28,8 @@ router.delete('/education/:id', authenticate, profileController.deleteEducation)
 router.post('/certification', authenticate, profileController.addCertification);
 router.delete('/certification/:id', authenticate, profileController.deleteCertification);
 
+// Environment Profiles
+router.get('/environments/:envId', authenticate, profileController.getEnvironmentProfile);
+router.patch('/environments/:envId', authenticate, profileController.updateEnvironmentProfile);
+
 module.exports = router;

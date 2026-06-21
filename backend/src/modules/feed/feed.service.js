@@ -299,6 +299,7 @@ const createPost = async (userId, collegeId, postData) => {
             visibility: postData.visibility || 'college',
             authorId: userId, 
             collegeId, 
+            environmentId: postData.environmentId || null,
             metadata,
             media: {
                 create: postData.media?.map(m => ({

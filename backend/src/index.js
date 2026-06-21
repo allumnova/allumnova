@@ -53,8 +53,6 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/environments', environmentRoutes);
 const reputationRoutes = require('./modules/reputation/reputation.routes');
 app.use('/api/reputation', reputationRoutes);
-const mentorshipRoutes = require('./modules/mentorship/mentorship.routes');
-app.use('/api/mentorship', mentorshipRoutes);
 app.use('/api/projects', projectRoutes);
 const scoutRoutes = require('./modules/scout/scout.routes');
 app.use('/api/scout', scoutRoutes);

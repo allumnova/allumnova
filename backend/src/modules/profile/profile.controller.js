@@ -222,6 +222,27 @@ const checkUsernameAvailability = async (req, res) => {
     }
 };
 
+const getEnvironmentProfile = async (req, res) => {
+    try {
+        const { envId } = req.params;
+        const profile = await profileService.getEnvProfile(req.user.userId, envId);
+        res.status(200).json({ success: true, data: profile });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+const updateEnvironmentProfile = async (req, res) => {
+    try {
+        const { envId } = req.params;
+        const { bio, roleTag, interests } = req.body;
+        const profile = await profileService.updateEnvProfile(req.user.userId, envId, { bio, roleTag, interests });
+        res.status(200).json({ success: true, data: profile });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
 module.exports = {
     getMyProfile,
     getPublicProfile,
@@ -237,5 +258,7 @@ module.exports = {
     deleteEducation,
     addCertification,
     deleteCertification,
-    checkUsernameAvailability
+    checkUsernameAvailability,
+    getEnvironmentProfile,
+    updateEnvironmentProfile
 };

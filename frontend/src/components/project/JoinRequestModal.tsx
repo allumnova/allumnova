@@ -63,7 +63,7 @@ const JoinRequestModal: React.FC<JoinRequestModalProps> = ({
                         initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-[2.5rem] overflow-hidden relative shadow-2xl border border-slate-200 dark:border-white/5"
+                        className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-2xl overflow-hidden relative shadow-2xl border border-slate-200 dark:border-white/5"
                     >
                         <div className="p-8">
                             <div className="flex items-center justify-between mb-8">
@@ -105,7 +105,7 @@ const JoinRequestModal: React.FC<JoinRequestModalProps> = ({
                                         <div className="w-16 h-16 bg-emerald-500/10 text-emerald-600 rounded-3xl flex items-center justify-center mx-auto mb-4 border border-emerald-500/20 shadow-lg shadow-emerald-500/5">
                                             <ShieldCheck size={32} />
                                         </div>
-                                        <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Join this society to access curated projects, private events, and high-signal alumni mentorship.</p>
+                                        <p className="text-sm font-medium text-slate-600 dark:text-slate-400">Join this society to access curated projects, private events, and high-signal community spaces.</p>
                                     </div>
                                 )}
 

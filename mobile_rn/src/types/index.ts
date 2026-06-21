@@ -4,7 +4,7 @@ export interface User {
   email: string;
   username: string;
   avatar?: string;
-  role: 'STUDENT' | 'ALUMNI' | 'FACULTY' | 'ADMIN';
+  role: 'STUDENT' | 'ALUMNI' | 'FACULTY' | 'ADMIN' | 'admin' | 'student' | 'alumni';
   department?: string;
   collegeId?: string;
   reputationScore?: number;
@@ -17,6 +17,8 @@ export interface User {
   linkedIn?: string;
   isOnboarded: boolean;
   status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'NOT_STARTED';
+  is_verified?: boolean;
+  verificationLevel?: string;
 }
 
 export interface AuthState {

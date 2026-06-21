@@ -152,11 +152,9 @@ const LoginPage = () => {
     };
 
     // ─── SHARED INPUT CLASS ───
-    const inputClass =
-        'w-full bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-2xl py-4 px-5 pl-12 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-medium';
+    const inputClass = 'input-field pl-12 py-3 rounded-xl';
 
-    const btnPrimary =
-        'w-full bg-gradient-to-r from-blue-500 to-emerald-500 hover:from-blue-600 hover:to-emerald-600 text-white font-semibold py-4 rounded-2xl transition-all shadow-lg shadow-blue-500/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed';
+    const btnPrimary = 'btn-primary w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm transition-all active:scale-95 disabled:opacity-50';
 
     const renderError = () =>
         error ? (
@@ -385,22 +383,16 @@ const LoginPage = () => {
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4 transition-colors duration-500">
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500/10 blur-[120px] rounded-full" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-500/10 blur-[120px] rounded-full" />
-                <div className="absolute top-[30%] right-[10%] w-[20%] h-[20%] bg-violet-500/8 blur-[100px] rounded-full" />
-            </div>
-
             <motion.div
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="max-w-md w-full bg-white/70 dark:bg-slate-900/50 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-[2.5rem] p-10 relative z-10 shadow-2xl transition-all duration-300"
+                className="max-w-md w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 rounded-2xl shadow-sm relative z-10 transition-all duration-300"
             >
-                <div className="mb-8">
-                    <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+                <div className="mb-6">
+                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white">
                         Allumnova
                     </h1>
-                    <p className="text-slate-600 dark:text-slate-400 mt-2 transition-colors">
+                    <p className="text-slate-500 dark:text-slate-400 text-xs mt-1 transition-colors">
                         {mode === 'login' && 'Welcome back! Log in to your account.'}
                         {mode === 'signup' && 'Create your account to get started.'}
                         {mode === 'forgot' && 'Reset your password securely.'}

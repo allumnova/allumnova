@@ -422,6 +422,51 @@ const checkUsernameAvailability = async (username) => {
     return { available: !user };
 };
 
+const getEnvProfile = async (userId, environmentId) => {
+    let profile = await prisma.environmentProfile.findUnique({
+        where: {
+            userId_environmentId: { userId, environmentId }
+        }
+    });
+
+    if (!profile) {
+        profile = await prisma.environmentProfile.create({
+            data: {
+                userId,
+                environmentId,
+                bio: "",
+                roleTag: "",
+                interests: [],
+                visibility: true
+            }
+        });
+    }
+
+    return profile;
+};
+
+const updateEnvProfile = async (userId, environmentId, updateData) => {
+    return await prisma.environmentProfile.upsert({
+        where: {
+            userId_environmentId: { userId, environmentId }
+        },
+        update: {
+            bio: updateData.bio,
+            roleTag: updateData.roleTag,
+            interests: updateData.interests,
+            visibility: updateData.visibility !== undefined ? updateData.visibility : true
+        },
+        create: {
+            userId,
+            environmentId,
+            bio: updateData.bio || "",
+            roleTag: updateData.roleTag || "",
+            interests: updateData.interests || [],
+            visibility: updateData.visibility !== undefined ? updateData.visibility : true
+        }
+    });
+};
+
 module.exports = {
     getProfile,
     getUserProfile,
@@ -440,5 +485,7 @@ module.exports = {
     deleteEducation,
     addCertification,
     deleteCertification,
-    checkUsernameAvailability
+    checkUsernameAvailability,
+    getEnvProfile,
+    updateEnvProfile
 };

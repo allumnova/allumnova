@@ -9,6 +9,7 @@ interface Notification {
     id: string;
     type: 'appreciate' | 'discuss' | 'connect' | 'opportunity' | 'boost';
     user: {
+        id?: string;
         name: string;
         avatar?: string;
     };
@@ -24,11 +25,12 @@ const NotificationPage = () => {
 
     const handleNotificationClick = (notif: Notification) => {
         if (notif.type === 'connect') {
-            // For now, if we don't have senderId in the object, 
-            // we can't navigate to the profile.
+            if (notif.user?.id) {
+                navigate(`/profile/${notif.user.id}`);
+            }
         } else if (['appreciate', 'discuss', 'boost'].includes(notif.type)) {
-            // The id here is the reference_id (postId)
-            navigate(`/feed?post=${notif.id}`);
+            // Navigate to feed and scroll to the post
+            navigate(`/?post=${notif.id}`);
         }
     };
 
@@ -153,13 +155,13 @@ const NotificationPage = () => {
                                     {notif.type === 'connect' && (
                                         <div className="flex gap-2 mt-3">
                                             <button 
-                                                onClick={() => handleAccept(notif.id)}
+                                                onClick={(e) => { e.stopPropagation(); handleAccept(notif.id); }}
                                                 className="flex-1 bg-blue-500 text-white text-[10px] font-bold py-2 rounded-xl hover:scale-[1.02] active:scale-95 transition-all"
                                             >
                                                 Accept
                                             </button>
                                             <button 
-                                                onClick={() => handleDecline(notif.id)}
+                                                onClick={(e) => { e.stopPropagation(); handleDecline(notif.id); }}
                                                 className="flex-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-bold py-2 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
                                             >
                                                 Decline

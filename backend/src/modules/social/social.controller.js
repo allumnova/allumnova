@@ -4,8 +4,9 @@ const prisma = require('../../models');
 const getSuggestions = async (req, res) => {
     try {
         const collegeId = req.headers['x-college-id'];
-        if (!collegeId) return res.status(400).json({ message: 'College ID required' });
-        const suggestions = await socialService.getRecommendedPeers(req.user.userId, collegeId);
+        const environmentId = req.query.environmentId || req.query.hubId || req.headers['x-environment-id'];
+        if (!collegeId && !environmentId) return res.status(400).json({ message: 'College ID or Environment ID required' });
+        const suggestions = await socialService.getRecommendedPeers(req.user.userId, collegeId, environmentId);
         res.json(suggestions);
     } catch (error) {
         console.error('getSuggestions error:', error);
@@ -16,7 +17,7 @@ const getSuggestions = async (req, res) => {
 const getDiscover = async (req, res) => {
     try {
         const collegeId = req.headers['x-college-id'];
-        const { cursor, limit, search, role, batchYear } = req.query;
+        const { cursor, limit, search, role, batchYear, environmentId, hubId } = req.query;
         const users = await socialService.discoverUsers(
             req.user.userId, 
             collegeId, 
@@ -24,7 +25,8 @@ const getDiscover = async (req, res) => {
             limit ? parseInt(limit) : 20,
             search,
             role,
-            batchYear
+            batchYear,
+            environmentId || hubId || req.headers['x-environment-id']
         );
         res.json(users);
     } catch (error) {
@@ -52,8 +54,8 @@ const getAlumni = async (req, res) => {
 
 const sendRequest = async (req, res) => {
     try {
-        const { receiverId } = req.body;
-        const connection = await socialService.sendConnectionRequest(req.user.userId, receiverId);
+        const { receiverId, intent, note } = req.body;
+        const connection = await socialService.sendConnectionRequest(req.user.userId, receiverId, intent, note);
         res.status(201).json(connection);
     } catch (error) {
         res.status(400).json({ success: false, message: error.message });

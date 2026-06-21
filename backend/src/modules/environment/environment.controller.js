@@ -2,8 +2,9 @@ const environmentService = require('./environment.service');
 
 const listHubs = async (req, res) => {
     try {
-        const collegeId = req.headers['x-college-id'];
-        const hubs = await environmentService.listEnvironments(collegeId, req.user.userId);
+        const collegeId = req.headers['x-college-id'] || req.query.collegeId;
+        const category = req.query.category;
+        const hubs = await environmentService.listEnvironments({ collegeId, category }, req.user.userId);
         res.json(hubs);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -12,8 +13,7 @@ const listHubs = async (req, res) => {
 
 const sendProposal = async (req, res) => {
     try {
-        const collegeId = req.headers['x-college-id'];
-        const hub = await environmentService.proposeEnvironment(collegeId, req.user.userId, req.body);
+        const hub = await environmentService.proposeEnvironment(req.user.userId, req.body);
         res.status(201).json(hub);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -71,6 +71,69 @@ const adminReviewProposal = async (req, res) => {
     }
 };
 
+const getMembers = async (req, res) => {
+    try {
+        const { hubId } = req.params;
+        const members = await environmentService.listMembers(hubId);
+        res.json(members);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const getCircles = async (req, res) => {
+    try {
+        const { hubId } = req.params;
+        const circles = await environmentService.listCircles(hubId);
+        res.json(circles);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const addCircle = async (req, res) => {
+    try {
+        const { hubId } = req.params;
+        const circle = await environmentService.createCircle(hubId, req.user.userId, req.body);
+        res.status(201).json(circle);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const getEvents = async (req, res) => {
+    try {
+        const { hubId } = req.params;
+        const events = await environmentService.listEvents(hubId);
+        res.json(events);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const getHubDetails = async (req, res) => {
+    try {
+        const { hubId } = req.params;
+        const hub = await environmentService.getEnvironmentById(hubId, req.user.userId);
+        if (!hub) {
+            return res.status(404).json({ message: 'Environment not found' });
+        }
+        res.json(hub);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const getHubLeaderboard = async (req, res) => {
+    try {
+        const { hubId } = req.params;
+        const leaderboard = await environmentService.getEnvironmentLeaderboard(hubId);
+        res.json(leaderboard);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     listHubs,
     sendProposal,
@@ -78,5 +141,11 @@ module.exports = {
     updateMembership,
     getPendingHubRequests,
     getAllPendingProposals,
-    adminReviewProposal
+    adminReviewProposal,
+    getMembers,
+    getCircles,
+    addCircle,
+    getEvents,
+    getHubDetails,
+    getHubLeaderboard
 };

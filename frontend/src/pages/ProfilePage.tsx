@@ -12,7 +12,6 @@ import {
 import { clsx } from 'clsx';
 import PostCard from '../components/PostCard';
 import CreatePostModal from '../components/CreatePostModal';
-import MentorshipRequestModal from '../components/profile/MentorshipRequestModal';
 import ProjectCard from '../components/project/ProjectCard';
 import { Post, Project } from '../types';
 import { useAuth } from '../contexts/AuthContext';
@@ -315,7 +314,7 @@ const ProfilePage = () => {
 
             <div className="grid grid-cols-3 gap-2.5 md:gap-4">
                 {stats.map((stat) => (
-                    <div key={stat.label} className="bg-white/60 dark:bg-slate-900/40 backdrop-blur-2xl border border-slate-200/50 dark:border-white/5 rounded-2xl md:rounded-[2rem] p-4 md:p-5 flex flex-col items-center gap-0.5 md:gap-1 shadow-sm transition-transform hover:-translate-y-1">
+                    <div key={stat.label} className="glass-card p-4 md:p-5 flex flex-col items-center gap-0.5 md:gap-1 transition-transform hover:-translate-y-1">
                         <stat.icon size={18} className={`${stat.color} md:w-5 md:h-5`} />
                         <span className="text-lg md:text-xl font-black text-slate-900 dark:text-white tracking-tight">{stat.value}</span>
                         <span className="text-[8px] md:text-[10px] text-slate-500 font-bold uppercase tracking-wider md:tracking-widest">{stat.label}</span>
@@ -323,7 +322,7 @@ const ProfilePage = () => {
                 ))}
             </div>
 
-            <div className="flex items-center p-1 bg-slate-100/50 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/50 dark:border-white/5 rounded-2xl md:rounded-[1.5rem] shadow-inner font-bold">
+            <div className="flex items-center p-1 glass-card shadow-inner font-bold">
                 {['posts', 'projects', 'about'].map((t) => (
                     <button key={t} onClick={() => setActiveTab(t as any)} className={`flex-1 py-3 md:py-3.5 rounded-xl md:rounded-2xl text-[9px] md:text-[10px] font-black uppercase tracking-wider md:tracking-[0.15em] transition-all ${activeTab === t ? "bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-md md:shadow-xl" : "text-slate-400 hover:text-slate-500"}`}>
                         {t}

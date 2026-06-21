@@ -8,7 +8,7 @@ import { motion } from 'framer-motion';
 import { Star, RefreshCcw, Zap, Briefcase, Calendar, Trophy, Rocket } from 'lucide-react';
 
 const SkeletonCard = () => (
-    <div className="bg-white dark:bg-slate-900/30 border border-slate-200 dark:border-white/5 rounded-[2rem] p-5 mb-4 animate-pulse">
+    <div className="panel p-5 mb-4 animate-pulse">
         <div className="flex gap-3 mb-4">
             <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800" />
             <div className="space-y-2 flex-1">
@@ -124,7 +124,7 @@ const FeedPage = () => {
                 <p className="text-slate-500 dark:text-slate-400 text-sm mb-8 transition-colors">Select your institution to see opportunities and posts from your community.</p>
                 <button 
                     onClick={() => navigate('/discover')}
-                    className="bg-blue-500 text-white px-8 py-3 rounded-2xl font-bold hover:scale-105 transition-transform shadow-lg shadow-blue-500/20"
+                    className="btn-primary px-8"
                 >
                     Search College
                 </button>
@@ -135,23 +135,23 @@ const FeedPage = () => {
     return (
         <div className="pb-24 pt-4 px-1">
             {/* Productive Mode Toggle */}
-            <div className="flex items-center justify-between mb-8 bg-blue-600/5 dark:bg-blue-500/10 p-5 rounded-[2.5rem] border border-blue-500/10">
-                <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-blue-600/10 flex items-center justify-center text-blue-600">
-                        <Rocket size={20} />
+            <div className="flex items-center justify-between mb-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-xl">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-600">
+                        <Rocket size={18} />
                     </div>
                     <div>
-                        <h3 className="text-sm font-black text-slate-900 dark:text-white tracking-tight">Growth Mode</h3>
-                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Only High-Signal Content</p>
+                        <h3 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight">Growth Mode</h3>
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Only High-Signal Content</p>
                     </div>
                 </div>
                 <button 
                     onClick={() => setIsProductive(!isProductive)}
-                    className={`relative w-14 h-8 rounded-full transition-all duration-300 ${isProductive ? 'bg-blue-600' : 'bg-slate-200 dark:bg-white/10'}`}
+                    className={`relative w-12 h-7 rounded-full transition-all duration-300 ${isProductive ? 'bg-blue-600' : 'bg-slate-200 dark:bg-slate-850'}`}
                 >
                     <motion.div 
-                        animate={{ x: isProductive ? 26 : 4 }}
-                        className="absolute top-1 w-6 h-6 bg-white rounded-full shadow-md"
+                        animate={{ x: isProductive ? 22 : 4 }}
+                        className="absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm"
                     />
                 </button>
             </div>
@@ -211,12 +211,12 @@ const FeedPage = () => {
                 </div>
             ) : (
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="flex flex-col items-center justify-center text-center py-16 px-6"
                 >
-                    <div className="w-20 h-20 rounded-[2rem] bg-blue-500/10 flex items-center justify-center mb-6">
-                        <Star size={36} className="text-blue-500" strokeWidth={1.5} />
+                    <div className="w-14 h-14 rounded-xl bg-blue-500/10 flex items-center justify-center mb-4">
+                        <Star size={24} className="text-blue-500" strokeWidth={1.5} />
                     </div>
                     <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2 transition-colors">No posts yet</h2>
                     <p className="text-slate-500 dark:text-slate-400 text-sm max-w-[260px] leading-relaxed transition-colors">

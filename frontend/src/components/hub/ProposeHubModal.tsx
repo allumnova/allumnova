@@ -17,8 +17,8 @@ const ProposeHubModal: React.FC<ProposeHubModalProps> = ({ isOpen, onClose, onSu
     const [step, setStep] = useState(1);
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
+    const [category, setCategory] = useState('COLLEGE');
     const [privacyLevel, setPrivacyLevel] = useState<'PUBLIC' | 'SOCIETY' | 'HIDDEN'>('PUBLIC');
-    const [type, setType] = useState('HUB');
 
     const handleSubmit = async () => {
         if (!name || !description || !activeCollege) return;
@@ -28,7 +28,8 @@ const ProposeHubModal: React.FC<ProposeHubModalProps> = ({ isOpen, onClose, onSu
                 name,
                 description,
                 privacyLevel,
-                type,
+                type: 'HUB',
+                category,
                 collegeId: activeCollege.id
             });
             onSuccess();
@@ -40,23 +41,35 @@ const ProposeHubModal: React.FC<ProposeHubModalProps> = ({ isOpen, onClose, onSu
         }
     };
 
+    const environmentCategories = [
+        { value: 'COLLEGE', label: 'College / University Environment' },
+        { value: 'CITY', label: 'City / Local Community Environment' },
+        { value: 'PROFESSION', label: 'Profession / Industry Environment' },
+        { value: 'INTEREST', label: 'Interest / Hobby Environment' },
+        { value: 'CAREER', label: 'Career / Skill Community Environment' },
+        { value: 'LIFESTYLE', label: 'Lifestyle / Social Environment' },
+        { value: 'EVENT', label: 'Event-Based Environment' },
+        { value: 'PRIVATE', label: 'Private Community Environment' },
+        { value: 'ORGANIZATION', label: 'Organization / Brand Community' }
+    ];
+
     const privacyOptions = [
         { 
             id: 'PUBLIC', 
-            label: 'Public Society', 
-            icon: <Globe size={20} />, 
+            label: 'Public Access', 
+            icon: <Globe size={18} />, 
             desc: 'Visible to everyone. Open joining.' 
         },
         { 
             id: 'SOCIETY', 
-            label: 'Vetted Society', 
-            icon: <Shield size={20} />, 
+            label: 'Vetted Access', 
+            icon: <Shield size={18} />, 
             desc: 'Visible, but requires application approval.' 
         },
         { 
             id: 'HIDDEN', 
-            label: 'Hidden Lab', 
-            icon: <Lock size={20} />, 
+            label: 'Private / Invite Only', 
+            icon: <Lock size={18} />, 
             desc: 'Not visible in search. Invite only.' 
         }
     ];
@@ -70,102 +83,117 @@ const ProposeHubModal: React.FC<ProposeHubModalProps> = ({ isOpen, onClose, onSu
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="fixed inset-0 bg-slate-950/90 backdrop-blur-2xl z-[200]"
+                        className="fixed inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm z-[200]"
                     />
                     <div className="fixed inset-0 z-[201] flex items-center justify-center p-4">
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.95, y: 30 }}
+                            initial={{ opacity: 0, scale: 0.95, y: 15 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95, y: 30 }}
-                            className="w-full max-w-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-[3rem] shadow-3xl overflow-hidden"
+                            exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                            className="w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-lg overflow-hidden"
                         >
-                            <div className="p-10">
-                                <div className="flex items-center justify-between mb-10">
-                                    <div className="flex items-center gap-4">
-                                        <div className="p-4 bg-blue-600 rounded-2xl shadow-xl shadow-blue-500/20 text-white">
-                                            <Plus size={24} />
+                            <div className="p-6 md:p-8">
+                                <div className="flex items-center justify-between mb-6">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2.5 bg-blue-600 rounded-xl text-white">
+                                            <Plus size={20} />
                                         </div>
                                         <div>
-                                            <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight uppercase">Propose Hub</h2>
-                                            <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1">Step {step} of 2</p>
+                                            <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">Propose New Space</h2>
+                                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Step {step} of 2</p>
                                         </div>
                                     </div>
-                                    <button onClick={onClose} className="p-3 bg-slate-100 dark:bg-white/5 rounded-2xl text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">
-                                        <X size={20} />
+                                    <button onClick={onClose} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-white transition-all">
+                                        <X size={18} />
                                     </button>
                                 </div>
 
                                 {step === 1 ? (
-                                    <div className="space-y-8">
-                                        <div className="space-y-3">
-                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Community Identity</label>
+                                    <div className="space-y-6">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-0.5">Space Type / Category</label>
+                                            <select
+                                                value={category}
+                                                onChange={e => setCategory(e.target.value)}
+                                                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl px-4 py-3 text-slate-900 dark:text-white font-medium text-sm focus:ring-1 focus:ring-blue-500 outline-none transition-all"
+                                            >
+                                                {environmentCategories.map(cat => (
+                                                    <option key={cat.value} value={cat.value}>{cat.label}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-0.5">Space Name</label>
                                             <input 
                                                 value={name}
                                                 onChange={e => setName(e.target.value)}
-                                                placeholder="e.g. AI Research Lab"
-                                                className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl px-6 py-4 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-blue-500/50 outline-none transition-all"
+                                                placeholder="e.g. Kanpur Startup Circle"
+                                                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl px-4 py-3 text-slate-900 dark:text-white font-bold text-sm focus:ring-1 focus:ring-blue-500 outline-none transition-all"
                                             />
                                         </div>
-                                        <div className="space-y-3">
-                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Mission & Purpose</label>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-0.5">Mission & Description</label>
                                             <textarea 
                                                 value={description}
                                                 onChange={e => setDescription(e.target.value)}
-                                                placeholder="What is the pure goal of this community?"
+                                                placeholder="What is the key purpose of this space?"
                                                 rows={4}
-                                                className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-3xl px-6 py-4 text-slate-900 dark:text-white font-medium focus:ring-2 focus:ring-blue-500/50 outline-none transition-all resize-none"
+                                                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl px-4 py-3 text-slate-900 dark:text-white font-medium text-sm focus:ring-1 focus:ring-blue-500 outline-none transition-all resize-none"
                                             />
                                         </div>
+
                                         <button 
                                             onClick={() => name && description && setStep(2)}
                                             disabled={!name || !description}
-                                            className="w-full flex items-center justify-center gap-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 py-6 rounded-[2rem] font-black uppercase tracking-widest disabled:opacity-30 group transition-all"
+                                            className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold text-xs uppercase tracking-wider disabled:opacity-30 transition-all shadow-sm"
                                         >
-                                            Select Privacy Tiers
-                                            <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                            Continue to Access Protocols
+                                            <ChevronRight size={14} />
                                         </button>
                                     </div>
                                 ) : (
-                                    <div className="space-y-8">
-                                        <div className="space-y-3">
-                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Access Protocol</label>
-                                            <div className="space-y-4">
+                                    <div className="space-y-6">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-0.5">Access Protocol</label>
+                                            <div className="space-y-3">
                                                 {privacyOptions.map((opt) => (
                                                     <button
                                                         key={opt.id}
                                                         onClick={() => setPrivacyLevel(opt.id as any)}
                                                         className={clsx(
-                                                            "w-full flex items-center gap-4 p-5 rounded-[2rem] border transition-all text-left",
+                                                            "w-full flex items-center gap-3 p-4 rounded-xl border transition-all text-left",
                                                             privacyLevel === opt.id 
-                                                                ? "bg-blue-600 border-blue-600 text-white shadow-xl shadow-blue-500/20" 
-                                                                : "bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400"
+                                                                ? "bg-blue-50 border-blue-200 dark:bg-blue-950/20 dark:border-blue-900 text-blue-900 dark:text-blue-100" 
+                                                                : "bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-850 text-slate-600 dark:text-slate-400"
                                                         )}
                                                     >
-                                                        <div className={clsx("p-3 rounded-xl", privacyLevel === opt.id ? "bg-white/20" : "bg-slate-200 dark:bg-white/10")}>
+                                                        <div className={clsx("p-2 rounded-lg", privacyLevel === opt.id ? "bg-blue-500 text-white" : "bg-slate-200 dark:bg-white/10")}>
                                                             {opt.icon}
                                                         </div>
                                                         <div className="flex-1">
-                                                            <p className={clsx("text-xs font-black uppercase tracking-tight", privacyLevel === opt.id ? "text-white" : "text-slate-900 dark:text-white")}>{opt.label}</p>
-                                                            <p className={clsx("text-[10px] font-bold mt-0.5", privacyLevel === opt.id ? "text-white/70" : "text-slate-400")}>{opt.desc}</p>
+                                                            <p className={clsx("text-xs font-bold", privacyLevel === opt.id ? "text-blue-900 dark:text-blue-100" : "text-slate-900 dark:text-white")}>{opt.label}</p>
+                                                            <p className="text-[10px] text-slate-500 mt-0.5">{opt.desc}</p>
                                                         </div>
                                                     </button>
                                                 ))}
                                             </div>
                                         </div>
                                         
-                                        <div className="flex gap-4">
+                                        <div className="flex gap-3">
                                             <button 
                                                 onClick={() => setStep(1)}
-                                                className="flex-1 py-6 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-white rounded-[2rem] font-black uppercase tracking-widest text-xs"
+                                                className="flex-1 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-350 rounded-xl font-bold uppercase tracking-wider text-xs"
                                             >
                                                 Back
                                             </button>
                                             <button 
                                                 onClick={handleSubmit}
                                                 disabled={loading}
-                                                className="flex-[2] bg-blue-600 text-white py-6 rounded-[2rem] font-black uppercase tracking-widest shadow-2xl shadow-blue-500/20"
+                                                className="flex-[2] bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold uppercase tracking-wider text-xs shadow-sm"
                                             >
-                                                {loading ? 'Submitting...' : 'Submit Proposal'}
+                                                {loading ? 'Submitting...' : 'Submit Space'}
                                             </button>
                                         </div>
                                     </div>

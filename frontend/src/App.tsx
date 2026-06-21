@@ -12,7 +12,6 @@ import OnboardingPage from './pages/OnboardingPage';
 import PendingApprovalPage from './pages/PendingApprovalPage';
 import MainLayout from './components/MainLayout';
 import LaunchpadPage from './pages/LaunchpadPage';
-import MentorshipPage from './pages/MentorshipPage';
 import HubFeedPage from './pages/HubFeedPage';
 import PublicPortfolioPage from './pages/PublicPortfolioPage';
 import CareerBuilderPage from './pages/CareerBuilderPage';
@@ -114,7 +113,6 @@ function App() {
                             <Route path="/chat" element={<ChatPage />} />
                             <Route path="/launchpad" element={<LaunchpadPage />} />
                             <Route path="/builder" element={<CareerBuilderPage />} />
-                            <Route path="/mentorship" element={<MentorshipPage />} />
                             <Route path="/hubs/:hubId" element={<HubFeedPage />} />
                             <Route path="/scout" element={<NovaScoutPage />} />
                         </Route>

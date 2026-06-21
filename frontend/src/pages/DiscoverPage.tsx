@@ -5,7 +5,6 @@ import api from '../api/axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Building2, Plus, Users, Sparkles, GraduationCap, UserPlus, Check, X, Filter, Rocket, Info, ChevronRight, Loader2, Globe, Shield, Lock } from 'lucide-react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
-import MentorshipRequestModal from '../components/profile/MentorshipRequestModal';
 import ProposeHubModal from '../components/hub/ProposeHubModal';
 import JoinRequestModal from '../components/project/JoinRequestModal';
 import { useAuth } from '../contexts/AuthContext';
@@ -28,8 +27,6 @@ const DiscoverPage = () => {
     const [targetRoleQuery, setTargetRoleQuery] = useState('');
     const [batchFilter, setBatchFilter] = useState('');
     
-    const [showMentorshipModal, setShowMentorshipModal] = useState(false);
-    const [selectedMentor, setSelectedMentor] = useState<{ id: string, name: string } | null>(null);
     const [isProposeModalOpen, setIsProposeModalOpen] = useState(false);
     const [showJoinModal, setShowJoinModal] = useState(false);
     const [selectedHub, setSelectedHub] = useState<any>(null);
@@ -147,14 +144,11 @@ const DiscoverPage = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             whileHover={{ y: -5 }}
-            className="bg-white/80 dark:bg-slate-900/60 backdrop-blur-xl border border-slate-200/60 dark:border-white/10 rounded-[2rem] md:rounded-[2.5rem] p-4 md:p-6 flex flex-col items-center text-center group relative overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-blue-500/10"
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 md:p-6 flex flex-col items-center text-center group relative overflow-hidden transition-all duration-300 hover:shadow-lg"
         >
-            {/* Subtle Gradient Glow */}
-            <div className="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl group-hover:bg-blue-500/10 transition-colors" />
-            
             <div className="relative mb-4 md:mb-5">
-                <div className="w-20 h-20 md:w-24 md:h-24 rounded-[1.5rem] md:rounded-[2rem] bg-gradient-to-tr from-blue-500/20 to-indigo-500/20 p-1 group-hover:rotate-6 transition-transform duration-500">
-                    <div className="w-full h-full rounded-[1.3rem] md:rounded-[1.8rem] bg-white dark:bg-slate-950 flex items-center justify-center text-2xl md:text-3xl font-black text-blue-600 dark:text-blue-400 overflow-hidden shadow-inner uppercase">
+                <div className="w-20 h-20 md:w-24 md:h-24 rounded-xl md:rounded-2xl bg-slate-100 dark:bg-slate-800 p-0.5 transition-transform duration-300">
+                    <div className="w-full h-full rounded-lg md:rounded-xl bg-white dark:bg-slate-950 flex items-center justify-center text-2xl md:text-3xl font-black text-blue-600 dark:text-blue-400 overflow-hidden shadow-inner uppercase">
                         {user.avatar ? (
                             <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
                         ) : (
@@ -216,23 +210,13 @@ const DiscoverPage = () => {
                     <UserPlus size={12} className="md:w-3.5 md:h-3.5" />
                     Connect
                 </button>
-                {user.colleges?.[0]?.role === 'ALUMNI' ? (
-                    <button 
-                        onClick={() => { setSelectedMentor({ id: user.id, name: user.name }); setShowMentorshipModal(true); }}
-                        className="flex items-center justify-center gap-1.5 py-2.5 md:py-3 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 text-[8px] md:text-[10px] font-black uppercase tracking-widest rounded-xl md:rounded-2xl hover:bg-slate-200 dark:hover:bg-white/20 transition-all active:scale-95"
-                    >
-                        <GraduationCap size={12} className="md:w-3.5 md:h-3.5" />
-                        Mentor
-                    </button>
-                ) : (
-                    <Link 
-                        to={`/profile/${user.id}`}
-                        className="flex items-center justify-center gap-1.5 py-2.5 md:py-3 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 text-[8px] md:text-[10px] font-black uppercase tracking-widest rounded-xl md:rounded-2xl hover:bg-slate-200 dark:hover:bg-white/20 transition-all active:scale-95"
-                    >
-                        <ChevronRight size={12} className="md:w-3.5 md:h-3.5" />
-                        View
-                    </Link>
-                )}
+                <Link 
+                    to={`/profile/${user.id}`}
+                    className="col-span-2 flex items-center justify-center gap-1.5 py-2.5 md:py-3 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 text-[8px] md:text-[10px] font-black uppercase tracking-widest rounded-xl md:rounded-2xl hover:bg-slate-200 dark:hover:bg-white/20 transition-all active:scale-95"
+                >
+                    <ChevronRight size={12} className="md:w-3.5 md:h-3.5" />
+                    View
+                </Link>
             </div>
         </motion.div>
     );
@@ -240,18 +224,18 @@ const DiscoverPage = () => {
     return (
         <div className="pb-24 pt-6 px-4 md:px-0 max-w-6xl mx-auto">
             {/* Header & Search */}
-            <div className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl border border-slate-200/50 dark:border-white/5 rounded-[2rem] md:rounded-[3rem] p-5 md:p-8 mb-8 md:mb-10 shadow-xl md:shadow-2xl shadow-blue-500/5">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 md:p-8 mb-8 md:mb-10 shadow-sm">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6 mb-8">
                     <div>
                         <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight mb-1 md:mb-2">Discover</h1>
                         <p className="text-slate-500 text-[11px] md:text-sm font-medium">Expand your network across {activeCollege?.name || 'your campus'}</p>
                     </div>
-                    <div className="flex bg-slate-100/50 dark:bg-slate-950/50 p-1 rounded-2xl md:rounded-[1.5rem] border border-slate-200/50 dark:border-white/5 overflow-x-auto no-scrollbar">
+                    <div className="flex bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-850 overflow-x-auto no-scrollbar">
                         {['people', 'hubs', 'colleges'].map((t) => (
                             <button 
                                 key={t}
                                 onClick={() => setTab(t as any)}
-                                className={`px-4 md:px-6 py-2 rounded-xl md:rounded-2xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all shrink-0 ${tab === t ? 'bg-white dark:bg-white/20 text-slate-900 dark:text-white shadow-sm md:shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}
+                                className={`px-4 md:px-6 py-2 rounded-lg md:rounded-xl text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all shrink-0 ${tab === t ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
                             >
                                 {t}
                             </button>
@@ -267,7 +251,7 @@ const DiscoverPage = () => {
                             value={searchQuery} 
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder={`Search by name...`}
-                            className="w-full bg-slate-50/50 dark:bg-slate-950/50 border border-slate-200 dark:border-white/10 rounded-2xl md:rounded-[1.5rem] py-4 md:py-5 pl-14 pr-6 text-sm md:text-base text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20 transition-all font-medium"
+                            className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl py-4 pl-14 pr-6 text-sm md:text-base text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20 transition-all font-medium"
                         />
                     </div>
                     {tab === 'people' && (
@@ -279,7 +263,7 @@ const DiscoverPage = () => {
                                     placeholder="By Target Role (e.g. SDE)"
                                     value={targetRoleQuery}
                                     onChange={(e) => setTargetRoleQuery(e.target.value)}
-                                    className="w-full bg-slate-50/50 dark:bg-slate-950/50 border border-slate-200 dark:border-white/10 rounded-2xl md:rounded-[1.5rem] py-4 md:py-5 pl-11 pr-5 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl py-4 pl-11 pr-5 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
                                 />
                             </div>
                             <div className="relative w-24 md:w-32">
@@ -289,7 +273,7 @@ const DiscoverPage = () => {
                                     placeholder="Batch"
                                     value={batchFilter}
                                     onChange={(e) => setBatchFilter(e.target.value)}
-                                    className="w-full bg-slate-50/50 dark:bg-slate-950/50 border border-slate-200 dark:border-white/10 rounded-2xl md:rounded-[1.5rem] py-4 md:py-5 pl-10 pr-4 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+                                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl py-4 pl-10 pr-4 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
                                 />
                             </div>
                         </>
@@ -304,7 +288,7 @@ const DiscoverPage = () => {
                         {suggestions?.length > 0 && !debouncedSearch && (
                             <section>
                                 <div className="flex items-center gap-3 mb-8 px-2">
-                                    <div className="w-10 h-10 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500">
+                                    <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400">
                                         <Sparkles size={20} />
                                     </div>
                                     <div>
@@ -326,7 +310,7 @@ const DiscoverPage = () => {
                         <section>
                             <div className="flex items-center justify-between mb-8 px-2">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500">
+                                    <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-600 dark:text-amber-400">
                                         <GraduationCap size={20} />
                                     </div>
                                     <div>
@@ -338,7 +322,7 @@ const DiscoverPage = () => {
                             
                             {alumniStatus === 'loading' ? (
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    {[1, 2, 3, 4].map(i => <div key={i} className="h-48 bg-slate-100 dark:bg-slate-900/40 rounded-[2rem] animate-pulse" />)}
+                                    {[1, 2, 3, 4].map(i => <div key={i} className="h-48 bg-slate-100 dark:bg-slate-900/40 rounded-2xl animate-pulse" />)}
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -353,7 +337,7 @@ const DiscoverPage = () => {
                                     <button 
                                         onClick={() => fetchNextAlumni()}
                                         disabled={isFetchingMoreAlumni}
-                                        className="inline-flex items-center gap-2 px-8 py-4 bg-slate-100 dark:bg-white/5 text-slate-900 dark:text-white font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-slate-200 transition-all"
+                                        className="inline-flex items-center gap-2 px-8 py-4 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
                                     >
                                         {isFetchingMoreAlumni ? <Loader2 className="animate-spin" size={16} /> : 'Load More Alumni'}
                                     </button>
@@ -364,7 +348,7 @@ const DiscoverPage = () => {
                         {/* 3. All Students */}
                         <section>
                             <div className="flex items-center gap-3 mb-8 px-2">
-                                <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
                                     <Users size={20} />
                                 </div>
                                 <div>
@@ -375,7 +359,7 @@ const DiscoverPage = () => {
 
                             {studentStatus === 'loading' ? (
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    {[1, 2, 3, 4].map(i => <div key={i} className="h-48 bg-slate-100 dark:bg-slate-900/40 rounded-[2rem] animate-pulse" />)}
+                                    {[1, 2, 3, 4].map(i => <div key={i} className="h-48 bg-slate-100 dark:bg-slate-900/40 rounded-2xl animate-pulse" />)}
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -390,7 +374,7 @@ const DiscoverPage = () => {
                                     <button 
                                         onClick={() => fetchNextStudents()}
                                         disabled={isFetchingMoreStudents}
-                                        className="inline-flex items-center gap-2 px-8 py-4 bg-slate-100 dark:bg-white/5 text-slate-900 dark:text-white font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-slate-200 transition-all"
+                                        className="inline-flex items-center gap-2 px-8 py-4 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
                                     >
                                         {isFetchingMoreStudents ? <Loader2 className="animate-spin" size={16} /> : 'Load More Students'}
                                     </button>
@@ -403,7 +387,7 @@ const DiscoverPage = () => {
                 {tab === 'colleges' && (
                     <section>
                         <div className="flex items-center gap-3 mb-8 px-2">
-                            <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-500">
+                            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
                                 <Building2 size={20} />
                             </div>
                             <div>
@@ -417,10 +401,10 @@ const DiscoverPage = () => {
                                 <motion.div 
                                     key={college.id} 
                                     whileHover={{ y: -5 }}
-                                    className="bg-white dark:bg-slate-900/50 backdrop-blur-3xl border border-slate-200 dark:border-white/5 rounded-[2.5rem] p-8 flex flex-col shadow-sm group"
+                                    className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 flex flex-col shadow-sm group"
                                 >
                                     <div className="flex items-start justify-between mb-6">
-                                        <div className="w-16 h-16 rounded-[1.5rem] bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-2xl shadow-inner group-hover:scale-110 transition-transform duration-500" style={{ backgroundColor: college.primaryColor + '10', color: college.primaryColor }}>
+                                        <div className="w-16 h-16 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-2xl shadow-inner group-hover:scale-105 transition-transform duration-300" style={{ backgroundColor: college.primaryColor + '10', color: college.primaryColor }}>
                                             <Building2 size={32} />
                                         </div>
                                         <div className="flex flex-col items-end gap-1">
@@ -484,7 +468,7 @@ const DiscoverPage = () => {
                     <section>
                         <div className="flex items-center justify-between mb-8 px-2">
                              <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500">
+                                <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400">
                                     <Rocket size={20} />
                                 </div>
                                 <div>
@@ -494,7 +478,7 @@ const DiscoverPage = () => {
                             </div>
                             <button 
                                 onClick={() => setIsProposeModalOpen(true)}
-                                className="px-5 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-black uppercase tracking-widest rounded-2xl flex items-center gap-2 shadow-xl hover:scale-105 active:scale-95 transition-all"
+                                className="px-5 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-black uppercase tracking-widest rounded-xl flex items-center gap-2 shadow hover:scale-105 active:scale-95 transition-all"
                             >
                                 <Plus size={16} />
                                 Propose Hub
@@ -503,9 +487,9 @@ const DiscoverPage = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {Array.isArray(hubs) && hubs.map((hub: any) => (
-                                <div key={hub.id} className="bg-white dark:bg-slate-900/50 backdrop-blur-3xl border border-slate-200 dark:border-white/5 rounded-[2.5rem] p-8 flex flex-col shadow-sm">
+                                <div key={hub.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 flex flex-col shadow-sm">
                                     <div className="flex items-start justify-between mb-6">
-                                        <div className="w-16 h-16 rounded-[1.5rem] bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-2xl shadow-inner">
+                                        <div className="w-16 h-16 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-2xl shadow-inner">
                                             {hub.icon || '🏢'}
                                         </div>
                                         <div className="flex flex-col items-end gap-1.5">
@@ -541,7 +525,7 @@ const DiscoverPage = () => {
                                         ) : (
                                             <button 
                                                 onClick={() => handleJoinHub(hub)}
-                                                className="px-6 py-3 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-[1.2rem] hover:bg-blue-500 transition-all shadow-lg shadow-blue-600/20"
+                                                className="px-6 py-3 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-blue-500 transition-all shadow shadow-blue-600/10"
                                             >
                                                 {hub.privacyLevel === 'SOCIETY' ? 'Apply to Join' : 'Join Hub'}
                                             </button>
@@ -554,14 +538,7 @@ const DiscoverPage = () => {
                 )}
             </div>
 
-            {selectedMentor && (
-                <MentorshipRequestModal 
-                    isOpen={showMentorshipModal}
-                    onClose={() => setShowMentorshipModal(false)}
-                    alumniId={selectedMentor.id}
-                    alumniName={selectedMentor.name}
-                />
-            )}
+
 
             <ProposeHubModal 
                 isOpen={isProposeModalOpen}

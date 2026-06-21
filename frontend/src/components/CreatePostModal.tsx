@@ -20,17 +20,28 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose, onSu
     const [content, setContent] = useState('');
     const [metadata, setMetadata] = useState<any>({});
     const [loading, setLoading] = useState(false);
+    const [environmentId, setEnvironmentId] = useState<string | null>(null);
 
     React.useEffect(() => {
         if (initialData && isOpen) {
-            setType('achievement'); // Defaulting showcase to achievement metadata if needed, or handle specifically
-            setType('showcase' as any);
-            setContent(`Broadcasting: **${initialData.title}** 🚀\n\n${initialData.description}`);
-            setMetadata({ projectId: initialData.id, ...initialData });
+            if (initialData.environmentId) {
+                setEnvironmentId(initialData.environmentId);
+            }
+            if (initialData.title) {
+                setType('achievement'); // Defaulting showcase to achievement metadata if needed, or handle specifically
+                setType('showcase' as any);
+                setContent(`Broadcasting: **${initialData.title}** 🚀\n\n${initialData.description}`);
+                setMetadata({ projectId: initialData.id, ...initialData });
+            } else {
+                setType('general');
+                setContent('');
+                setMetadata({});
+            }
         } else if (isOpen) {
             setType('general');
             setContent('');
             setMetadata({});
+            setEnvironmentId(null);
         }
     }, [initialData, isOpen]);
 
@@ -69,6 +80,10 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose, onSu
             formData.append('content', content);
             formData.append('post_type', type);
             formData.append('visibility', activeCollege.id === 'cl_global_allumnova' ? 'public' : visibility);
+            
+            if (environmentId) {
+                formData.append('environmentId', environmentId);
+            }
             
             if (type !== 'general') {
                 formData.append('metadata', JSON.stringify(metadata));
