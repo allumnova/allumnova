@@ -26,7 +26,6 @@ const ProfilePage = () => {
     const [connectionLoading, setConnectionLoading] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [editTab, setEditTab] = useState<'basic' | 'professional'>('basic');
-    const [isMentorshipModalOpen, setIsMentorshipModalOpen] = useState(false);
     const [editForm, setEditForm] = useState({
         name: '',
         bio: '',
@@ -205,7 +204,6 @@ const ProfilePage = () => {
     const stats = [
         { label: 'Impact', value: profile.reputationScore || 0, icon: Shield, color: 'text-blue-400' },
         { label: 'Posts', value: profile.posts?.length || 0, icon: Grid, color: 'text-slate-400' },
-        { label: 'Showcase', value: profile.projects?.length || 0, icon: Rocket, color: 'text-purple-400' },
     ];
 
     return (
@@ -265,15 +263,6 @@ const ProfilePage = () => {
                             {profile.connectionStatus?.status === 'pending' && !profile.connectionStatus?.isSender ? 'Accept Request' : 'Connect'}
                         </button>
                     )}
-                    {!isOwnProfile && profile.role === 'alumni' && (
-                        <button 
-                            onClick={() => navigate('/scout', { state: { modelId: profile.id } })}
-                            className="flex-1 bg-blue-500/10 text-blue-600 dark:text-blue-400 font-extrabold py-4 rounded-2xl border border-blue-500/20 flex items-center justify-center gap-2 hover:bg-blue-500/20 transition-all active:scale-95"
-                            title="Blueprint this path"
-                        >
-                            <Activity size={18} /> Model Path
-                        </button>
-                    )}
                     {!isOwnProfile && (
                         <button onClick={() => navigate(`/chat?userId=${profile.id}`)} className="w-14 h-14 bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/5 rounded-2xl flex items-center justify-center text-slate-600 dark:text-slate-300">
                             <MessageCircle size={18} />
@@ -282,37 +271,9 @@ const ProfilePage = () => {
                 </div>
             </header>
 
-            {/* 🚀 Elite Showcase Gateway */}
-            {isOwnProfile && (
-                <div className="px-2">
-                    <motion.button 
-                        whileHover={{ scale: 1.01 }}
-                        whileTap={{ scale: 0.99 }}
-                        onClick={() => navigate('/launchpad', { state: { openCreateModal: true } })}
-                        className="w-full relative overflow-hidden rounded-[2.5rem] border border-blue-500/20 bg-gradient-to-br from-blue-600/10 via-indigo-600/5 to-transparent p-8 text-left group"
-                    >
-                        <div className="flex items-center justify-between">
-                            <div className="flex-1 pr-6">
-                                <h3 className="text-xl font-black text-slate-900 dark:text-white italic uppercase tracking-tighter mb-2 group-hover:text-blue-500 transition-colors">Elite Showcase</h3>
-                                <p className="text-slate-500 dark:text-slate-400 text-xs font-medium leading-relaxed max-w-sm">
-                                    Launch your next institutional milestone. Secure high-signal visibility across the college ecosystem.
-                                </p>
-                            </div>
-                            <div className="w-16 h-16 bg-blue-600 rounded-[2rem] flex items-center justify-center shadow-2xl shadow-blue-600/40 group-hover:rotate-12 transition-transform duration-500">
-                                <Rocket size={32} className="text-white" />
-                            </div>
-                        </div>
-                        <div className="mt-6 flex items-center gap-2">
-                            <span className="text-blue-600 dark:text-blue-400 text-[10px] font-black uppercase tracking-[0.2em]">Start your showcase journey</span>
-                            <motion.div animate={{ x: [0, 5, 0] }} transition={{ repeat: Infinity, duration: 1.5 }}>
-                                <CheckCircle2 size={12} className="text-blue-500" />
-                            </motion.div>
-                        </div>
-                    </motion.button>
-                </div>
-            )}
 
-            <div className="grid grid-cols-3 gap-2.5 md:gap-4">
+
+            <div className="grid grid-cols-2 gap-2.5 md:gap-4">
                 {stats.map((stat) => (
                     <div key={stat.label} className="glass-card p-4 md:p-5 flex flex-col items-center gap-0.5 md:gap-1 transition-transform hover:-translate-y-1">
                         <stat.icon size={18} className={`${stat.color} md:w-5 md:h-5`} />
@@ -323,7 +284,7 @@ const ProfilePage = () => {
             </div>
 
             <div className="flex items-center p-1 glass-card shadow-inner font-bold">
-                {['posts', 'projects', 'about'].map((t) => (
+                {['posts', 'about'].map((t) => (
                     <button key={t} onClick={() => setActiveTab(t as any)} className={`flex-1 py-3 md:py-3.5 rounded-xl md:rounded-2xl text-[9px] md:text-[10px] font-black uppercase tracking-wider md:tracking-[0.15em] transition-all ${activeTab === t ? "bg-white dark:bg-white/10 text-slate-900 dark:text-white shadow-md md:shadow-xl" : "text-slate-400 hover:text-slate-500"}`}>
                         {t}
                     </button>
@@ -336,24 +297,6 @@ const ProfilePage = () => {
                         {Array.isArray(profile.posts) && profile.posts.length > 0 ? (
                             profile.posts.map((post: Post) => <PostCard key={post.id} post={post} onAppreciate={() => {}} onBoost={() => {}} />)
                         ) : <div className="py-20 text-center opacity-40 uppercase tracking-widest text-xs font-bold">No feed activity yet.</div>}
-                    </motion.div>
-                ) : activeTab === 'projects' ? (
-                    <motion.div key="projects" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-                        {Array.isArray(profile.projects) && profile.projects.length > 0 ? (
-                            profile.projects.map((project: Project, idx: number) => (
-                                <ProjectCard 
-                                    key={project.id} 
-                                    project={project} 
-                                    index={idx} 
-                                    onUpdate={() => fetchProfile()} 
-                                    onEdit={() => {}} 
-                                    onShare={(p) => {
-                                        setShowcaseProject(p);
-                                        setIsPostModalOpen(true);
-                                    }}
-                                />
-                            ))
-                        ) : <div className="py-20 text-center opacity-40 uppercase tracking-widest text-xs font-bold">No projects showcased yet.</div>}
                     </motion.div>
                 ) : (
                     <motion.div key="about" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">

@@ -7,10 +7,11 @@ const api = axios.create({
     },
 });
 
-// Request Interceptor: Add Auth Token and College ID
+// Request Interceptor: Add Auth Token and Environment IDs
 api.interceptors.request.use((config) => {
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-    const collegeId = localStorage.getItem('activeCollegeId') || sessionStorage.getItem('activeCollegeId');
+    const environmentId = localStorage.getItem('activeCollegeId') || sessionStorage.getItem('activeCollegeId');
+    const collegeId = localStorage.getItem('activeCampusCollegeId') || sessionStorage.getItem('activeCampusCollegeId') || 'cl_global_allumnova';
 
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
@@ -18,6 +19,10 @@ api.interceptors.request.use((config) => {
 
     if (collegeId) {
         config.headers['X-College-ID'] = collegeId;
+    }
+
+    if (environmentId) {
+        config.headers['X-Environment-ID'] = environmentId;
     }
 
     return config;

@@ -290,13 +290,23 @@ const listMembers = async (environmentId) => {
     });
 };
 
-const listCircles = async (environmentId) => {
-    return await prisma.circle.findMany({
+const listCircles = async (environmentId, userId) => {
+    const circles = await prisma.circle.findMany({
         where: { environmentId },
         include: {
+            members: {
+                where: { userId },
+                select: { id: true }
+            },
             _count: { select: { members: true } }
         }
     });
+    
+    return circles.map(c => ({
+        ...c,
+        isMember: c.members.length > 0,
+        memberCount: c._count.members
+    }));
 };
 
 const createCircle = async (environmentId, userId, data) => {
@@ -325,14 +335,108 @@ const createCircle = async (environmentId, userId, data) => {
     });
 };
 
-const listEvents = async (environmentId) => {
-    return await prisma.event.findMany({
+const joinCircle = async (circleId, userId) => {
+    const circle = await prisma.circle.findUnique({
+        where: { id: circleId }
+    });
+    if (!circle) {
+        throw new Error('Circle not found');
+    }
+
+    const membership = await prisma.environmentMembership.findUnique({
+        where: { userId_environmentId: { userId, environmentId: circle.environmentId } }
+    });
+    if (!membership || membership.status !== 'APPROVED') {
+        throw new Error('Must be an approved member of the parent environment to join this circle');
+    }
+
+    return await prisma.circleMembership.create({
+        data: {
+            circleId,
+            userId,
+            role: 'MEMBER'
+        }
+    });
+};
+
+const leaveCircle = async (circleId, userId) => {
+    return await prisma.circleMembership.delete({
+        where: {
+            userId_circleId: { userId, circleId }
+        }
+    });
+};
+
+const listEvents = async (environmentId, userId) => {
+    const events = await prisma.event.findMany({
         where: { environmentId },
         include: {
-            createdBy: { select: { name: true, avatar: true } },
+            creator: { select: { name: true, avatar: true } },
+            attendees: {
+                where: { userId },
+                select: { id: true }
+            },
             _count: { select: { attendees: true } }
         }
     });
+
+    return events.map(e => ({
+        ...e,
+        isAttending: e.attendees.length > 0,
+        attendeeCount: e._count.attendees,
+        createdBy: e.creator // Map creator to createdBy matching legacy UI property
+    }));
+};
+
+const createEvent = async (environmentId, userId, data) => {
+    const membership = await prisma.environmentMembership.findUnique({
+        where: { userId_environmentId: { userId, environmentId } }
+    });
+    if (!membership || membership.status !== 'APPROVED') {
+        throw new Error('Must be an approved environment member to create an event');
+    }
+
+    const env = await prisma.environment.findUnique({
+        where: { id: environmentId }
+    });
+    const collegeId = env.collegeId || 'cl_global_allumnova';
+
+    return await prisma.event.create({
+        data: {
+            title: data.title,
+            description: data.description,
+            event_date: new Date(data.eventDate || data.event_date),
+            location: data.location || null,
+            environmentId,
+            collegeId,
+            creatorId: userId
+        }
+    });
+};
+
+const rsvpEvent = async (eventId, userId) => {
+    const existing = await prisma.eventAttendee.findUnique({
+        where: {
+            eventId_userId: { eventId, userId }
+        }
+    });
+
+    if (existing) {
+        await prisma.eventAttendee.delete({
+            where: {
+                eventId_userId: { eventId, userId }
+            }
+        });
+        return { isAttending: false };
+    } else {
+        await prisma.eventAttendee.create({
+            data: {
+                eventId,
+                userId
+            }
+        });
+        return { isAttending: true };
+    }
 };
 
 module.exports = {
@@ -346,7 +450,11 @@ module.exports = {
     listMembers,
     listCircles,
     createCircle,
+    joinCircle,
+    leaveCircle,
     listEvents,
+    createEvent,
+    rsvpEvent,
     getEnvironmentById,
     getEnvironmentLeaderboard
 };

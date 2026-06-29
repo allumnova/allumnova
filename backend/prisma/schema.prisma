@@ -8,110 +8,51 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model College {
-  id           String              @id @default(cuid())
-  name         String
-  domain       String              @unique @default("")
-  subdomain    String?             @unique
-  logo         String?
-  location     String?
-  website      String?
-  primaryColor String              @default("#000000")
-  createdAt    DateTime            @default(now())
-  updatedAt    DateTime            @updatedAt
-  users        CollegeMembership[]
-  events       Event[]
-  jobs         Job[]
-  posts        Post[]
-  projects     Project[]
-  environments Environment[]
+model Organization {
+  id               String            @id @default(cuid())
+  name             String
+  domain           String?           @unique
+  subscriptionPlan String            @default("FREE") // FREE, GROWTH, ENTERPRISE
+  status           String            @default("ACTIVE") // ACTIVE, SUSPENDED, DELETED
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  users            User[]
+  subscriptionLogs SubscriptionLog[]
+  workflows        Workflow[]
+  invoices         Invoice[]
+  aiKnowledgeBase  AiKnowledgeBase[]
+  auditLogs        AuditLog[]
+  aiTokenMetrics   AiTokenMetric[]
+  projects         Project[]
+  tasks            Task[]
+}
+
+model SubscriptionLog {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  previousPlan   String?
+  newPlan        String?
+  changedBy      String?
+  createdAt      DateTime     @default(now())
 }
 
 model User {
-  id                 String               @id @default(cuid())
-  email              String               @unique
-  password_hash      String               @default("")
-  name               String
-  username           String?              @unique
-  avatar             String?
-  phone              String?              @unique
-  linkedIn           String?
-  bio                String?
-  batch_year         Int?
-  department         String?
-  profile_picture    String?
-  cover_picture      String?
-  location           String?
-  reputationScore    Int                  @default(0)
-  tierLevel          String               @default("Echo")
-  role               String               @default("student")
-  is_verified        Boolean              @default(false)
-  verificationLevel  String               @default("BASIC")
-  pulse              String?
-  pulseEmoji         String?
-  pulseUpdatedAt     DateTime?
-  portfolioSlug      String?              @unique
-  careerObjective    String?
-  techSkills         Json?
-  achievements       String[]             @default([])
-  hobbies            String[]             @default([])
-  resumeUrl          String?
-  skills             String[]             @default([])
-  isPublic           Boolean              @default(true)
-  targetRole         String?
-  careerStage        String               @default("STUDENT") // STUDENT, GRADUATE, WORKING
-  completionRatio    Int                  @default(0)
-  githubUrl          String?
-  twitterUrl         String?
-  websiteUrl         String?
-  interests          String[]             @default([])
-  fcmTokens          String[]             @default([])
-  createdAt          DateTime             @default(now())
-  updatedAt          DateTime             @updatedAt
-  experience         Experience[]
-  education          Education[]
-  certifications     Certification[]
-  analytics          AnalyticsEvent[]
-  colleges           CollegeMembership[]
-  comments           Comment[]
-  receivedRequests   Connection[]         @relation("ReceivedConnections")
-  sentRequests       Connection[]         @relation("SentConnections")
-  conversations      ConversationMember[]
-  eventsCreated      Event[]
-  eventRSVPs         EventAttendee[]
-  following          Follow[]             @relation("Follower")
-  followers          Follow[]             @relation("Following")
-  jobs               Job[]
-  jobApplications    JobApplication[]
-  messages           Message[]
-  notifications      Notification[]       @relation("NotificationRecipient")
-  posts              Post[]
-  postLikes          PostLike[]
-  reportsSent        Report[]
-  savedPosts         SavedPost[]
-  projects           Project[]            @relation("ProjectOwner")
-  projectHypes       ProjectHype[]
-  environments        EnvironmentMembership[]
-  collegeRequests     CollegeRequest[]
-  actorNotifications  Notification[]       @relation("NotificationActor")
-  sessions            Session[]
-  environmentProfiles EnvironmentProfile[]
-  circles             CircleMembership[]
-}
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  email          String
+  password_hash  String
+  name           String
+  role           String       @default("MEMBER") // ADMIN, MANAGER, MEMBER, CLIENT
+  isActive       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  invoices       Invoice[]    @relation("ClientInvoices")
+  auditLogs      AuditLog[]
+  sessions       Session[]
 
-model Certification {
-  id           String   @id @default(cuid())
-  userId       String
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  title        String
-  organization String
-  issueDate    DateTime?
-  credentialId String?
-  credentialUrl String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  @@index([userId])
+  @@unique([organizationId, email])
 }
 
 model Session {
@@ -127,396 +68,125 @@ model Session {
   @@index([userId])
 }
 
-model CollegeMembership {
-  id          String   @id @default(cuid())
-  userId      String
-  collegeId   String
-  role        String   @default("student")
-  joined_at   DateTime @default(now())
-  status      String   @default("PENDING")
-  batch       String?
-  documentUrl String?
-  college     College  @relation(fields: [collegeId], references: [id], onDelete: Cascade)
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, collegeId])
-  @@index([collegeId])
-  @@index([status])
-}
-
-model Post {
-  id         String      @id @default(cuid())
-  content    String
-  media_url  String?
-  post_type  String      @default("general")
-  visibility String      @default("college")
-  authorId   String
-  collegeId     String?
-  environmentId String?
-  metadata      Json?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  comments      Comment[]
-  author        User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  college       College?    @relation(fields: [collegeId], references: [id])
-  environment   Environment? @relation(fields: [environmentId], references: [id])
-  likes         PostLike[]
-  media      PostMedia[]
-  savedBy    SavedPost[]
-
-  @@index([collegeId])
-  @@index([authorId])
-  @@index([visibility])
-}
-
-model PostLike {
-  id        String   @id @default(cuid())
-  postId    String
-  userId    String
-  createdAt DateTime @default(now())
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([postId, userId])
-}
-
-model Comment {
-  id                String    @id @default(cuid())
-  postId            String
-  userId            String
-  content           String
-  parent_comment_id String?
-  createdAt         DateTime  @default(now())
-  parent            Comment?  @relation("Thread", fields: [parent_comment_id], references: [id])
-  replies           Comment[] @relation("Thread")
-  post              Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
-  user              User      @relation(fields: [userId], references: [id])
-
-  @@index([postId])
-  @@index([userId])
-}
-
-model PostMedia {
-  id        String   @id @default(cuid())
-  url       String
-  type      String
-  postId    String
-  createdAt DateTime @default(now())
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-}
-
-model Connection {
-  id         String   @id @default(cuid())
-  senderId   String
-  receiverId String
-  status     String   @default("pending")
-  intent     String?
-  note       String?
-  createdAt  DateTime @default(now())
-  receiver   User     @relation("ReceivedConnections", fields: [receiverId], references: [id])
-  sender     User     @relation("SentConnections", fields: [senderId], references: [id])
-
-  @@index([senderId])
-  @@index([receiverId])
-  @@index([status])
-}
-
-model Conversation {
-  id        String               @id @default(cuid())
-  createdAt DateTime             @default(now())
-  updatedAt DateTime             @updatedAt
-  members   ConversationMember[]
-  messages  Message[]
-}
-
-model ConversationMember {
-  id             String       @id @default(cuid())
-  conversationId String
-  userId         String
-  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model Message {
-  id             String       @id @default(cuid())
-  content        String
-  media_url      String?
-  senderId       String
-  conversationId String
-  createdAt      DateTime     @default(now())
-  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  sender         User         @relation(fields: [senderId], references: [id])
-}
-
-model Notification {
-  id           String   @id @default(cuid())
-  userId       String
-  actorId      String?
-  type         String
-  reference_id String?
-  message      String
-  is_read      Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  user         User     @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
-  actor        User?    @relation("NotificationActor", fields: [actorId], references: [id])
-}
-
-model Job {
-  id           String           @id @default(cuid())
-  userId       String
-  collegeId    String
-  company      String
-  role         String
-  description  String
-  location     String?
-  apply_link   String?
-  createdAt    DateTime         @default(now())
-  college      College          @relation(fields: [collegeId], references: [id])
-  user         User             @relation(fields: [userId], references: [id])
-  applications JobApplication[]
-}
-
-model JobApplication {
-  id         String   @id @default(cuid())
-  jobId      String
-  userId     String
-  resume_url String
-  applied_at DateTime @default(now())
-  job        Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  user       User     @relation(fields: [userId], references: [id])
-}
-
-
-
-model Event {
-  id            String          @id @default(cuid())
-  collegeId     String?
-  environmentId String?
-  title         String
-  description   String
-  location      String?
-  event_date    DateTime
-  createdById   String
-  college       College?        @relation(fields: [collegeId], references: [id])
-  environment   Environment?    @relation(fields: [environmentId], references: [id], onDelete: Cascade)
-  createdBy     User            @relation(fields: [createdById], references: [id])
-  attendees     EventAttendee[]
-}
-
-model EventAttendee {
-  id      String @id @default(cuid())
-  eventId String
-  userId  String
-  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  user    User   @relation(fields: [userId], references: [id])
-}
-
-model Report {
-  id           String   @id @default(cuid())
-  reporterId   String
-  content_type String
-  content_id   String
-  reason       String
-  createdAt    DateTime @default(now())
-  reporter     User     @relation(fields: [reporterId], references: [id])
-}
-
-model SavedPost {
-  id        String   @id @default(cuid())
-  userId    String
-  postId    String
-  createdAt DateTime @default(now())
-  post      Post     @relation(fields: [postId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
-}
-
-model Follow {
-  id          String   @id @default(cuid())
-  followerId  String
-  followingId String
-  createdAt   DateTime @default(now())
-  follower    User     @relation("Follower", fields: [followerId], references: [id])
-  following   User     @relation("Following", fields: [followingId], references: [id])
-
-  @@unique([followerId, followingId])
-}
-
-model AnalyticsEvent {
-  id         String   @id @default(cuid())
-  userId     String?
-  event_type String
-  metadata   Json?
-  createdAt  DateTime @default(now())
-  user       User?    @relation(fields: [userId], references: [id])
-}
-
 model Project {
-  id          String             @id @default(cuid())
-  title       String
-  description String
-  status      String             @default("IDEA") // IDEA, BUILDING, MVP, SCALING
-  ownerId     String
-  collegeId   String
-  repoUrl     String?
-  demoUrl     String?
-  mediaUrls   String[]           @default([])
-  lookingFor  String?            // "Co-founders", "Designers", "Beta Testers"
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
-  owner       User               @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  college     College            @relation(fields: [collegeId], references: [id])
-  milestones  ProjectMilestone[]
-  hypes       ProjectHype[]
-
-  @@index([collegeId])
-  @@index([ownerId])
-  @@index([status])
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  description    String?
+  status         String       @default("IDEA") // IDEA, BUILDING, MVP, SCALING
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  tasks          Task[]
 }
 
-model ProjectMilestone {
-  id          String   @id @default(cuid())
-  projectId   String
-  title       String
-  isCompleted Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+model Task {
+  id             String        @id @default(cuid())
+  organizationId String
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  projectId      String
+  project        Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title          String
+  description    String?
+  status         String        @default("TODO") // TODO, IN_PROGRESS, REVIEW, DONE
+  dueDate        DateTime?
+  slaDeadline    DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 }
 
-model ProjectHype {
+model Workflow {
+  id             String        @id @default(cuid())
+  organizationId String
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  description    String?
+  triggerType    String        // EVENT, CRON, MANUAL
+  definition     Json          // State machine configuration
+  isActive       Boolean       @default(true)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  runs           WorkflowRun[]
+}
+
+model WorkflowRun {
+  id           String    @id @default(cuid())
+  workflowId   String
+  workflow     Workflow  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  currentState String
+  contextData  Json?
+  status       String    @default("RUNNING") // RUNNING, COMPLETED, FAILED
+  startedAt    DateTime  @default(now())
+  completedAt  DateTime?
+}
+
+model Invoice {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  clientId       String
+  client         User         @relation("ClientInvoices", fields: [clientId], references: [id])
+  amount         Decimal
+  currency       String       @default("USD")
+  status         String       @default("UNPAID") // UNPAID, PAID, OVERDUE, VOID
+  dueDate        DateTime
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  payments       Payment[]
+}
+
+model Payment {
+  id                   String   @id @default(cuid())
+  invoiceId            String
+  invoice              Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  paymentGateway       String   // STRIPE, RAZORPAY, MANUAL
+  transactionReference String
+  amount               Decimal
+  status               String   @default("SUCCESS")
+  createdAt            DateTime @default(now())
+}
+
+model AiKnowledgeBase {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  category       String       // GENERAL, CODE, BUSINESS, SALES
+  content        String
+  embedding      Float[]
+  createdAt      DateTime     @default(now())
+}
+
+model AuditLog {
+  id             String        @id @default(cuid())
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  userId         String?
+  user           User?         @relation(fields: [userId], references: [id])
+  action         String        // e.g. INVOICE_PAID, USER_CREATION
+  tableName      String
+  recordId       String
+  oldValues      Json?
+  newValues      Json?
+  ipAddress      String?
+  createdAt      DateTime      @default(now())
+}
+
+model AiPrompt {
   id        String   @id @default(cuid())
-  projectId String
-  userId    String
-  weight    Int      @default(1) // Calculated based on user reputation at time of hype
+  name      String   @unique // e.g. REQUIREMENTS_EXTRACTOR
+  template  String
+  version   Int      @default(1)
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([projectId, userId])
 }
 
-model Environment {
-  id            String                  @id @default(cuid())
-  collegeId     String?
-  slug          String                  @unique @default("")
-  coverImage    String?
-  name          String
-  description   String?
-  icon          String?
-  type          String                  @default("HUB") // HUB, CLUB, STUDY_GROUP
-  category      String                  @default("COLLEGE")
-  config        Json?
-  location      String?
-  tags          String[]                @default([])
-  privacyType   String                  @default("PUBLIC") // PUBLIC, PRIVATE, INVITE_ONLY
-  joinRules     String[]                @default([])
-  privacyLevel  String                  @default("PUBLIC") // PUBLIC, SOCIETY, HIDDEN
-  status        String                  @default("VERIFIED") // PENDING, VERIFIED, REJECTED
-  joinQuestions String[]                @default([])
-  joinCriteria  String?                 @default("")
-  createdAt     DateTime                @default(now())
-  college       College?                @relation(fields: [collegeId], references: [id])
-  members       EnvironmentMembership[]
-  posts         Post[]
-  profiles      EnvironmentProfile[]
-  circles       Circle[]
-  events        Event[]
-}
-
-model EnvironmentProfile {
-  id            String      @id @default(cuid())
-  userId        String
-  environmentId String
-  bio           String?
-  roleTag       String?
-  interests     String[]    @default([])
-  visibility    Boolean     @default(true)
-  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  environment   Environment @relation(fields: [environmentId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, environmentId])
-}
-
-model Circle {
-  id            String             @id @default(cuid())
-  name          String
-  description   String?
-  environmentId String
-  coverImage    String?
-  privacy       String             @default("PUBLIC") // PUBLIC, PRIVATE, INVITE_ONLY
-  rules         String[]           @default([])
-  createdAt     DateTime           @default(now())
-  updatedAt     DateTime           @updatedAt
-  environment   Environment        @relation(fields: [environmentId], references: [id], onDelete: Cascade)
-  members       CircleMembership[]
-}
-
-model CircleMembership {
-  id        String   @id @default(cuid())
-  userId    String
-  circleId  String
-  role      String   @default("MEMBER") // ADMIN, MEMBER, MODERATOR
-  joinedAt  DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  circle    Circle   @relation(fields: [circleId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, circleId])
-}
-
-model EnvironmentMembership {
-  id            String      @id @default(cuid())
-  userId        String
-  environmentId String
-  status        String      @default("PENDING") // PENDING, APPROVED, REJECTED
-  role          String      @default("MEMBER") // MEMBER, ADMIN, MODERATOR
-  answers       Json?       @default("{}")
-  createdAt     DateTime    @default(now())
-  user          User        @relation(fields: [userId], references: [id])
-  environment   Environment @relation(fields: [environmentId], references: [id])
-
-  @@unique([userId, environmentId])
-}
-
-model CollegeRequest {
-  id           String   @id @default(cuid())
-  requesterId  String
-  name         String
-  domain       String?
-  subdomain    String?
-  logo         String?
-  website      String?
-  location     String?
-  description  String?
-  status       String   @default("PENDING") // PENDING, APPROVED, REJECTED
-  createdAt    DateTime @default(now())
-  requester    User     @relation(fields: [requesterId], references: [id])
-}
-model Experience {
-  id           String    @id @default(cuid())
-  userId       String
-  company      String
-  position     String
-  location     String?
-  startDate    DateTime
-  endDate      DateTime?
-  isCurrent    Boolean   @default(false)
-  description  String?
-  createdAt    DateTime  @default(now())
-  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-}
-
-model Education {
-  id           String    @id @default(cuid())
-  userId       String
-  school       String
-  degree       String
-  field        String?
-  startDate    DateTime
-  endDate      DateTime?
-  description  String?
-  createdAt    DateTime  @default(now())
-  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
+model AiTokenMetric {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  agentId        String
+  promptTokens   Int
+  completionTokens Int
+  estimatedCostUsd Decimal
+  createdAt      DateTime     @default(now())
 }

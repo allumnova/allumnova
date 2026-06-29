@@ -3,6 +3,7 @@ import { useCollege } from '../contexts/CollegeContext';
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import { motion, AnimatePresence } from 'framer-motion';
+import { clsx } from 'clsx';
 import { Search, Building2, Plus, Users, Sparkles, GraduationCap, UserPlus, Check, X, Filter, Rocket, Info, ChevronRight, Loader2, Globe, Shield, Lock } from 'lucide-react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import ProposeHubModal from '../components/hub/ProposeHubModal';
@@ -30,6 +31,20 @@ const DiscoverPage = () => {
     const [isProposeModalOpen, setIsProposeModalOpen] = useState(false);
     const [showJoinModal, setShowJoinModal] = useState(false);
     const [selectedHub, setSelectedHub] = useState<any>(null);
+
+    const [activeHubCategory, setActiveHubCategory] = useState<string>('ALL');
+
+    const hubCategories = [
+        { value: 'ALL', label: 'All Spaces' },
+        { value: 'COLLEGE', label: 'Campuses' },
+        { value: 'CITY', label: 'Cities' },
+        { value: 'PROFESSION', label: 'Profession' },
+        { value: 'INTEREST', label: 'Interest' },
+        { value: 'CAREER', label: 'Career' },
+        { value: 'LIFESTYLE', label: 'Lifestyle' },
+        { value: 'EVENT', label: 'Events' },
+        { value: 'ORGANIZATION', label: 'Orgs' }
+    ];
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -95,9 +110,13 @@ const DiscoverPage = () => {
 
     // 4. Hubs List
     const { data: hubs, refetch: refetchHubs } = useQuery({
-        queryKey: ['hubs', activeCollege?.id],
+        queryKey: ['hubs', activeCollege?.id, activeHubCategory],
         queryFn: async () => {
-            const res = await api.get('/environments');
+            const res = await api.get('/environments', {
+                params: {
+                    category: activeHubCategory === 'ALL' ? undefined : activeHubCategory
+                }
+            });
             return res.data;
         },
         enabled: tab === 'hubs' && !!activeCollege
@@ -478,11 +497,28 @@ const DiscoverPage = () => {
                             </div>
                             <button 
                                 onClick={() => setIsProposeModalOpen(true)}
-                                className="px-5 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-black uppercase tracking-widest rounded-xl flex items-center gap-2 shadow hover:scale-105 active:scale-95 transition-all"
+                                className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-lg active:scale-95"
                             >
-                                <Plus size={16} />
-                                Propose Hub
+                                + Propose Space
                             </button>
+                        </div>
+
+                        {/* Hub Categories Pills */}
+                        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-6 px-2 mb-4">
+                            {hubCategories.map((cat) => (
+                                <button
+                                    key={cat.value}
+                                    onClick={() => setActiveHubCategory(cat.value)}
+                                    className={clsx(
+                                        "px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap border",
+                                        activeHubCategory === cat.value
+                                            ? "bg-blue-600 text-white border-blue-600 shadow-md"
+                                            : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500 hover:text-slate-700 dark:hover:text-slate-350"
+                                    )}
+                                >
+                                    {cat.label}
+                                </button>
+                            ))}
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

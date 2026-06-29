@@ -53,7 +53,8 @@ const FeedPage = () => {
                         cursor: pageParam,
                         limit: 10,
                         type: activeType,
-                        productive: isProductive
+                        productive: isProductive,
+                        hubId: activeCollege?.id
                     }
                 });
                 return res.data || [];

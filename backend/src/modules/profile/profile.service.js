@@ -10,6 +10,11 @@ const getProfile = async (userId) => {
                     college: true
                 }
             },
+            environments: {
+                include: {
+                    environment: true
+                }
+            },
             posts: {
                 orderBy: { createdAt: 'desc' },
                 take: 50,
@@ -49,6 +54,11 @@ const getUserProfile = async (targetUserId, currentUserId) => {
                     college: {
                         select: { name: true, logo: true }
                     }
+                }
+            },
+            environments: {
+                include: {
+                    environment: true
                 }
             },
             posts: {
@@ -377,6 +387,30 @@ const verifyUser = async (mappingId, status) => {
                     verificationLevel: 'VERIFIED'
                 }
             });
+
+            // Also create or approve EnvironmentMembership for this college environment
+            const collegeEnv = await tx.environment.findFirst({
+                where: { collegeId: mapping.collegeId, category: 'COLLEGE' }
+            });
+            if (collegeEnv) {
+                await tx.environmentMembership.upsert({
+                    where: {
+                        userId_environmentId: {
+                            userId: mapping.userId,
+                            environmentId: collegeEnv.id
+                        }
+                    },
+                    create: {
+                        userId: mapping.userId,
+                        environmentId: collegeEnv.id,
+                        status: 'APPROVED',
+                        role: 'MEMBER'
+                    },
+                    update: {
+                        status: 'APPROVED'
+                    }
+                });
+            }
         }
 
         return mapping;

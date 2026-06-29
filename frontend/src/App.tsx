@@ -1,25 +1,15 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import LoginPage from './pages/LoginPage';
-import FeedPage from './pages/FeedPage';
-import ProfilePage from './pages/ProfilePage';
-import DiscoverPage from './pages/DiscoverPage';
-import ConnectionsPage from './pages/ConnectionsPage';
-import ChatPage from './pages/ChatPage';
-import NotificationPage from './pages/NotificationPage';
-import AdminRequestsPage from './pages/AdminRequestsPage';
-import OnboardingPage from './pages/OnboardingPage';
-import PendingApprovalPage from './pages/PendingApprovalPage';
+import DashboardPage from './pages/DashboardPage';
+import RequirementEnginePage from './pages/RequirementEnginePage';
+import AiConsultantPage from './pages/AiConsultantPage';
+import ProposalsPage from './pages/ProposalsPage';
+import PaymentsPage from './pages/PaymentsPage';
+import CrmPage from './pages/CrmPage';
+import ProjectsPage from './pages/ProjectsPage';
+import AdminPanel from './pages/AdminPanel';
 import MainLayout from './components/MainLayout';
-import LaunchpadPage from './pages/LaunchpadPage';
-import HubFeedPage from './pages/HubFeedPage';
-import PublicPortfolioPage from './pages/PublicPortfolioPage';
-import CareerBuilderPage from './pages/CareerBuilderPage';
-import NovaScoutPage from './pages/NovaScoutPage';
-import AdminLayout from './components/AdminLayout';
-import AdminDashboardPage from './pages/AdminDashboardPage';
-import AdminUsersPage from './pages/AdminUsersPage';
-import AdminCollegesPage from './pages/AdminCollegesPage';
 import ErrorBoundary from './components/ErrorBoundary';
 import { WifiOff, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -74,57 +64,24 @@ function App() {
                 <Routes>
                     <Route
                         path="/login"
-                        element={!isAuthenticated ? <LoginPage /> : (user?.role === 'admin' ? <Navigate to="/admin" /> : <Navigate to="/" />)}
-                    />
-                    {/* ... (rest of routes) ... */}
-                    <Route
-                        path="/onboarding"
-                        element={isAuthenticated ? (
-                            user?.is_verified || user?.verificationLevel?.toUpperCase() === 'VERIFIED' ? <Navigate to="/" /> : <OnboardingPage />
-                        ) : <Navigate to="/login" />}
+                        element={!isAuthenticated ? <LoginPage /> : <Navigate to="/" />}
                     />
 
-                    <Route
-                        path="/pending"
-                        element={isAuthenticated ? (
-                            (user?.verificationLevel?.toUpperCase() === 'PENDING' || !user?.is_verified) && user?.role !== 'admin' ? <PendingApprovalPage /> : <Navigate to="/" />
-                        ) : <Navigate to="/login" />}
-                    />
-
-                    <Route path="/u/:username" element={<PublicPortfolioPage />} />
-
-                    <Route element={<MainLayout />}>
-                        <Route path="/" element={<FeedPage />} />
-                        <Route path="/discover" element={<DiscoverPage />} />
-                        <Route path="/profile" element={<ProfilePage />} />
-                        <Route path="/profile/:userId" element={<ProfilePage />} />
+                    <Route element={isAuthenticated ? <MainLayout /> : <Navigate to="/login" />}>
+                        <Route path="/" element={<DashboardPage />} />
+                        <Route path="/requirements" element={<RequirementEnginePage />} />
+                        <Route path="/consultant" element={<AiConsultantPage />} />
+                        <Route path="/proposals" element={<ProposalsPage />} />
+                        <Route path="/payments" element={<PaymentsPage />} />
                         
-                        {/* Protected child routes within MainLayout */}
-                    <Route element={
-                        isAuthenticated ? (
-                            // Only block if trying to access private campus features AND not approved yet
-                            // (Global Hub features are handled within the components or by backend)
-                            (user?.is_verified || user?.role === 'admin') ? <Outlet /> : 
-                                <Navigate to="/pending" />
-                        ) : <Navigate to="/login" />
-                    }>
-                            <Route path="/connections" element={<ConnectionsPage />} />
-                            <Route path="/notifications" element={<NotificationPage />} />
-                            <Route path="/chat" element={<ChatPage />} />
-                            <Route path="/launchpad" element={<LaunchpadPage />} />
-                            <Route path="/builder" element={<CareerBuilderPage />} />
-                            <Route path="/hubs/:hubId" element={<HubFeedPage />} />
-                            <Route path="/scout" element={<NovaScoutPage />} />
+                        {/* Internal Ops (Restricted for Clients) */}
+                        <Route element={user?.role !== 'CLIENT' ? <Outlet /> : <Navigate to="/" />}>
+                            <Route path="/crm" element={<CrmPage />} />
+                            <Route path="/projects" element={<ProjectsPage />} />
                         </Route>
-                    </Route>
 
-                    <Route path="/admin" element={
-                        isAuthenticated && user?.role === 'admin' ? <AdminLayout /> : <Navigate to={isAuthenticated ? "/" : "/login"} />
-                    }>
-                        <Route index element={<AdminDashboardPage />} />
-                        <Route path="users" element={<AdminUsersPage />} />
-                        <Route path="colleges" element={<AdminCollegesPage />} />
-                        <Route path="requests" element={<AdminRequestsPage />} />
+                        {/* Admin Panel */}
+                        <Route path="/admin" element={user?.role === 'ADMIN' ? <AdminPanel /> : <Navigate to="/" />} />
                     </Route>
 
                     <Route path="*" element={<Navigate to="/" />} />
