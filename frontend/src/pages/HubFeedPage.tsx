@@ -11,6 +11,7 @@ import {
     Layers, MapPin, Briefcase, Award, GraduationCap, ChevronRight
 } from 'lucide-react';
 import CreatePostModal from '../components/CreatePostModal';
+import { clsx } from 'clsx';
 
 const HubFeedPage = () => {
     const { hubId } = useParams<{ hubId: string }>();
@@ -33,6 +34,13 @@ const HubFeedPage = () => {
     const [showCircleModal, setShowCircleModal] = useState(false);
     const [circleName, setCircleName] = useState('');
     const [circleDesc, setCircleDesc] = useState('');
+
+    // Event Creation states
+    const [showEventModal, setShowEventModal] = useState(false);
+    const [eventTitle, setEventTitle] = useState('');
+    const [eventDesc, setEventDesc] = useState('');
+    const [eventDate, setEventDate] = useState('');
+    const [eventLocation, setEventLocation] = useState('');
 
     // Dynamic Filter States for Members Directory
     const [memberSearch, setMemberSearch] = useState('');
@@ -163,6 +171,52 @@ const HubFeedPage = () => {
             setCircles(circlesRes.data || []);
         } catch (err) {
             console.error('Failed to create circle:', err);
+        }
+    };
+
+    const handleCircleToggle = async (circleId: string, isJoined: boolean) => {
+        try {
+            if (isJoined) {
+                await api.post(`/environments/circles/${circleId}/leave`);
+            } else {
+                await api.post(`/environments/circles/${circleId}/join`);
+            }
+            const res = await api.get(`/environments/${hubId}/circles`);
+            setCircles(res.data || []);
+        } catch (err) {
+            console.error('Failed to toggle circle membership:', err);
+        }
+    };
+
+    const handleEventRSVP = async (eventId: string) => {
+        try {
+            await api.post(`/environments/events/${eventId}/rsvp`);
+            const res = await api.get(`/environments/${hubId}/events`);
+            setEvents(res.data || []);
+        } catch (err) {
+            console.error('Failed to RSVP to event:', err);
+        }
+    };
+
+    const handleCreateEvent = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!eventTitle.trim() || !eventDate) return;
+        try {
+            await api.post(`/environments/${hubId}/events`, {
+                title: eventTitle,
+                description: eventDesc,
+                eventDate,
+                location: eventLocation
+            });
+            setEventTitle('');
+            setEventDesc('');
+            setEventDate('');
+            setEventLocation('');
+            setShowEventModal(false);
+            const res = await api.get(`/environments/${hubId}/events`);
+            setEvents(res.data || []);
+        } catch (err) {
+            console.error('Failed to create event:', err);
         }
     };
 
@@ -501,8 +555,20 @@ const HubFeedPage = () => {
                                                 </p>
                                             </div>
                                             <div className="flex justify-between items-center border-t border-slate-100 dark:border-slate-800 pt-3 mt-1 text-[10px] text-slate-400 font-bold uppercase">
-                                                <span>{circle._count?.members || 0} Members</span>
-                                                <span className="text-blue-500 cursor-pointer hover:underline">Open Circle</span>
+                                                <span>{circle.memberCount || 0} Members</span>
+                                                {isMember && (
+                                                    <button
+                                                        onClick={() => handleCircleToggle(circle.id, circle.isMember)}
+                                                        className={clsx(
+                                                            "px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all",
+                                                            circle.isMember
+                                                                ? "bg-slate-100 dark:bg-white/5 text-slate-650 dark:text-slate-400 border border-slate-200 dark:border-white/5"
+                                                                : "bg-blue-600 text-white hover:bg-blue-700"
+                                                        )}
+                                                    >
+                                                        {circle.isMember ? 'Leave Circle' : 'Join Circle'}
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
                                     ))}
@@ -518,7 +584,17 @@ const HubFeedPage = () => {
                     {/* TAB: EVENTS */}
                     {activeTab === 'events' && (
                         <div className="space-y-6">
-                            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider">Scheduled Events & Meetups</h3>
+                            <div className="flex justify-between items-center">
+                                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider">Scheduled Events & Meetups</h3>
+                                {isMember && (
+                                    <button
+                                        onClick={() => setShowEventModal(true)}
+                                        className="flex items-center gap-1.5 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-950 text-xs font-bold rounded-xl transition-all"
+                                    >
+                                        <Plus size={14} /> Host Event
+                                    </button>
+                                )}
+                            </div>
 
                             {events.length > 0 ? (
                                 <div className="space-y-4">
@@ -530,12 +606,27 @@ const HubFeedPage = () => {
                                             <div className="flex-1 min-w-0">
                                                 <h4 className="text-sm font-bold text-slate-900 dark:text-white leading-snug">{event.title}</h4>
                                                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{event.description}</p>
-                                                <div className="flex flex-wrap items-center gap-4 text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-3">
-                                                    <span className="flex items-center gap-1"><MapPin size={10} /> {event.location || 'Online'}</span>
-                                                    <span>•</span>
-                                                    <span>{new Date(event.event_date).toLocaleString()}</span>
-                                                    <span>•</span>
-                                                    <span>{event._count?.attendees || 0} Attendees</span>
+                                                <div className="flex justify-between items-center border-t border-slate-100 dark:border-slate-800 pt-3 mt-1">
+                                                    <div className="flex flex-wrap items-center gap-4 text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                                                        <span className="flex items-center gap-1"><MapPin size={10} /> {event.location || 'Online'}</span>
+                                                        <span>•</span>
+                                                        <span>{new Date(event.event_date).toLocaleString()}</span>
+                                                        <span>•</span>
+                                                        <span>{event.attendeeCount || 0} Attendees</span>
+                                                    </div>
+                                                    {isMember && (
+                                                        <button
+                                                            onClick={() => handleEventRSVP(event.id)}
+                                                            className={clsx(
+                                                                "px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all",
+                                                                event.isAttending
+                                                                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                                                                    : "bg-blue-600 text-white hover:bg-blue-700"
+                                                            )}
+                                                        >
+                                                            {event.isAttending ? 'Attending' : 'RSVP / Attend'}
+                                                        </button>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
@@ -738,6 +829,79 @@ const HubFeedPage = () => {
                                     className="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-xl shadow-sm"
                                 >
                                     Create
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Create Event Modal */}
+            {showEventModal && (
+                <div className="fixed inset-0 z-[202] flex items-center justify-center p-4">
+                    <div className="fixed inset-0 bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-sm" onClick={() => setShowEventModal(false)} />
+                    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl max-w-md w-full p-6 relative z-10">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-base font-bold text-slate-950 dark:text-white">Host New Event</h3>
+                            <button onClick={() => setShowEventModal(false)} className="text-slate-400 hover:text-slate-650"><X size={18} /></button>
+                        </div>
+                        <form onSubmit={handleCreateEvent} className="space-y-4">
+                            <div>
+                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Event Title</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={eventTitle}
+                                    onChange={e => setEventTitle(e.target.value)}
+                                    placeholder="e.g. Alumni Networking Dinner"
+                                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white outline-none focus:ring-1 focus:ring-blue-500"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Description</label>
+                                <textarea
+                                    value={eventDesc}
+                                    onChange={e => setEventDesc(e.target.value)}
+                                    placeholder="What will happen at this event?"
+                                    rows={3}
+                                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white outline-none resize-none focus:ring-1 focus:ring-blue-500"
+                                />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Date & Time</label>
+                                    <input
+                                        type="datetime-local"
+                                        required
+                                        value={eventDate}
+                                        onChange={e => setEventDate(e.target.value)}
+                                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white outline-none focus:ring-1 focus:ring-blue-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Location</label>
+                                    <input
+                                        type="text"
+                                        value={eventLocation}
+                                        onChange={e => setEventLocation(e.target.value)}
+                                        placeholder="e.g. Seminar Hall / Zoom"
+                                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white outline-none focus:ring-1 focus:ring-blue-500"
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex gap-2 justify-end pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowEventModal(false)}
+                                    className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-350 text-xs font-bold rounded-xl"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-xl shadow-sm"
+                                >
+                                    Host Event
                                 </button>
                             </div>
                         </form>

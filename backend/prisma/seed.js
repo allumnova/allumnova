@@ -4,94 +4,286 @@ const bcrypt = require('bcryptjs');
 const prisma = new PrismaClient();
 
 async function main() {
-    console.log('🧹 CLEAN SWEEP: Clearing all existing data for launch...');
+    console.log('🧹 CLEAN SWEEP: Clearing existing database tables...');
 
-    // Delete in strict FK-safe order to prevent P2003 errors
-    // 1. Dependency Tier 3 (Farthest from User/College)
-    await prisma.analyticsEvent.deleteMany({});
-    await prisma.report.deleteMany({});
-    await prisma.eventAttendee.deleteMany({});
-    await prisma.mentorshipRequest.deleteMany({});
-    await prisma.jobApplication.deleteMany({});
-    await prisma.postLike.deleteMany({});
-    await prisma.comment.deleteMany({});
-    await prisma.postMedia.deleteMany({});
-    await prisma.savedPost.deleteMany({});
-    await prisma.message.deleteMany({});
-    await prisma.projectMilestone.deleteMany({});
-    await prisma.projectHype.deleteMany({});
-    await prisma.follow.deleteMany({});
+    try {
+        await prisma.payment.deleteMany({});
+        await prisma.invoice.deleteMany({});
+        await prisma.workflowRun.deleteMany({});
+        await prisma.workflow.deleteMany({});
+        await prisma.task.deleteMany({});
+        await prisma.project.deleteMany({});
+        await prisma.session.deleteMany({});
+        await prisma.auditLog.deleteMany({});
+        await prisma.aiTokenMetric.deleteMany({});
+        try {
+            await prisma.aiKnowledgeBase.deleteMany({});
+        } catch (e) {
+            console.log('pgvector clear skipped: no extension or table content');
+        }
+        await prisma.subscriptionLog.deleteMany({});
+        await prisma.user.deleteMany({});
+        await prisma.organization.deleteMany({});
+        await prisma.aiPrompt.deleteMany({});
+    } catch (error) {
+        console.warn('Clear tables warning:', error.message);
+    }
 
-    // 2. Dependency Tier 2 (Middle relationships)
-    await prisma.notification.deleteMany({});
-    await prisma.event.deleteMany({});
-    await prisma.job.deleteMany({});
-    await prisma.conversationMember.deleteMany({});
-    await prisma.post.deleteMany({});
-    await prisma.project.deleteMany({});
-    await prisma.experience.deleteMany({});
-    await prisma.education.deleteMany({});
+    console.log('✅ Tables cleared.');
 
-    // 3. Dependency Tier 1 (Direct links to User/College/Environment)
-    await prisma.conversation.deleteMany({});
-    await prisma.connection.deleteMany({});
-    await prisma.collegeMembership.deleteMany({});
-    await prisma.collegeRequest.deleteMany({});
-    await prisma.environmentMembership.deleteMany({});
-
-    // 4. Base Tier (The roots)
-    await prisma.environment.deleteMany({});
-    await prisma.college.deleteMany({});
-    await prisma.user.deleteMany({});
-
-    console.log('✅ Database cleared.');
-
-    // Create the ONLY Admin User
-    const adminEmail = 'vipranshusachan@gmail.com';
-    const hashedPassword = await bcrypt.hash('mnbvcxz', 10);
-    
-    const admin = await prisma.user.create({
+    // 1. Create Organization
+    const org = await prisma.organization.create({
         data: {
-            email: adminEmail,
-            password_hash: hashedPassword,
-            name: 'Vipranshu Sachan',
-            username: 'admin-vips',
-            role: 'admin',
-            is_verified: true,
-            verificationLevel: 'VERIFIED',
-            reputationScore: 100,
-        },
-    });
-    
-    console.log(`👤 Platform Admin created: ${adminEmail}`);
-
-    // Create HBTU College
-    const hbtu = await prisma.college.create({
-        data: {
-            name: 'HBTU Kanpur',
-            domain: 'hbtu.edu.in',
-            subdomain: 'hbtu',
-            location: 'Kanpur, UP',
-            website: 'https://hbtu.ac.in',
-            primaryColor: '#1A237E',
-        },
-    });
-    console.log(`🏫 College created: ${hbtu.name}`);
-
-    // Create Admin Membership for HBTU
-    await prisma.collegeMembership.create({
-        data: {
-            userId: admin.id,
-            collegeId: hbtu.id,
-            role: 'admin',
-            status: 'APPROVED',
-            batch: 'N/A'
+            id: 'org_allumnova',
+            name: 'Allumnova Enterprise OS',
+            domain: 'allumnova.in',
+            subscriptionPlan: 'ENTERPRISE',
+            status: 'ACTIVE'
         }
     });
-    console.log(`✅ Admin membership for ${hbtu.name} created.`);
+    console.log(`🏢 Created Organization: ${org.name}`);
 
-    console.log('\n🎉 ALLUMNOVA IS READY FOR LAUNCH!');
-    console.log('   Admin login: vipranshusachan@gmail.com / mnbvcxz');
+    // 2. Create Users
+    const adminPasswordHash = await bcrypt.hash('mnbvcxz', 10);
+    const clientPasswordHash = await bcrypt.hash('password', 10);
+
+    const adminUser = await prisma.user.create({
+        data: {
+            id: 'usr_vipranshu',
+            organizationId: org.id,
+            email: 'vipranshusachan@gmail.com',
+            password_hash: adminPasswordHash,
+            name: 'Vipranshu Sachan',
+            role: 'ADMIN',
+            isActive: true
+        }
+    });
+    console.log(`👤 Admin User created: ${adminUser.email}`);
+
+    const clientUser = await prisma.user.create({
+        data: {
+            id: 'usr_client',
+            organizationId: org.id,
+            email: 'client@example.com',
+            password_hash: clientPasswordHash,
+            name: 'Acme Corporates Client',
+            role: 'CLIENT',
+            isActive: true
+        }
+    });
+    console.log(`👤 Client User created: ${clientUser.email}`);
+
+    // 3. Create Sample Projects
+    const projectSolar = await prisma.project.create({
+        data: {
+            id: 'proj_solar',
+            organizationId: org.id,
+            name: 'Project Solar Monitor',
+            description: 'IoT solar panel metrics dashboard and anomaly alert engine.',
+            status: 'BUILDING'
+        }
+    });
+    const projectNexus = await prisma.project.create({
+        data: {
+            id: 'proj_nexus',
+            organizationId: org.id,
+            name: 'Project Nexus AI',
+            description: 'Autonomous requirements elicitation and document signature workflows.',
+            status: 'IDEA'
+        }
+    });
+    console.log('📁 Sample projects created.');
+
+    // 4. Create Sample Tasks
+    const now = new Date();
+    
+    // SLA deadline in 2 hours (urgent warning)
+    const urgentSla = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+    // SLA deadline in 24 hours (safe)
+    const safeSla = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+
+    await prisma.task.createMany({
+        data: [
+            {
+                id: 'task_1',
+                organizationId: org.id,
+                projectId: projectSolar.id,
+                title: 'Set up Express API controllers & routing tables',
+                description: 'Migrate old routes to support B2B modules.',
+                status: 'DONE',
+                dueDate: new Date(now.getTime() - 24 * 60 * 60 * 1000)
+            },
+            {
+                id: 'task_2',
+                organizationId: org.id,
+                projectId: projectSolar.id,
+                title: 'Configure Logical Multi-tenant DB Indexes',
+                description: 'Add composite index for organizationId scope checking.',
+                status: 'IN_PROGRESS',
+                slaDeadline: urgentSla,
+                dueDate: urgentSla
+            },
+            {
+                id: 'task_3',
+                organizationId: org.id,
+                projectId: projectSolar.id,
+                title: 'Integrate Redis Sorted Sets SLA Tracker',
+                description: 'Implement BullMQ cron to check SLA breaches dynamically.',
+                status: 'TODO',
+                slaDeadline: safeSla,
+                dueDate: safeSla
+            },
+            {
+                id: 'task_4',
+                organizationId: org.id,
+                projectId: projectNexus.id,
+                title: 'Deploy LangGraph ReAct agent pipeline',
+                description: 'Enable business scoping conversation and feedback audit logs.',
+                status: 'TODO',
+                dueDate: new Date(now.getTime() + 72 * 60 * 60 * 1000)
+            }
+        ]
+    });
+    console.log('📝 Sample tasks created.');
+
+    // 5. Create Workflows
+    const sampleWorkflowDef = {
+        workflowId: 'wf_proposal_sign_v1',
+        initialState: 'DRAFT',
+        states: {
+            DRAFT: {
+                on: {
+                    SUBMIT_FOR_APPROVAL: {
+                        target: 'PENDING_APPROVAL',
+                        actions: ['notifyApproverGroup', 'logAuditAction']
+                    }
+                }
+            },
+            PENDING_APPROVAL: {
+                on: {
+                    APPROVE: {
+                        target: 'APPROVED',
+                        actions: ['generateCryptographicPdfSign', 'notifyClient']
+                    },
+                    REJECT: {
+                        target: 'REJECTED',
+                        actions: ['notifyCreatorOfRejection']
+                    }
+                }
+            },
+            APPROVED: {
+                type: 'final'
+            },
+            REJECTED: {
+                on: {
+                    EDIT: {
+                        target: 'DRAFT'
+                    }
+                }
+            }
+        }
+    };
+
+    const wf = await prisma.workflow.create({
+        data: {
+            id: 'wf_proposal',
+            organizationId: org.id,
+            name: 'Proposal Agreement Workflow',
+            description: 'Automated state machine for contract signing and audit verification.',
+            triggerType: 'EVENT',
+            definition: sampleWorkflowDef,
+            isActive: true
+        }
+    });
+    console.log(`⚙️ Workflows created: ${wf.name}`);
+
+    // 6. Create Prompts
+    await prisma.aiPrompt.createMany({
+        data: [
+            {
+                id: 'prompt_req_extractor',
+                name: 'REQUIREMENTS_EXTRACTOR',
+                template: 'Analyze client feedback: {{requirements}}. Extract structured JSON tasks including "title", "description", and "priority".',
+                version: 1
+            },
+            {
+                id: 'prompt_pm_agent',
+                name: 'PM_AGENT',
+                template: 'You are an autonomous PM Agent. Analyze task logs: {{tasks}} and respond to queries.',
+                version: 1
+            }
+        ]
+    });
+    console.log('🤖 AI prompt templates created.');
+
+    // 7. Create Invoices and Payments
+    const invoice1 = await prisma.invoice.create({
+        data: {
+            id: 'inv_1',
+            organizationId: org.id,
+            clientId: clientUser.id,
+            amount: 4500.00,
+            currency: 'USD',
+            status: 'UNPAID',
+            dueDate: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+        }
+    });
+
+    const invoice2 = await prisma.invoice.create({
+        data: {
+            id: 'inv_2',
+            organizationId: org.id,
+            clientId: clientUser.id,
+            amount: 12500.00,
+            currency: 'USD',
+            status: 'PAID',
+            dueDate: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000)
+        }
+    });
+
+    await prisma.payment.create({
+        data: {
+            id: 'pay_1',
+            invoiceId: invoice2.id,
+            paymentGateway: 'STRIPE',
+            transactionReference: 'ch_stripe_8236487236',
+            amount: 12500.00,
+            status: 'SUCCESS'
+        }
+    });
+    console.log('💳 Sample invoices and payments created.');
+
+    // 8. Create AI metrics telemetry data
+    await prisma.aiTokenMetric.createMany({
+        data: [
+            {
+                organizationId: org.id,
+                agentId: 'PM_AGENT',
+                promptTokens: 850,
+                completionTokens: 340,
+                estimatedCostUsd: 0.00595
+            },
+            {
+                organizationId: org.id,
+                agentId: 'SALES_AGENT',
+                promptTokens: 1200,
+                completionTokens: 900,
+                estimatedCostUsd: 0.01500
+            },
+            {
+                organizationId: org.id,
+                agentId: 'BUSINESS_CONSULTANT',
+                promptTokens: 2500,
+                completionTokens: 1800,
+                estimatedCostUsd: 0.03450
+            }
+        ]
+    });
+    console.log('📊 Telemetry data initialized.');
+
+    console.log('\n🎉 B2B ENTERPRISE OS IS SEEDED AND READY!');
+    console.log('   Admin Login: vipranshusachan@gmail.com / mnbvcxz');
+    console.log('   Client Login: client@example.com / password');
 }
 
 main()

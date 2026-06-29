@@ -84,7 +84,7 @@ const getMembers = async (req, res) => {
 const getCircles = async (req, res) => {
     try {
         const { hubId } = req.params;
-        const circles = await environmentService.listCircles(hubId);
+        const circles = await environmentService.listCircles(hubId, req.user.userId);
         res.json(circles);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -101,11 +101,51 @@ const addCircle = async (req, res) => {
     }
 };
 
+const joinCircle = async (req, res) => {
+    try {
+        const { circleId } = req.params;
+        const membership = await environmentService.joinCircle(circleId, req.user.userId);
+        res.status(201).json(membership);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const leaveCircle = async (req, res) => {
+    try {
+        const { circleId } = req.params;
+        await environmentService.leaveCircle(circleId, req.user.userId);
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 const getEvents = async (req, res) => {
     try {
         const { hubId } = req.params;
-        const events = await environmentService.listEvents(hubId);
+        const events = await environmentService.listEvents(hubId, req.user.userId);
         res.json(events);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const createEvent = async (req, res) => {
+    try {
+        const { hubId } = req.params;
+        const event = await environmentService.createEvent(hubId, req.user.userId, req.body);
+        res.status(201).json(event);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+const rsvpEvent = async (req, res) => {
+    try {
+        const { eventId } = req.params;
+        const result = await environmentService.rsvpEvent(eventId, req.user.userId);
+        res.json(result);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -145,7 +185,11 @@ module.exports = {
     getMembers,
     getCircles,
     addCircle,
+    joinCircle,
+    leaveCircle,
     getEvents,
+    createEvent,
+    rsvpEvent,
     getHubDetails,
     getHubLeaderboard
 };

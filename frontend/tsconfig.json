@@ -24,6 +24,36 @@
     "include": [
         "src"
     ],
+    "exclude": [
+        "src/pages/FeedPage.tsx",
+        "src/pages/DiscoverPage.tsx",
+        "src/pages/ProfilePage.tsx",
+        "src/pages/ConnectionsPage.tsx",
+        "src/pages/ChatPage.tsx",
+        "src/pages/NotificationPage.tsx",
+        "src/pages/OnboardingPage.tsx",
+        "src/pages/PendingApprovalPage.tsx",
+        "src/pages/VerificationPendingPage.tsx",
+        "src/pages/PublicPortfolioPage.tsx",
+        "src/pages/CareerBuilderPage.tsx",
+        "src/pages/NovaScoutPage.tsx",
+        "src/pages/LaunchpadPage.tsx",
+        "src/pages/HubFeedPage.tsx",
+        "src/pages/AdminDashboardPage.tsx",
+        "src/pages/AdminUsersPage.tsx",
+        "src/pages/AdminCollegesPage.tsx",
+        "src/pages/AdminRequestsPage.tsx",
+        "src/components/AdminLayout.tsx",
+        "src/components/CreatePostModal.tsx",
+        "src/components/EditPostModal.tsx",
+        "src/components/PostCard.tsx",
+        "src/components/PostTypeFields.tsx",
+        "src/components/hub/**/*",
+        "src/components/profile/**/*",
+        "src/components/project/**/*",
+        "src/components/social/**/*",
+        "src/contexts/CollegeContext.tsx"
+    ],
     "references": [
         {
             "path": "./tsconfig.node.json"

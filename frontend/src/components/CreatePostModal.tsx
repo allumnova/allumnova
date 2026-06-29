@@ -81,8 +81,9 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose, onSu
             formData.append('post_type', type);
             formData.append('visibility', activeCollege.id === 'cl_global_allumnova' ? 'public' : visibility);
             
-            if (environmentId) {
-                formData.append('environmentId', environmentId);
+            const targetEnvironmentId = environmentId || (activeCollege.id !== 'cl_global_allumnova' ? activeCollege.id : null);
+            if (targetEnvironmentId) {
+                formData.append('environmentId', targetEnvironmentId);
             }
             
             if (type !== 'general') {

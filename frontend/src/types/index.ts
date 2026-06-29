@@ -1,38 +1,22 @@
-export interface College {
+export interface Organization {
     id: string;
     name: string;
-    domain: string;
-    subdomain: string;
-    logo?: string;
-    primaryColor: string;
-    location?: string;
-    website?: string;
+    subscriptionPlan: string;
+    status: string;
 }
 
 export interface User {
     id: string;
     email: string;
     name: string;
-    username: string;
+    username?: string;
     avatar?: string;
-    reputationScore: number;
-    tierLevel: string;
-    role: 'student' | 'alumni' | 'admin' | 'user';
-    is_verified: boolean;
-    verificationLevel?: string;
-    pulse?: string | null;
-    pulseEmoji?: string | null;
-    colleges?: {
-        id: string; // collegeId
-        role: string;
-        status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'VERIFIED';
-    }[];
-    careerObjective?: string;
-    techSkills?: any;
-    achievements?: string[];
-    hobbies?: string[];
-    resumeUrl?: string;
-    department?: string;
+    reputationScore?: number;
+    tierLevel?: string;
+    role: 'ADMIN' | 'MANAGER' | 'MEMBER' | 'CLIENT' | 'admin' | string;
+    is_verified?: boolean;
+    organization?: Organization;
+    organizationId?: string;
 }
 
 export interface AuthState {

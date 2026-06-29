@@ -24,6 +24,10 @@ const notificationRoutes = require('./modules/notification/notification.routes')
 const adminRoutes = require('./modules/admin/admin.routes');
 const environmentRoutes = require('./modules/environment/environment.routes');
 const projectRoutes = require('./modules/project/project.routes');
+const aiRoutes = require('./modules/ai/ai.routes');
+const workflowRoutes = require('./modules/workflow/workflow.routes');
+const billingRoutes = require('./modules/billing/billing.routes');
+const crmRoutes = require('./modules/crm/crm.routes');
 const profileController = require('./modules/profile/profile.controller');
 const { authenticate } = require('./middlewares/auth.middleware');
 const upload = require('./utils/upload');
@@ -56,6 +60,12 @@ app.use('/api/reputation', reputationRoutes);
 app.use('/api/projects', projectRoutes);
 const scoutRoutes = require('./modules/scout/scout.routes');
 app.use('/api/scout', scoutRoutes);
+
+// B2B Enterprise OS Routes
+app.use('/api/ai', aiRoutes);
+app.use('/api/workflows', workflowRoutes);
+app.use('/api/billing', billingRoutes);
+app.use('/api/crm', crmRoutes);
 
 app.get('/api/health', (req, res) => {
     res.json({ status: 'healthy', timestamp: new Date() });
