@@ -15,22 +15,12 @@ socketUtil.init(server);
 
 // Route Imports
 const authRoutes = require('./modules/auth/auth.routes');
-const collegeRoutes = require('./modules/college/college.routes');
-const feedRoutes = require('./modules/feed/feed.routes');
-const profileRoutes = require('./modules/profile/profile.routes');
-const socialRoutes = require('./modules/social/social.routes');
 const chatRoutes = require('./modules/chat/chat.routes');
-const notificationRoutes = require('./modules/notification/notification.routes');
-const adminRoutes = require('./modules/admin/admin.routes');
-const environmentRoutes = require('./modules/environment/environment.routes');
 const projectRoutes = require('./modules/project/project.routes');
 const aiRoutes = require('./modules/ai/ai.routes');
 const workflowRoutes = require('./modules/workflow/workflow.routes');
 const billingRoutes = require('./modules/billing/billing.routes');
 const crmRoutes = require('./modules/crm/crm.routes');
-const profileController = require('./modules/profile/profile.controller');
-const { authenticate } = require('./middlewares/auth.middleware');
-const upload = require('./utils/upload');
 
 // Middlewares
 app.use(helmet());
@@ -41,27 +31,9 @@ app.use(morgan('dev'));
 app.use('/uploads', express.static('uploads'));
 
 // Routes
-// High Priority API Routes
-app.patch('/api/profile', authenticate, upload.single('avatar'), profileController.updateMyProfile);
-app.patch('/api/profile/me', authenticate, upload.single('avatar'), profileController.updateMyProfile);
-
 app.use('/api/auth', authRoutes);
-app.use('/api/colleges', collegeRoutes);
-app.use('/api/feed', feedRoutes);
-app.use('/api/profile', profileRoutes);
-
-app.use('/api/social', socialRoutes);
 app.use('/api/chat', chatRoutes);
-app.use('/api/notifications', notificationRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/environments', environmentRoutes);
-const reputationRoutes = require('./modules/reputation/reputation.routes');
-app.use('/api/reputation', reputationRoutes);
 app.use('/api/projects', projectRoutes);
-const scoutRoutes = require('./modules/scout/scout.routes');
-app.use('/api/scout', scoutRoutes);
-
-// B2B Enterprise OS Routes
 app.use('/api/ai', aiRoutes);
 app.use('/api/workflows', workflowRoutes);
 app.use('/api/billing', billingRoutes);
